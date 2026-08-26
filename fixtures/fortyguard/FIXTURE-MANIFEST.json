@@ -1,0 +1,55 @@
+{
+  "fixture_manifest": {
+    "created_at": "2026-08-26T22:00:00Z",
+    "project_id": "urban-heat-intelligence",
+    "provider": "FortyGuard",
+    "description": "Genuine replay fixtures from live FortyGuard API calls during S0 preflight",
+    "fixtures": [
+      {
+        "name": "heatmap-phoenix-2026-08-25-14h",
+        "path": "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
+        "provider": "FortyGuard",
+        "endpoint": "/v1/heatmap",
+        "activity_id": "67b05e52-afbc-4e3b-930a-abc4dc789fba",
+        "capture_timestamp": "2026-08-26T22:00:00Z",
+        "synthetic": false,
+        "replay_eligible": true,
+        "content_hash": "sha256:f0c46b4ec6059cb1ee2f1926e1392ce09ffba7851cf070b9bd96b9a184214fbc",
+        "request_params": {
+          "polygon_aoi": "Phoenix downtown (~0.02 degree polygon)",
+          "date_time": {
+            "start_date": "2026-08-25",
+            "start_time": "14:00",
+            "filter_type": 1
+          },
+          "granularity": 100
+        }
+      },
+      {
+        "name": "env-params-phoenix-2026-08-25-14h",
+        "path": "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
+        "provider": "FortyGuard",
+        "endpoint": "/v1/env_params",
+        "activity_id": "2ab3bf43-5791-491c-8c34-dad3181ad9c4",
+        "capture_timestamp": "2026-08-26T22:00:00Z",
+        "synthetic": false,
+        "replay_eligible": true,
+        "content_hash": "sha256:fcbce6b18a1fcd8c5fe2cca548574e33f65173e9ffa295e8d209d73471e16183",
+        "request_params": {
+          "latitude": 33.4484,
+          "longitude": -112.074,
+          "temperature": 42.0,
+          "date_time": {
+            "start_date": "2026-08-25",
+            "start_time": "14:00",
+            "filter_type": 1
+          }
+        }
+      }
+    ],
+    "credentials": {
+      "api_key_in_fixtures": false,
+      "api_key_in_headers": false
+    }
+  }
+}

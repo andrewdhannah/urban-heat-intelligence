@@ -1,0 +1,25 @@
+{
+  "receipt_id": "S0-ENV_PARAMS-LIVE-20260826",
+  "provider": "FortyGuard",
+  "endpoint": "/v1/env_params",
+  "request_parameters": {
+    "latitude": 33.4484,
+    "longitude": -112.074,
+    "temperature": 42.0,
+    "date_time": {
+      "start_date": "2026-08-25",
+      "start_time": "14:00",
+      "filter_type": 1
+    }
+  },
+  "request_timestamp": "2026-08-26T22:00:20Z",
+  "activity_id": "2ab3bf43-5791-491c-8c34-dad3181ad9c4",
+  "terminal_status": "Completed",
+  "response_timestamp": "2026-08-26T22:00:25Z",
+  "fixture_reference": "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
+  "authentication": "api-key",
+  "credential_source": "FORTYGUARD_API_KEY",
+  "credential_present": true,
+  "credential_exposed": false,
+  "live_or_replay": "live"
+}

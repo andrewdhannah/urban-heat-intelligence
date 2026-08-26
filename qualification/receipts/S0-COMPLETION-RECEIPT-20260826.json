@@ -1,0 +1,107 @@
+{
+  "receipt_id": "S0-COMPLETION-RECEIPT-20260826",
+  "receipt_type": "s0_completion",
+  "timestamp": "2026-08-26T22:15:00Z",
+  "project_id": "urban-heat-intelligence",
+  "s0_authorization": "Owner disposition \u2014 FortyGuard Preflight + Minimum Runtime Slice",
+  "credential_present": true,
+  "credential_exposed": false,
+  "entitlement_endpoint": "/v1/system/fetch-api-key-usage",
+  "entitlement_http_status": 200,
+  "plan_detected": "Hackathon",
+  "credit_state": {
+    "total": 2000000,
+    "remaining": 1995780,
+    "used": 4220
+  },
+  "quickstart_result": "Activity workflow exercised: POST \u2192 activity_id \u2192 poll \u2192 Completed",
+  "heatmap_request": {
+    "endpoint": "POST /v1/heatmap",
+    "polygon_aoi": "Phoenix downtown (~0.02 degree polygon)",
+    "date_time": {
+      "start_date": "2026-08-25",
+      "start_time": "14:00",
+      "filter_type": 1
+    },
+    "granularity": 100
+  },
+  "heatmap_http_status": 200,
+  "heatmap_activity_id": "67b05e52-afbc-4e3b-930a-abc4dc789fba",
+  "heatmap_terminal_status": "Completed",
+  "heatmap_result_summary": "367 GeoJSON features, avg temp 42.03\u00b0C, Phoenix downtown 2026-08-25 14:00 MST",
+  "env_params_request": {
+    "endpoint": "POST /v1/env_params",
+    "latitude": 33.4484,
+    "longitude": -112.074,
+    "temperature": 42.0,
+    "date_time": {
+      "start_date": "2026-08-25",
+      "start_time": "14:00",
+      "filter_type": 1
+    }
+  },
+  "env_params_http_status": 200,
+  "env_params_activity_id": "2ab3bf43-5791-491c-8c34-dad3181ad9c4",
+  "env_params_terminal_status": "Completed",
+  "env_params_result_summary": "Location metadata with timezone GMT-7, single time point 2026-08-25T14:00:00-07:00",
+  "polling_behavior": {
+    "method": "GET /v1/status/{activity_id}",
+    "poll_interval": 3,
+    "max_polls": 30,
+    "heatmap_polls": 1,
+    "env_params_polls": 1,
+    "note": "Both activities completed on first poll \u2014 fast processing"
+  },
+  "live_fixtures_created": [
+    "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
+    "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
+    "fixtures/fortyguard/FIXTURE-MANIFEST.json"
+  ],
+  "replay_fixtures_verified": "Fixtures contain no API key. Genuine provider responses. replay_eligible: true.",
+  "dashboard_corroboration": "PENDING \u2014 dashboard check not yet performed",
+  "adapter_files_created": [
+    "src/adapters/fortyguard.py"
+  ],
+  "tests": [
+    "credential loads from governed secret source",
+    "credential is not emitted to stdout/stderr/logs",
+    "entitlement/usage request succeeds",
+    "heatmap submission returns activity ID",
+    "polling terminates correctly",
+    "Completed result is captured",
+    "env_params returns valid response",
+    "genuine replay fixture reproduces normalized output",
+    "replay operation makes no network call",
+    "evidence receipt identifies live vs replay",
+    "committed fixture/artifact scan contains no credential"
+  ],
+  "test_pass_count": 11,
+  "test_fail_count": 0,
+  "evidence_receipt": "src/receipts/s0-heatmap-live.json, s0-env-params-live.json, s0-entitlement-live.json",
+  "secret_scan": "All committed files CLEAN \u2014 no actual API key values found",
+  "files_created": [
+    "src/adapters/fortyguard.py",
+    "src/receipts/s0-heatmap-live.json",
+    "src/receipts/s0-env-params-live.json",
+    "src/receipts/s0-entitlement-live.json",
+    "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
+    "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
+    "fixtures/fortyguard/FIXTURE-MANIFEST.json"
+  ],
+  "files_changed": [],
+  "new_api_discoveries": [
+    "heatmap polygon_aoi requires FeatureCollection with Feature containing properties field",
+    "date_time requires object with start_date (YYYY-MM-DD) and start_time (HH:MM), not ISO string",
+    "granularity is numeric (60, 80, 100), not string",
+    "env_params requires latitude, longitude, temperature, date_time (object)",
+    "Both endpoints use async workflow: POST \u2192 activity_id \u2192 GET /v1/status/{id}",
+    "Processing time is fast (< 3 seconds for small AOI)"
+  ],
+  "documentation_conflicts": [
+    "API response schema differs from planning assumptions (map_data features, stats_data structure)",
+    "env_params returns metadata+locations structure, not flat key-value pairs"
+  ],
+  "stop_conditions_encountered": "None",
+  "s0_status": "COMPLETE",
+  "s1_status": "PLANNED / NOT AUTHORIZED"
+}

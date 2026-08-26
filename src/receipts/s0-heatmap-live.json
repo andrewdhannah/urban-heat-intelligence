@@ -1,0 +1,26 @@
+{
+  "receipt_id": "S0-HEATMAP-LIVE-20260826",
+  "provider": "FortyGuard",
+  "endpoint": "/v1/heatmap",
+  "request_parameters": {
+    "polygon_aoi": "Phoenix downtown (~0.02 degree polygon)",
+    "date_time": {
+      "start_date": "2026-08-25",
+      "start_time": "14:00",
+      "filter_type": 1
+    },
+    "granularity": 100
+  },
+  "request_timestamp": "2026-08-26T22:00:00Z",
+  "activity_id": "67b05e52-afbc-4e3b-930a-abc4dc789fba",
+  "terminal_status": "Completed",
+  "response_timestamp": "2026-08-26T22:00:15Z",
+  "feature_count": 367,
+  "sample_temperature_celsius": 42.03,
+  "fixture_reference": "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
+  "authentication": "api-key",
+  "credential_source": "FORTYGUARD_API_KEY",
+  "credential_present": true,
+  "credential_exposed": false,
+  "live_or_replay": "live"
+}

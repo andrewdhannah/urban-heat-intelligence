@@ -1,0 +1,15 @@
+{
+  "receipt_id": "S0-ENTITLEMENT-LIVE-20260826",
+  "provider": "FortyGuard",
+  "endpoint": "/v1/system/fetch-api-key-usage",
+  "request_timestamp": "2026-08-26T21:55:00Z",
+  "plan_detected": "Hackathon",
+  "total_credits": 2000000,
+  "credits_remaining": 1995780,
+  "status": "active",
+  "authentication": "api-key",
+  "credential_source": "FORTYGUARD_API_KEY",
+  "credential_present": true,
+  "credential_exposed": false,
+  "live_or_replay": "live"
+}
