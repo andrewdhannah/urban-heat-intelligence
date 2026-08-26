@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Heat Intelligence</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
+
+        /* Header */
+        .header { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; font-weight: 600; color: #f8fafc; }
+        .header .subline { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+        .mode-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mode-live { background: #059669; color: white; }
+        .mode-replay { background: #d97706; color: white; }
+
+        /* Main layout */
+        .main { display: grid; grid-template-columns: 380px 1fr; height: calc(100vh - 60px); }
+
+        /* Sidebar */
+        .sidebar { background: #1e293b; border-right: 1px solid #334155; overflow-y: auto; padding: 20px; }
+
+        /* Question */
+        .question-box { margin-bottom: 20px; }
+        .question-box textarea { width: 100%; height: 80px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #e2e8f0; padding: 12px; font-size: 14px; resize: none; font-family: inherit; }
+        .question-box textarea:focus { outline: none; border-color: #3b82f6; }
+        .question-box .actions { display: flex; gap: 8px; margin-top: 8px; }
+        .btn { padding: 10px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #475569; color: #e2e8f0; }
+        .btn-secondary:hover { background: #64748b; }
+        .btn.active { outline: 2px solid #3b82f6; outline-offset: 2px; }
+
+        /* Decision Summary */
+        .decision-summary { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .decision-summary h3 { font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1e293b; }
+        .stat:last-child { border-bottom: none; }
+        .stat .label { color: #94a3b8; font-size: 13px; }
+        .stat .value { font-weight: 600; font-size: 14px; }
+        .stat .value.hot { color: #f97316; }
+        .stat .value.extreme { color: #ef4444; }
+
+        /* Priority Card */
+        .priority-card { background: linear-gradient(135deg, #7c2d12, #9a3412); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .priority-card h3 { font-size: 13px; color: #fed7aa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .priority-card .location { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+        .priority-card .detail { font-size: 13px; color: #fdba74; line-height: 1.5; }
+
+        /* Evidence */
+        .evidence-section { margin-top: 16px; }
+        .evidence-toggle { width: 100%; background: #334155; border: none; border-radius: 6px; padding: 10px 14px; color: #e2e8f0; font-size: 13px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; }
+        .evidence-toggle:hover { background: #475569; }
+        .evidence-chain { display: none; margin-top: 8px; }
+        .evidence-chain.open { display: block; }
+        .chain-node { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; }
+        .chain-node .step { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .chain-node .detail { font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+        .chain-node .detail b { color: #cbd5e1; }
+
+        /* Map */
+        .map-container { position: relative; }
+        #map { width: 100%; height: 100%; }
+        .map-overlay { position: absolute; bottom: 16px; left: 16px; background: rgba(15,23,42,0.9); border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #94a3b8; z-index: 1000; }
+        .map-overlay .source { color: #3b82f6; font-weight: 500; }
+
+        /* Loading */
+        .loading { display: none; text-align: center; padding: 40px; color: #94a3b8; }
+        .loading.active { display: block; }
+        .spinner { border: 3px solid #334155; border-top: 3px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>Urban Heat Intelligence</h1>
+            <div class="subline">Agentic, evidence-backed urban heat decisions powered by FortyGuard</div>
+        </div>
+        <div class="mode-badge" id="mode-badge">REPLAY</div>
+    </div>
+
+    <div class="main">
+        <div class="sidebar">
+            <!-- Question -->
+            <div class="question-box">
+                <textarea id="question-input">Where should Phoenix prioritize a cooling intervention this afternoon?</textarea>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="runQuery()">Run</button>
+                    <button class="btn btn-secondary" id="btn-replay" onclick="setMode('replay')" style="background:#d97706">Replay</button>
+                    <button class="btn btn-secondary" id="btn-live" onclick="setMode('live')">Live</button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Querying FortyGuard...</div>
+            </div>
+
+            <!-- Decision Summary -->
+            <div class="decision-summary" id="decision-summary" style="display:none">
+                <h3>Decision Summary</h3>
+                <div class="stat"><span class="label">Area Mean Temperature</span><span class="value extreme" id="stat-mean">—</span></div>
+                <div class="stat"><span class="label">Area Max Temperature</span><span class="value extreme" id="stat-max">—</span></div>
+                <div class="stat"><span class="label">Area Temperature Range</span><span class="value" id="stat-range">—</span></div>
+                <div class="stat"><span class="label">Heatmap Features</span><span class="value" id="stat-features">—</span></div>
+                <div class="stat"><span class="label">Observation Time</span><span class="value" id="stat-obs-time">—</span></div>
+            </div>
+
+            <!-- Priority Location -->
+            <div class="priority-card" id="priority-card" style="display:none">
+                <h3>Priority Location</h3>
+                <div class="location" id="priority-coord">—</div>
+                <div class="detail">
+                    <div>Observed Temperature: <b id="priority-temp">—</b></div>
+                    <div>Apparent Temperature: <b id="priority-apparent">—</b></div>
+                    <div>Heat Index: <b id="priority-heat-index">—</b></div>
+                    <div>Humidity: <b id="priority-humidity">—</b></div>
+                    <div>Apparent vs Measured Delta: <b id="priority-delta">—</b></div>
+                    <div style="margin-top:8px; font-style:italic" id="priority-why">—</div>
+                </div>
+            </div>
+
+            <!-- Evidence -->
+            <div class="evidence-section">
+                <button class="evidence-toggle" onclick="toggleEvidence()">
+                    <span>Why This Answer?</span>
+                    <span id="evidence-arrow">▸</span>
+                </button>
+                <div class="evidence-chain" id="evidence-chain"></div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-overlay" id="map-overlay" style="display:none">
+                Source: <span class="source">FortyGuard</span> · <span id="overlay-time">—</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map, heatmapLayer, markerLayer;
+        let currentMode = 'replay';
+        let lastResult = null;
+
+        // Initialize map (Phoenix downtown)
+        function initMap() {
+            map = L.map('map').setView([33.45, -112.07], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors, © CARTO',
+                maxZoom: 19
+            }).addTo(map);
+            markerLayer = L.layerGroup().addTo(map);
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-badge').textContent = mode.toUpperCase();
+            document.getElementById('mode-badge').className = 'mode-badge mode-' + mode;
+            document.getElementById('btn-replay').className = 'btn btn-secondary' + (mode === 'replay' ? ' active' : '');
+            document.getElementById('btn-live').className = 'btn btn-secondary' + (mode === 'live' ? ' active' : '');
+        }
+
+        async function runQuery() {
+            const question = document.getElementById('question-input').value;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('decision-summary').style.display = 'none';
+            document.getElementById('priority-card').style.display = 'none';
+            document.getElementById('map-overlay').style.display = 'none';
+            markerLayer.clearLayers();
+
+            try {
+                const resp = await fetch(`/api/answer?question=${encodeURIComponent(question)}&mode=${currentMode}`);
+                const result = await resp.json();
+                lastResult = result;
+                renderResult(result);
+            } catch (e) {
+                console.error('Error:', e);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+
+        function renderResult(result) {
+            const a = result.answer;
+            const c = a.conditions || {};
+
+            // Decision Summary
+            document.getElementById('decision-summary').style.display = 'block';
+            document.getElementById('stat-mean').textContent = (c.area_mean_temperature_celsius || '—') + '°C';
+            document.getElementById('stat-max').textContent = (c.area_max_temperature_celsius || '—') + '°C';
+            document.getElementById('stat-range').textContent = (c.area_temperature_range_celsius || '—') + '°C';
+            document.getElementById('stat-features').textContent = c.feature_count || '—';
+            document.getElementById('stat-obs-time').textContent = a.observation_time || '—';
+
+            // Priority Location
+            const rep = c.representative_location || {};
+            const measured = c.measured_result || {};
+            document.getElementById('priority-card').style.display = 'block';
+            document.getElementById('priority-coord').textContent = rep.measured_temperature_celsius ? `${rep.measured_temperature_celsius}°C observed` : '—';
+            document.getElementById('priority-temp').textContent = (rep.measured_temperature_celsius || '—') + '°C';
+            document.getElementById('priority-apparent').textContent = (rep.apparent_temperature_celsius || '—') + '°C';
+            document.getElementById('priority-heat-index').textContent = (rep.heat_index_celsius || '—') + '°C';
+            document.getElementById('priority-humidity').textContent = (rep.relative_humidity_percent || '—') + '%';
+            document.getElementById('priority-delta').textContent = (measured.apparent_vs_measured_delta_celsius || '—') + '°C';
+            document.getElementById('priority-why').textContent = a.why_this_answer || '';
+
+            // Map overlay
+            document.getElementById('map-overlay').style.display = 'block';
+            document.getElementById('overlay-time').textContent = a.observation_time || '—';
+
+            // Render evidence chain
+            renderEvidenceChain(result.evidence_chain || []);
+
+            // Render heatmap on map
+            if (result.raw_results && result.raw_results.heatmap) {
+                renderHeatmap(result.raw_results.heatmap);
+            } else {
+                loadAndRenderHeatmap();
+            }
+        }
+
+        function renderHeatmap(heatmap) {
+            markerLayer.clearLayers();
+            const candidates = heatmap.candidates_for_env_params || [];
+            const hottest = heatmap.hottest_feature || {};
+
+            // Add heatmap features as colored circles
+            if (heatmap.result && heatmap.result.feature_count) {
+                // Show approximate center with a heat-colored circle
+                const temp = heatmap.result.mean_temperature_celsius || 42;
+                const color = temp > 42 ? '#ef4444' : temp > 40 ? '#f97316' : '#eab308';
+                L.circle([33.45, -112.07], {
+                    radius: 800, fillColor: color, color: color,
+                    weight: 1, opacity: 0.4, fillOpacity: 0.3
+                }).addTo(markerLayer);
+            }
+
+            // Add priority location marker
+            if (hottest.coordinate) {
+                const icon = L.divIcon({ html: '<div style="background:#ef4444;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.5)"></div>', iconSize: [16, 16], className: '' });
+                L.marker([hottest.coordinate[1], hottest.coordinate[0]], { icon })
+                    .bindPopup(`<b>Priority Hotspot</b><br>${hottest.temperature_celsius}°C<br>Selection: ${hottest.selection_method || 'global max'}`)
+                    .addTo(markerLayer);
+                map.setView([hottest.coordinate[1], hottest.coordinate[0]], 14);
+            }
+        }
+
+        async function loadAndRenderHeatmap() {
+            try {
+                const resp = await fetch('/api/fixture?name=heatmap');
+                const data = await resp.json();
+                const features = (data.data && data.data.result && data.data.result.map_data && data.data.result.map_data.features) || [];
+                markerLayer.clearLayers();
+                features.forEach(f => {
+                    const temp = f.properties.average_temperature;
+                    const color = temp > 42.5 ? '#ef4444' : temp > 42 ? '#f97316' : '#eab308';
+                    const coords = f.geometry.coordinates[0];
+                    const latLngs = coords.map(c => [c[1], c[0]]);
+                    L.polygon(latLngs, { fillColor: color, color: color, weight: 1, fillOpacity: 0.4 })
+                        .bindPopup(`${temp.toFixed(2)}°C`)
+                        .addTo(markerLayer);
+                });
+            } catch (e) { console.error('Failed to load fixture:', e); }
+        }
+
+        function renderEvidenceChain(chain) {
+            const container = document.getElementById('evidence-chain');
+            container.innerHTML = '';
+            chain.forEach(node => {
+                const div = document.createElement('div');
+                div.className = 'chain-node';
+                const data = node.data || {};
+                let detail = '';
+                if (node.step === 'plan') detail = `Intent: <b>${data.interpreted_intent}</b> → Tools: <b>${(data.selected_tools||[]).join(', ')}</b>`;
+                else if (node.step === 'heatmap_result') detail = `Features: <b>${data.feature_count}</b> · Mean: <b>${data.mean_temp}°C</b> · Activity: <b>${data.activity_id||'—'}</b>`;
+                else if (node.step === 'env_params_result') detail = `Heat Index: <b>${data.heat_index}°C</b> · Apparent: <b>${data.apparent_temp}°C</b> · Humidity: <b>${data.humidity}%</b>`;
+                else if (node.step === 'coordinate_selection') detail = `Selected: <b>${data.selected_coordinate?.temperature_celsius}°C</b> via <b>${data.selection_method}</b>`;
+                else if (node.step === 'answer') detail = `Mode: <b>${data.mode}</b> · Obs: <b>${data.observation_time}</b>`;
+                else if (node.step === 'heatmap_request') detail = `Endpoint: <b>${data.endpoint}</b> · Granularity: <b>${data.granularity}m</b> · Time: <b>${data.requested_observation_time}</b>`;
+                else if (node.step === 'env_params_request') detail = `Endpoint: <b>${data.endpoint}</b> · Coord: <b>(${data.coordinate?.latitude}, ${data.coordinate?.longitude})</b>`;
+                else detail = JSON.stringify(data).substring(0, 120);
+                div.innerHTML = `<div class="step">${node.step.replace(/_/g, ' ')}</div><div class="detail">${detail}</div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleEvidence() {
+            const chain = document.getElementById('evidence-chain');
+            const arrow = document.getElementById('evidence-arrow');
+            chain.classList.toggle('open');
+            arrow.textContent = chain.classList.contains('open') ? '▾' : '▸';
+        }
+
+        // Initialize
+        initMap();
+        setMode('replay');
+    </script>
+</body>
+</html>

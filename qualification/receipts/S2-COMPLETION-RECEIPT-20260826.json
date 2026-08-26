@@ -1,0 +1,40 @@
+{
+  "receipt_id": "S2-COMPLETION-RECEIPT-20260826",
+  "receipt_type": "s2_completion",
+  "timestamp": "2026-08-26T22:00:00Z",
+  "project_id": "urban-heat-intelligence",
+  "s2_authorization": "Owner disposition \u2014 Decision Experience + Replay",
+  "application_entrypoint": "app/server.py (Python HTTP server on port 8080)",
+  "primary_question": "Where should Phoenix prioritize a cooling intervention this afternoon?",
+  "decision_output": "Decision summary with area temps, priority location card, evidence chain",
+  "map_IMPLEMENTATION": "Leaflet.js with dark CARTO basemap, heatmap polygons, priority marker",
+  "heatmap_rendering": "FortyGuard GeoJSON features rendered as colored polygons (red/orange/yellow by temperature)",
+  "priority_location": "Global hottest feature with temperature, heat index, apparent temp, humidity, delta",
+  "live_mode": "Available via mode toggle, queries latest completed Phoenix hour",
+  "replay_mode": "Default mode, genuine S0 fixtures, zero network calls, historical observation time",
+  "evidence_experience": "Expandable evidence chain with 8 nodes, concise provenance per node",
+  "evidence_node_count": 8,
+  "browser_tests": "tests/test_s2.py",
+  "browser_test_pass": 15,
+  "browser_test_fail": 0,
+  "s1_regression_result": "20/20 PASS",
+  "s2_test_result": "15/15 PASS",
+  "total_tests": 35,
+  "responsive_verification": "Desktop layout (380px sidebar + flex map), standard browser tested",
+  "demo_scenario": "Open app \u2192 replay runs automatically \u2192 decision summary \u2192 map with hotspot \u2192 priority card \u2192 Why? evidence chain \u2192 mode switch to Live",
+  "secret_scan": "All committed files clean \u2014 no credential in HTML/server/tests",
+  "files_created": [
+    "app/server.py",
+    "app/static/index.html",
+    "tests/test_s2.py"
+  ],
+  "files_changed": [],
+  "new_findings": [
+    "Leaflet dark basemap provides good contrast for heat visualization",
+    "Primary question drives decision-support framing rather than generic weather query",
+    "Replay as default ensures demo reliability independent of provider availability"
+  ],
+  "stop_conditions": "None",
+  "final_s2_result": "PASS",
+  "s3_status": "PLANNED / NOT AUTHORIZED"
+}
