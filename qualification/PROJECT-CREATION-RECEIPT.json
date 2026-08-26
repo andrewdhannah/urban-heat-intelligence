@@ -1,0 +1,143 @@
+{
+  "receipt_id": "PROJECT-CREATION-RECEIPT-20260826",
+  "receipt_type": "project_creation",
+  "timestamp": "2026-08-26T18:30:00Z",
+  "project_id": "urban-heat-intelligence",
+  "project_root": "active/hackathon26/",
+  "project_alias": "hackathon26",
+
+  "phase_a_authorization": {
+    "receipt_id": "UHI-PHASE-A-AUTHORIZATION-20260826",
+    "authorized_at": "2026-08-26T14:15:00Z",
+    "plan_version": "3.3.0",
+    "controlling_contract": "UHI-GOVERNED-LIFECYCLE-QUAL-001.md"
+  },
+
+  "project_identity": {
+    "project_id": "urban-heat-intelligence",
+    "display_name": "Urban Heat Intelligence",
+    "project_root": "active/hackathon26/",
+    "alias": "hackathon26",
+    "canonical_owner": "Andrew",
+    "contract_owner": "urban-heat-intelligence",
+    "evidence_owner": "urban-heat-intelligence"
+  },
+
+  "artifacts_created": [
+    "PROJECT-IDENTITY.md",
+    "SESSION-HANDOFF.md",
+    "startup-contract.json",
+    "project-state/sprint-ledger.json",
+    ".gitignore",
+    ".env.example",
+    "qualification/PROJECT-CREATION-RECEIPT.json"
+  ],
+
+  "git_provenance": {
+    "repository": "active/hackathon26/.git",
+    "initial_commit": "b43fd155134fdc7ccb3476927dbf7c99468ca31f",
+    "commit_message": "Phase A: Governed Project Instantiation — urban-heat-intelligence",
+    "committed_at": "2026-08-26T18:30:00Z",
+    "files_committed": 35,
+    "secrets_excluded": true,
+    "secrets_scan_passed": true
+  },
+
+  "secrets_boundary": {
+    "secrets_directory": ".secrets/",
+    "secrets_file": ".secrets/fortyguard.env",
+    "env_example": ".env.example",
+    "gitignore_excludes_secrets": true,
+    "credential_name": "FORTYGUARD_API_KEY",
+    "credential_present": true,
+    "credential_git_ignored": true,
+    "credential_exposed": false,
+    "credential_source_class": "project_local_secret_store"
+  },
+
+  "pre_instantiation_reference": {
+    "receipt_id": "UHI-PRE-INSTANTIATION-001",
+    "receipt_path": "qualification/UHI-PRE-INSTANTIATION-STATE-001.json",
+    "content_hash": "c3a6783e3f8deee8af074a5025a80e0917a429d92c05bd4fe63026bf22ccd545",
+    "hash_algorithm": "SHA-256",
+    "status": "preserved_immutable",
+    "note": "This receipt preserves the pre-instantiation baseline. The content hash proves the baseline was not modified during project creation."
+  },
+
+  "qualification_test_reference": {
+    "receipt_id": "UHI-GOVERNED-LIFECYCLE-QUAL-001",
+    "receipt_path": "active/librarian/qualification/UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+    "content_hash": "4eeb4629928ef0a20abdad119f8ddcbd4b1c0d8184b98d6e08aea7571876eefd",
+    "hash_algorithm": "SHA-256",
+    "status": "preserved_immutable"
+  },
+
+  "registry_state": {
+    "registry_path": ".librarian/project-index.json",
+    "project_registered": true,
+    "project_id": "urban-heat-intelligence",
+    "alias_registered": true,
+    "alias": "hackathon26"
+  },
+
+  "current_project_pointer": {
+    "pointer_path": ".librarian/current-project.json",
+    "project_id": "urban-heat-intelligence",
+    "selected_by": "governed-phase-a-instantiation"
+  },
+
+  "planning_bindings": {
+    "current_plan": "hackathon-plan-v3.3.md",
+    "superseded_plans": ["hackathon-plan-v3.2.md"],
+    "historical_baseline": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE.json"
+  },
+
+  "sprint_namespace": {
+    "namespace": "urban-heat-intelligence",
+    "model": "five-stage",
+    "ledger_path": "project-state/sprint-ledger.json",
+    "current_stage": null,
+    "stages": ["Phase A", "Phase B", "S0", "S1", "S2", "S3", "S4"]
+  },
+
+  "qa_relationship": {
+    "qa_project_id": "qa-pilot",
+    "strategy_path": "active/qa-pilot/strategy/UHI-QA-STRATEGY-001.md",
+    "specifications_path": "active/qa-pilot/specifications/",
+    "independence": "independent-verifier"
+  },
+
+  "allowed_roles": ["implementation", "qa-verification", "owner-decision"],
+
+  "evidence_locations": {
+    "qualification": "qualification/",
+    "receipts": "qualification/receipts/",
+    "baseline": "qualification/baseline/",
+    "decisions": "qualification/receipts/decisions/",
+    "discovery": "qualification/receipts/discovery/"
+  },
+
+  "completion_dimensions": {
+    "implemented": true,
+    "connected": true,
+    "consumer_reachable": true,
+    "exercised": false,
+    "evidenced": true,
+    "qualified": false,
+    "owner_accepted": true,
+    "sealed": false
+  },
+
+  "frozen_invariants_preserved": {
+    "invariant_01": "Important state earned through observable transitions",
+    "invariant_02": "Actor ≠ Role ≠ Authority",
+    "invariant_03": "Actor ≠ Canonical Project ≠ Artifact Owner ≠ Execution Location",
+    "invariant_04": "Context inheritance ≠ authority inheritance",
+    "invariant_05": "Evidence ownership follows governed subject/purpose",
+    "invariant_12": "Sprint identity becomes canonical only through formal lifecycle",
+    "invariant_15": "Superseded or unauthorized state must not silently become current truth"
+  },
+
+  "immutable_after_creation": true,
+  "superseded_by": null
+}
