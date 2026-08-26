@@ -1,0 +1,95 @@
+{
+  "receipt_id": "S1-COMPLETION-RECEIPT-20260826",
+  "receipt_type": "s1_completion",
+  "timestamp": "2026-08-26T22:45:00Z",
+  "project_id": "urban-heat-intelligence",
+  "s1_authorization": "Owner disposition \u2014 Agent + Evidence Core",
+  "agent_flow": {
+    "question": "What is the heat risk in Phoenix right now?",
+    "steps": [
+      "user_request",
+      "tool_selection (heatmap)",
+      "heatmap_result (367 features, 42.03C mean)",
+      "coordinate_selection (hottest location)",
+      "env_params_result (heat_index 39.3C, apparent 46.4C)",
+      "answer_composition"
+    ],
+    "tool_selection_decision": "Agent autonomously selected heatmap first because question asks about area-level heat risk"
+  },
+  "live_result": {
+    "status": "EXERCISED",
+    "heatmap": "Phoenix, 2026-08-25 14:00, 367 features, 42.03C mean",
+    "env_params": "heat_index 39.3C, apparent 46.4C, humidity 11.3%",
+    "note": "Live FortyGuard API calls successful during S0"
+  },
+  "replay_result": {
+    "status": "VERIFIED",
+    "fixture_heatmap": "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
+    "fixture_env_params": "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
+    "network_calls": 0,
+    "answer_identical_to_live": "Same normalization logic, same fixture data"
+  },
+  "normalization_contract": {
+    "get_heatmap": "Normalizes map_data features and stats_data into stable fields",
+    "get_environmental_parameters": "Normalizes locations[].parameters into stable fields",
+    "raw_schema_preserved": "Raw provider responses stored separately for provenance"
+  },
+  "measured_result": {
+    "apparent_vs_measured_delta_celsius": 4.4,
+    "area_mean_temperature_celsius": 42.03,
+    "area_max_temperature_celsius": 42.05,
+    "area_min_temperature_celsius": 42.03,
+    "area_temperature_range_celsius": 0.02,
+    "interpretation": "Apparent temperature exceeds measured temperature due to solar and environmental factors"
+  },
+  "evidence_chain": {
+    "nodes": 5,
+    "chain": "user_request -> tool_selection -> heatmap_result -> coordinate_selection -> env_params_result",
+    "inspectable": true,
+    "rationale_recorded": true,
+    "hidden_chain_of_thought": false
+  },
+  "test_results": {
+    "total": 17,
+    "pass": 17,
+    "fail": 0,
+    "tests": [
+      "test_1_heatmap_invocation",
+      "test_2_env_params_driven_by_heatmap",
+      "test_3_not_canned_answer",
+      "test_4_live_mode_works",
+      "test_5_replay_mode_no_network",
+      "test_6_common_normalization",
+      "test_7_raw_schema_not_exposed",
+      "test_8_answer_receipt_links_both",
+      "test_9_measured_result_computed",
+      "test_10_observation_timestamp_visible",
+      "test_11_mode_visible",
+      "test_12_failed_heatmap_stops",
+      "test_13_failed_env_params_stops",
+      "test_14_timeout_stops",
+      "test_15_malformed_response",
+      "test_16_missing_credential",
+      "test_17_no_secret_in_output"
+    ]
+  },
+  "secret_scan": "All committed files CLEAN",
+  "files_created": [
+    "src/tools/heatmap.py",
+    "src/tools/env_params.py",
+    "src/agent/adapter.py",
+    "src/agent/controller.py",
+    "src/agent/run.py",
+    "tests/test_s1.py"
+  ],
+  "files_changed": [],
+  "public_git_head": "pending commit",
+  "new_findings": [
+    "FortyGuard env_params returns parameters as dict (not list of objects)",
+    "Heatmap features have consistent temperature across small AOI",
+    "Apparent temperature can significantly exceed measured temperature (4.4C delta)",
+    "Agent tool selection: heatmap-first strategy works for area heat questions"
+  ],
+  "s1_status": "COMPLETE",
+  "s2_status": "PLANNED / NOT AUTHORIZED"
+}
