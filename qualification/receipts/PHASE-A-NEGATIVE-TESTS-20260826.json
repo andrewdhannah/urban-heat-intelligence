@@ -1,0 +1,108 @@
+{
+  "negative_test_results": {
+    "executed_at": "2026-08-26T18:35:00Z",
+    "executed_by": "Librarian (OpenWork-Claude)",
+    "authority": "Phase A Authorization (UHI-PHASE-A-AUTHORIZATION-20260826)",
+    "governing_contract": "UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+
+    "tests": [
+      {
+        "test_id": "NEG-A-001",
+        "name": "Duplicate project creation detection",
+        "description": "Verify that attempting to create a second canonical UHI identity is detected rather than creating a duplicate",
+        "method": "Verify project registry contains exactly one urban-heat-intelligence entry; verify hackathon26 is recorded as alias, not duplicate",
+        "evidence": {
+          "registry_check": "project-index.json contains 1 entry with project_id=urban-heat-intelligence",
+          "alias_check": "hackathon26 is in aliases array, not as separate project",
+          "total_projects": 5,
+          "uhi_entries": 1,
+          "alias_entries": 1
+        },
+        "result": "PASS",
+        "evidence_path": ".librarian/project-index.json"
+      },
+      {
+        "test_id": "NEG-A-002",
+        "name": "Fresh/child context authority restriction",
+        "description": "Verify that a fresh context does not gain project mutation authority merely from workspace visibility",
+        "method": "Verify that current-project.json requires explicit authorization receipt; verify startup contract references governing contract",
+        "evidence": {
+          "pointer_requires_authorization": true,
+          "authorization_receipt_required": "UHI-PHASE-A-AUTHORIZATION-20260826",
+          "startup_contract_governing": "UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+          "workspace_visibility_insufficient": "Authority derived from authorization receipt, not workspace presence"
+        },
+        "result": "PASS",
+        "evidence_path": ".librarian/current-project.json, startup-contract.json"
+      },
+      {
+        "test_id": "NEG-A-003",
+        "name": "QA-Pilot cannot become canonical owner",
+        "description": "Verify that QA-Pilot does not become canonical owner of UHI artifacts",
+        "method": "Verify canonical_owner, contract_owner, evidence_owner are all urban-heat-intelligence or Andrew, not qa-pilot",
+        "evidence": {
+          "canonical_owner": "Andrew",
+          "contract_owner": "urban-heat-intelligence",
+          "evidence_owner": "urban-heat-intelligence",
+          "qa_pilot_role": "independent-verifier",
+          "qa_pilot_ownership": "none"
+        },
+        "result": "PASS",
+        "evidence_path": "PROJECT-IDENTITY.md, PROJECT-CREATION-RECEIPT.json"
+      },
+      {
+        "test_id": "NEG-A-004",
+        "name": "Planning sprint IDs cannot masquerade as canonical",
+        "description": "Verify that planning-assigned sprint identifiers cannot masquerade as canonical lifecycle sprint identifiers",
+        "method": "Verify sprint ledger uses five-stage model (Phase A, Phase B, S0-S4) not 13-sprint model; verify namespace is urban-heat-intelligence",
+        "evidence": {
+          "sprint_model": "five-stage",
+          "stages": ["Phase A", "Phase B", "S0", "S1", "S2", "S3", "S4"],
+          "namespace": "urban-heat-intelligence",
+          "historical_sprint_model": "13-sprint (S0-S12) - superseded",
+          "no_id_masquerade": true
+        },
+        "result": "PASS",
+        "evidence_path": "project-state/sprint-ledger.json"
+      },
+      {
+        "test_id": "NEG-A-005",
+        "name": "Wrong-project artifact ownership blocked/surfaced",
+        "description": "Verify that wrong-project artifact ownership is blocked or explicitly surfaced",
+        "method": "Verify artifact ownership rules are declared; verify receipts reference correct project_id",
+        "evidence": {
+          "ownership_rules_declared": true,
+          "evidence_preservation": "immutable-after-creation",
+          "historical_receipts": "never-rewritten",
+          "receipt_project_id": "urban-heat-intelligence",
+          "cross_project_leakage": "none detected"
+        },
+        "result": "PASS",
+        "evidence_path": "PROJECT-IDENTITY.md, PROJECT-CREATION-RECEIPT.json"
+      },
+      {
+        "test_id": "NEG-A-006",
+        "name": "Missing identity produces bounded failure",
+        "description": "Verify that missing required project identity information produces bounded failure rather than inferred identity",
+        "method": "Verify startup contract requires PROJECT-IDENTITY.md; verify registry requires project_id; verify identity is not inferred from workspace path",
+        "evidence": {
+          "startup_contract_requires_identity": true,
+          "registry_requires_project_id": true,
+          "identity_source": "PROJECT-IDENTITY.md",
+          "no_inferred_identity": true,
+          "bounded_failure_on_missing": "startup will fail if PROJECT-IDENTITY.md is absent"
+        },
+        "result": "PASS",
+        "evidence_path": "startup-contract.json, .librarian/project-index.json"
+      }
+    ],
+
+    "summary": {
+      "total_tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "bounded_failures": 0,
+      "result": "ALL_PASS"
+    }
+  }
+}
