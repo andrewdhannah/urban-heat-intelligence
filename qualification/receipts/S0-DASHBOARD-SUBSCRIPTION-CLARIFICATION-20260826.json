@@ -1,0 +1,34 @@
+{
+  "finding_id": "S0-DASHBOARD-SUBSCRIPTION-CLARIFICATION-20260826",
+  "finding_type": "dashboard_api_entitlement_divergence",
+  "timestamp": "2026-08-26T23:00:00Z",
+  "supplements": "qualification/receipts/S0-CLOSEOUT-REMEDIATION-20260826.json",
+  "preservation": "S0 closeout receipt preserved as historical — not rewritten",
+
+  "dashboard_observation": {
+    "phoenix_searchable": true,
+    "phoenix_selectable_for_generation": false,
+    "warning_message": "Location is outside your subscribed state",
+    "apparent_subscribed_state": "New York",
+    "heatmap_list": "Demo Heatmaps only — no API-created heatmaps visible",
+    "screenshots": [
+      "qualification/evidence/dashboard-phoenix-search.png",
+      "qualification/evidence/dashboard-heatmaps-empty.png"
+    ]
+  },
+
+  "api_observation": {
+    "plan": "Hackathon",
+    "phoenix_heatmap_execution": "PASS",
+    "activity_id": "67b05e52-afbc-4e3b-930a-abc4dc789fba",
+    "activity_status": "Completed",
+    "features": 367,
+    "mean_temperature_celsius": 42.03
+  },
+
+  "interpretation": "Dashboard geographic subscription boundary does not represent the geographic entitlement exercised by the Hackathon API key. The dashboard account is subscribed to New York; the Hackathon API entitlement permits API execution outside that dashboard subscription geography.",
+
+  "impact_on_s0": "none",
+  "dashboard_corroboration": "NOT_COMPARABLE_CONFIRMED",
+  "provider_evidence_conflict": "NONE"
+}
