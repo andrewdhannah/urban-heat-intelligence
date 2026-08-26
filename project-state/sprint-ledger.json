@@ -18,10 +18,10 @@
       {
         "stage_id": "Phase B",
         "name": "Fresh-Context Re-Entry Proof",
-        "status": "PLANNED",
+        "status": "SEALED",
         "authorized_at": null,
-        "executed_at": null,
-        "receipt": null
+        "executed_at": "2026-08-26T21:30:00Z",
+        "receipt": "qualification/receipts/PHASE-B-COMPLETION-RECEIPT-20260826.json"
       },
       {
         "stage_id": "S0",
@@ -64,7 +64,7 @@
         "receipt": null
       }
     ],
-    "sealed_count": 1,
+    "sealed_count": 2,
     "total_stages": 7
   }
 }
