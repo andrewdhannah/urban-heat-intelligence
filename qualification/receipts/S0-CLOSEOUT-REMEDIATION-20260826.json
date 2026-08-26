@@ -1,0 +1,74 @@
+{
+  "receipt_id": "S0-CLOSEOUT-REMEDIATION-20260826",
+  "receipt_type": "s0_closeout",
+  "timestamp": "2026-08-26T22:30:00Z",
+  "project_id": "urban-heat-intelligence",
+  "supersedes_for_qualification_disposition": "qualification/receipts/S0-COMPLETION-RECEIPT-20260826.json",
+  "superseded_receipt_preservation": "S0-COMPLETION-RECEIPT-20260826.json preserved as historical evidence, not rewritten",
+  "original_result": "PASS",
+  "accepted_live_preflight_result": "PASS",
+  "failed_status_test": {
+    "result": "PASS",
+    "network_calls": 0,
+    "polls_after_failed": 0,
+    "evidence": "Deterministic mock test: poll_status returned Failed on first poll, terminated immediately, no additional polls, no infinite retry, no network request. Completed/Failed/Timeout are distinguishable terminal states."
+  },
+  "dashboard_corroboration": {
+    "result": "NOT_COMPARABLE",
+    "reason": "Dashboard session (dashboard.fortyguard.com) shows Demo Heatmaps with no task generation in progress. API-created heatmap (activity_id 67b05e52) does not appear in dashboard heatmap list. Dashboard and API key appear to be different authentication contexts. The API session token and the dashboard browser session are not linked.",
+    "dashboard_observation": "Temperature Dashboard shows map view with Heatmaps tab. Lists Demo Heatmaps. No recent API-created heatmaps visible. No task generation in progress.",
+    "api_evidence_preserved": "API response (367 features, 42.03\u00b0C avg, Phoenix downtown 2026-08-25 14:00 MST) remains authoritative computational evidence."
+  },
+  "s0_scope_disposition": {
+    "completed_in_s0": [
+      "FortyGuard entitlement/preflight",
+      "live heatmap (Phoenix, 2026-08-25, 14:00)",
+      "live env_params (Phoenix, 2026-08-25, 14:00)",
+      "async polling workflow",
+      "genuine replay fixtures",
+      "replay verification",
+      "minimum FortyGuard adapter",
+      "evidence receipts",
+      "provider-contract discovery"
+    ],
+    "deferred_to_s1": [
+      "end-to-end agent",
+      "agent/tool orchestration",
+      "heatmap + env_params composition",
+      "answer-level evidence chain",
+      "replay consumption by agent",
+      "evidence inspection surface"
+    ],
+    "deferred_to_s2": [
+      "dashboard/product experience",
+      "evidence drill-down experience",
+      "visualization",
+      "demo scenario UX"
+    ],
+    "deferred_to_s3": [
+      "deployment",
+      "hosting",
+      "public repository finalization"
+    ],
+    "only_if_required_by_consumer": [
+      "SQLite/sqlite-vec",
+      "TypeScript/MCP scaffolding",
+      "additional persistence infrastructure"
+    ],
+    "note": "Owner execution interpretation of plan v3.3 S0 scope. The broad S0 prose included work that the Owner authorization deliberately excluded. This disposition records what was actually authorized and completed."
+  },
+  "secret_exposure": {
+    "credential_present": true,
+    "credential_exposed": false,
+    "secret_scan": "All committed files CLEAN"
+  },
+  "files_created": [
+    "qualification/receipts/S0-CLOSEOUT-REMEDIATION-20260826.json"
+  ],
+  "files_changed": [],
+  "final_s0_result": "PASS",
+  "phase_a_status": "ACCEPTED",
+  "phase_b_status": "COMPLETE",
+  "s0_status": "COMPLETE",
+  "s1_status": "PLANNED / NOT AUTHORIZED"
+}
