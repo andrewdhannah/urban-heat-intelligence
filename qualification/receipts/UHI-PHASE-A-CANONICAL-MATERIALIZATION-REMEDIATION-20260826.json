@@ -1,0 +1,159 @@
+{
+  "remediation_id": "UHI-PHASE-A-CANONICAL-MATERIALIZATION-REMEDIATION-20260826",
+  "remediation_type": "canonical_source_materialization",
+  "timestamp": "2026-08-26T19:15:00Z",
+  "executed_by": "Librarian (OpenWork-Claude)",
+  "authority": "Owner disposition — canonical-materialization remediation only",
+
+  "affected_phase_a_receipt": {
+    "receipt_id": "PROJECT-CREATION-RECEIPT-20260826",
+    "receipt_path": "qualification/PROJECT-CREATION-RECEIPT.json",
+    "preservation": "PRESERVED AS HISTORICAL — not retroactively rewritten",
+    "status": "Historical Phase A evidence, unchanged"
+  },
+
+  "defect_classification": "incomplete_project_projection",
+  "defect_description": "Phase A planning_bindings referenced hackathon-plan-v3.3.md as current plan, but the file was never materialized into the canonical workspace docs/ directory. ADR-HACK-001-submission-boundary.md was also missing. ARCHITECTURE.md and PROJECT-OVERVIEW.md lacked supersession classification.",
+
+  "phase_a_authority_validity": "preserved",
+  "qualification_contract_validity": "preserved",
+  "qualification_contract_hash": "4eeb4629928ef0a20abdad119f8ddcbd4b1c0d8184b98d6e08aea7571876eefd",
+
+  "missing_artifacts_discovered": [
+    {
+      "artifact": "hackathon-plan-v3.3.md",
+      "canonical_source": "active/librarian/external-capabilities/fortyguard/documentation/hackathon-plan-v3.3.md",
+      "project_projection": "active/hackathon26/docs/hackathon-plan-v3.3.md",
+      "materialized": true
+    },
+    {
+      "artifact": "ADR-HACK-001-submission-boundary.md",
+      "canonical_source": "UHI-Context-Pack.zip / 07-ADR-handbook-reference-CORRECTED.md",
+      "project_projection": "active/hackathon26/docs/ADR-HACK-001-submission-boundary.md",
+      "materialized": true
+    }
+  ],
+
+  "stale_classification_artifacts": [
+    {
+      "artifact": "docs/ARCHITECTURE.md",
+      "issue": "Pre-handbook content, lacks supersession classification",
+      "resolution": "Authority manifest created; bytes not modified"
+    },
+    {
+      "artifact": "docs/PROJECT-OVERVIEW.md",
+      "issue": "Pre-handbook content, lacks supersession classification",
+      "resolution": "Authority manifest created; bytes not modified"
+    }
+  ],
+
+  "plan_materialization": {
+    "canonical_source_path": "active/librarian/external-capabilities/fortyguard/documentation/hackathon-plan-v3.3.md",
+    "canonical_source_hash": "6d6edafc311b325d2c97d57400e55d4e7287a5f9bdb121e125bced54fe076468",
+    "project_projection_path": "active/hackathon26/docs/hackathon-plan-v3.3.md",
+    "project_projection_hash": "6d6edafc311b325d2c97d57400e55d4e7287a5f9bdb121e125bced54fe076468",
+    "hash_equality": "VERIFIED",
+    "projection_relationship": "byte-identical"
+  },
+
+  "adr_materialization": {
+    "source_path": "UHI-Context-Pack.zip / 07-ADR-handbook-reference-CORRECTED.md",
+    "source_hash": "577342ab92f127d9a5645fa3c33f3d04fd85b448c99bb079491a48ce3f6e1248",
+    "project_projection_path": "active/hackathon26/docs/ADR-HACK-001-submission-boundary.md",
+    "project_projection_hash": "577342ab92f127d9a5645fa3c33f3d04fd85b448c99bb079491a48ce3f6e1248",
+    "hash_equality": "VERIFIED",
+    "ip_classification": {
+      "ownership_statement": "Supported — participant retains ownership",
+      "license_grant": "Pending — not yet proven from handbook",
+      "source_disclosure": "No broader conclusion established"
+    }
+  },
+
+  "authority_manifest": {
+    "path": "project-state/AUTHORITY-MANIFEST.json",
+    "created": true,
+    "current_artifacts_count": 15,
+    "superseded_artifacts_count": 2,
+    "historical_preserved_count": 2
+  },
+
+  "historical_artifacts_preserved": [
+    {
+      "artifact": "docs/ARCHITECTURE.md",
+      "preservation": "Original bytes unchanged",
+      "content_hash": "e403e6a001d7ffd2a2c2306c2b1240af19dde8f83afd777863f5c91a19e6775b"
+    },
+    {
+      "artifact": "docs/PROJECT-OVERVIEW.md",
+      "preservation": "Original bytes unchanged",
+      "content_hash": "e0caf1eb92636b95185f9e6fe020c69e8f765433f706b80eb705f5afae6467ac"
+    },
+    {
+      "artifact": "qualification/UHI-PRE-INSTANTIATION-STATE-001.json",
+      "preservation": "Immutable"
+    },
+    {
+      "artifact": "qualification/HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE.json",
+      "preservation": "Sealed immutable"
+    },
+    {
+      "artifact": "qualification/PROJECT-CREATION-RECEIPT.json",
+      "preservation": "Historical Phase A evidence — not rewritten"
+    },
+    {
+      "artifact": "qualification/receipts/PHASE-A-NEGATIVE-TESTS-20260826.json",
+      "preservation": "Historical — superseded by remediation receipt for qualification disposition"
+    },
+    {
+      "artifact": "qualification/receipts/PHASE-A-COMPLETION-REPORT-20260826.md",
+      "preservation": "Historical Phase A evidence — not rewritten"
+    }
+  ],
+
+  "files_created": [
+    "docs/hackathon-plan-v3.3.md",
+    "docs/ADR-HACK-001-submission-boundary.md",
+    "project-state/AUTHORITY-MANIFEST.json",
+    "qualification/receipts/UHI-PHASE-A-CANONICAL-MATERIALIZATION-REMEDIATION-20260826.json"
+  ],
+
+  "files_modified": [],
+
+  "canonical_state_before": {
+    "hackathon_plan_v3_3_in_docs": false,
+    "adr_in_workspace": false,
+    "authority_manifest": false,
+    "total_tracked_files": 59
+  },
+
+  "canonical_state_after": {
+    "hackathon_plan_v3_3_in_docs": true,
+    "adr_in_workspace": true,
+    "authority_manifest": true,
+    "total_tracked_files": "63 (pending commit)"
+  },
+
+  "git_state_before": {
+    "head": "150f012",
+    "commit_count": 5,
+    "latest_commit": "Add Phase A completion report — all obligations satisfied"
+  },
+
+  "git_state_after": {
+    "head": "PENDING COMMIT",
+    "commit_count": "6 (pending)",
+    "note": "Commit will contain only materialized current artifacts and remediation receipt"
+  },
+
+  "secret_exposure_check": {
+    "secrets_directory_ignored": true,
+    "credential_in_staged_content": false,
+    "credential_in_commit_history": false,
+    "credential_exposed": false
+  },
+
+  "phase_b_authorization_status": "PLANNED / NOT AUTHORIZED",
+  "s0_s4_authorization_status": "PLANNED / NOT AUTHORIZED",
+
+  "supersedes_for_qualification_disposition": "qualification/receipts/PHASE-A-NEGATIVE-TESTS-20260826.json (historical receipt preserved, remediation receipt used for qualification disposition)"
+}

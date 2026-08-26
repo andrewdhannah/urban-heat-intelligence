@@ -1,0 +1,182 @@
+{
+  "authority_manifest": {
+    "project_id": "urban-heat-intelligence",
+    "created_at": "2026-08-26T19:00:00Z",
+    "created_by": "canonical-materialization-remediation",
+    "purpose": "Classify current vs historical/superseded planning artifacts without rewriting historical documents",
+
+    "current": [
+      {
+        "path": "docs/hackathon-plan-v3.3.md",
+        "authority": "CURRENT EXECUTION PLAN",
+        "source": "active/librarian/external-capabilities/fortyguard/documentation/hackathon-plan-v3.3.md",
+        "source_hash": "6d6edafc311b325d2c97d57400e55d4e7287a5f9bdb121e125bced54fe076468",
+        "project_hash": "6d6edafc311b325d2c97d57400e55d4e7287a5f9bdb121e125bced54fe076468",
+        "relationship": "byte-identical projection",
+        "authority_basis": "Owner acceptance of v3.3 (UHI-PHASE-A-AUTHORIZATION-20260826)",
+        "supersedes": "hackathon-plan-v3.2.md"
+      },
+      {
+        "path": "docs/ADR-HACK-001-submission-boundary.md",
+        "authority": "CURRENT IP BOUNDARY",
+        "source": "UHI-Context-Pack.zip / 07-ADR-handbook-reference-CORRECTED.md",
+        "source_hash": "577342ab92f127d9a5645fa3c33f3d04fd85b448c99bb079491a48ce3f6e1248",
+        "project_hash": "577342ab92f127d9a5645fa3c33f3d04fd85b448c99bb079491a48ce3f6e1248",
+        "relationship": "byte-identical projection from corrected context pack",
+        "authority_basis": "Handbook reconciliation (22 screenshots from locked PDF)",
+        "ip_classification": {
+          "ownership_statement": "Supported — participant retains ownership of submitted code",
+          "license_grant": "Pending — not yet proven from handbook",
+          "source_disclosure": "No broader conclusion established"
+        }
+      },
+      {
+        "path": "docs/DB-SCHEMA.md",
+        "authority": "CURRENT SCHEMA",
+        "notes": "Pre-handbook but no superseding schema revision"
+      },
+      {
+        "path": "docs/MCP-SCHEMA.md",
+        "authority": "CURRENT SCHEMA",
+        "notes": "Pre-handbook but tool definitions remain valid for Track 6"
+      },
+      {
+        "path": "docs/DEMO-SCRIPT.md",
+        "authority": "CURRENT",
+        "notes": "Project-local planning document"
+      },
+      {
+        "path": "docs/TRUST-PACKAGE.md",
+        "authority": "CURRENT",
+        "notes": "Project-local planning document"
+      },
+      {
+        "path": "docs/COMPETITION-ANALYSIS.md",
+        "authority": "CURRENT",
+        "notes": "Project-local planning document"
+      },
+      {
+        "path": "docs/PITCH.md",
+        "authority": "CURRENT",
+        "notes": "Project-local planning document"
+      },
+      {
+        "path": "docs/LIBRARIAN-RC-PLAN.md",
+        "authority": "CURRENT",
+        "notes": "Project-local planning document"
+      },
+      {
+        "path": "docs/PRE-HACKATHON-PREP.md",
+        "authority": "CURRENT",
+        "notes": "Historical prep document, retained as-is"
+      },
+      {
+        "path": "qualification/UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+        "authority": "PROTECTED — IMMUTABLE",
+        "hash": "4eeb4629928ef0a20abdad119f8ddcbd4b1c0d8184b98d6e08aea7571876eefd",
+        "source": "active/librarian/qualification/"
+      },
+      {
+        "path": "qualification/receipts/UHI-EXTERNAL-CAPABILITY-UPDATE-20260826.json",
+        "authority": "CURRENT — capability transition record",
+        "hash_match": true
+      },
+      {
+        "path": "qualification/receipts/UHI-PHASE-A-AUTHORIZATION-20260826.json",
+        "authority": "CURRENT — Phase A authorization"
+      },
+      {
+        "path": "qualification/receipts/UHI-PRE-INSTANTIATION-STATE-001.json",
+        "authority": "HISTORICAL — preserved immutable",
+        "notes": "API key unavailable on Aug 21 (historically true, superseded by current state)"
+      },
+      {
+        "path": "qualification/HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE.json",
+        "authority": "SEALED — immutable baseline"
+      }
+    ],
+
+    "superseded_where_conflicting": [
+      {
+        "path": "docs/ARCHITECTURE.md",
+        "classification": "SUPERSEDED WHERE CONFLICTING",
+        "content_hash": "e403e6a001d7ffd2a2c2306c2b1240af19dde8f83afd777863f5c91a19e6775b",
+        "superseded_by": "hackathon-plan-v3.3.md",
+        "conflicts": [
+          {
+            "topic": "Challenge track",
+            "old_value": "Track 01 — Resilient Cities & Infrastructure",
+            "current_value": "Track 6 — Agentic Track (API + Agentic)",
+            "source_of_truth": "Participant Handbook → v3.3 plan"
+          },
+          {
+            "topic": "Primary data source priority",
+            "old_value": "NWS + USGS + NOAA + FortyGuard (equal)",
+            "current_value": "FortyGuard (required, central); others supplementary",
+            "source_of_truth": "Participant Handbook → v3.3 plan"
+          },
+          {
+            "topic": "FortyGuard API availability",
+            "old_value": "Unknown / need to check auth method",
+            "current_value": "Available, API key obtained, api-key header auth",
+            "source_of_truth": "Owner obtained API key"
+          },
+          {
+            "topic": "Forecast range",
+            "old_value": "24-48 hours",
+            "current_value": "+12 hours from current",
+            "source_of_truth": "Participant Handbook §7"
+          },
+          {
+            "topic": "Geographic scope",
+            "old_value": "Global (Phoenix, Dubai, San Jose, Miami, Delhi)",
+            "current_value": "U.S. only",
+            "source_of_truth": "Participant Handbook §7"
+          }
+        ],
+        "note": "The three-layer architecture structure (MCP/DB/Interface) remains valid. Only the parameters above are superseded where conflicting."
+      },
+      {
+        "path": "docs/PROJECT-OVERVIEW.md",
+        "classification": "SUPERSEDED WHERE CONFLICTING",
+        "content_hash": "e0caf1eb92636b95185f9e6fe020c69e8f765433f706b80eb705f5afae6467ac",
+        "superseded_by": "hackathon-plan-v3.3.md",
+        "conflicts": [
+          {
+            "topic": "Track selection",
+            "old_value": "Track 01: Resilient Cities & Infrastructure",
+            "current_value": "Track 6 — Agentic Track (API + Agentic)",
+            "source_of_truth": "Participant Handbook → v3.3 plan"
+          },
+          {
+            "topic": "Working name candidates",
+            "old_value": "TBD (candidates: Isotherm, Shadecast, Heatline, Swelter, HeatLedger)",
+            "current_value": "Urban Heat Intelligence",
+            "source_of_truth": "Owner decision"
+          },
+          {
+            "topic": "Provider reallocation",
+            "old_value": "NWS primary, FortyGuard specialized",
+            "current_value": "FortyGuard required/central, NWS/USGS/NOAA supplementary",
+            "source_of_truth": "Participant Handbook → v3.3 plan"
+          }
+        ]
+      }
+    ],
+
+    "historical_preserved": [
+      {
+        "path": "docs/SPRINT-PLAN.md",
+        "classification": "HISTORICAL — original sprint plan",
+        "superseded_by": "hackathon-plan-v3.3.md five-stage model",
+        "preservation": "Original bytes preserved, not rewritten"
+      },
+      {
+        "path": "docs/HACKATHON-SPRINT-DECOMPOSITION.md",
+        "classification": "SUPERSEDED — 13-sprint model",
+        "superseded_by": "Five-stage model in v3.3",
+        "note": "Was never committed to this repository"
+      }
+    ]
+  }
+}
