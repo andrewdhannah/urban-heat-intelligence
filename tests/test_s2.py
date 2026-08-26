@@ -66,8 +66,8 @@ def test_5_replay_observation_time():
 def test_6_map_renders_data():
     """Map rendering code exists for heatmap features."""
     html = Path("app/static/index.html").read_text()
-    assert "renderHeatmap" in html
-    assert "L.polygon" in html or "L.circle" in html
+    assert "renderMap" in html
+    assert "L.polygon" in html
     print("  PASS: test_6_map_renders_data")
 
 def test_7_priority_location():

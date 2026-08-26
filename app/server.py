@@ -25,6 +25,70 @@ def get_agent_result(question, mode="replay"):
     return result
 
 
+def build_visualization_payload(result):
+    """
+    Build sanitized visualization payload for the browser.
+
+    Contains only what the UI needs for rendering.
+    No credentials, no raw provider internals.
+    """
+    answer = result.get("answer", {})
+    chain = result.get("evidence_chain", [])
+    raw = result.get("raw_results", {})
+
+    # Extract heatmap features from raw result or chain
+    heatmap_features = []
+    heatmap_obs_time = None
+    hottest = None
+
+    heatmap_result_raw = raw.get("heatmap", {})
+    if heatmap_result_raw:
+        map_data = heatmap_result_raw.get("result", {}).get("map_data", {})
+        heatmap_features = map_data.get("features", [])
+        heatmap_obs_time = heatmap_result_raw.get("observation_time")
+        hottest = heatmap_result_raw.get("hottest_feature")
+
+    # Get env_params data from chain
+    env_data = {}
+    for node in chain:
+        if node["step"] == "env_params_result":
+            env_data = node["data"]
+            break
+
+    # Get coordinate selection from chain
+    coord_data = {}
+    for node in chain:
+        if node["step"] == "coordinate_selection":
+            coord_data = node["data"]
+            break
+
+    return {
+        "mode": answer.get("mode"),
+        "observation_time": answer.get("observation_time"),
+        "summary": answer.get("summary"),
+        "conditions": answer.get("conditions"),
+        "why_this_answer": answer.get("why_this_answer"),
+        "sources": answer.get("sources"),
+        "heatmap": {
+            "features": heatmap_features,
+            "observation_time": heatmap_obs_time,
+            "feature_count": len(heatmap_features)
+        },
+        "priority_location": {
+            "coordinate": hottest.get("coordinate") if hottest else None,
+            "temperature": hottest.get("temperature_celsius") if hottest else None,
+            "selection_method": hottest.get("selection_method") if hottest else None,
+            "env_params": {
+                "heat_index": env_data.get("heat_index"),
+                "apparent_temp": env_data.get("apparent_temp"),
+                "humidity": env_data.get("humidity")
+            }
+        },
+        "evidence_chain": chain,
+        "error": answer.get("error", False)
+    }
+
+
 class UHIHandler(SimpleHTTPRequestHandler):
     """Serve static files and API endpoints."""
 
@@ -41,10 +105,6 @@ class UHIHandler(SimpleHTTPRequestHandler):
             question = params.get("question", ["Where should Phoenix prioritize a cooling intervention this afternoon?"])[0]
             mode = params.get("mode", ["replay"])[0]
             self.serve_answer(question, mode)
-        elif parsed.path == "/api/fixture":
-            params = parse_qs(parsed.query)
-            name = params.get("name", ["heatmap"])[0]
-            self.serve_fixture(name)
         else:
             super().do_GET()
 
@@ -59,41 +119,24 @@ class UHIHandler(SimpleHTTPRequestHandler):
     def serve_answer(self, question, mode):
         try:
             result = get_agent_result(question, mode)
-            # Remove raw_results to keep response size reasonable
-            if "raw_results" in result:
-                del result["raw_results"]
-            response = json.dumps(result)
+            payload = build_visualization_payload(result)
+            response = json.dumps(payload)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(response.encode())
         except Exception as e:
-            error = json.dumps({"error": str(e)})
+            error = json.dumps({"error": True, "message": str(e), "mode": mode})
             self.send_response(500)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(error.encode())
 
-    def serve_fixture(self, name):
-        fixture_map = {
-            "heatmap": "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
-            "env_params": "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
-        }
-        fixture_path = Path(__file__).resolve().parent.parent / fixture_map.get(name, "")
-        if fixture_path.exists():
-            content = fixture_path.read_bytes()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(content)
-        else:
-            self.send_response(404)
-            self.end_headers()
-
 
 def main():
-    port = 8080
+    import os
+    port = int(os.environ.get("PORT", 8080))
     server = HTTPServer(("127.0.0.1", port), UHIHandler)
     print(f"Urban Heat Intelligence — Decision Experience")
     print(f"Running at http://localhost:{port}")

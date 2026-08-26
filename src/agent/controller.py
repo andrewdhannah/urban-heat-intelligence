@@ -18,6 +18,15 @@ def plan_question(question, context=None):
     """Minimal question planner — produces tool plan based on intent."""
     q = question.lower()
 
+    # Decision/prioritization intent — highest priority
+    if any(w in q for w in ["prioritize", "priority", "cooling intervention", "intervention", "where should"]):
+        return {
+            "interpreted_intent": "cooling_prioritization",
+            "selected_tools": ["get_heatmap", "get_environmental_parameters"],
+            "rationale": "Question asks for intervention prioritization; heatmap identifies hottest areas, env_params provides local conditions at priority location"
+        }
+
+    # Risk assessment intent
     if any(w in q for w in ["risk", "danger", "heat risk", "heat index", "how hot", "feel like"]):
         return {
             "interpreted_intent": "area_risk_assessment",
@@ -25,13 +34,15 @@ def plan_question(question, context=None):
             "rationale": "Question asks about area-level heat risk; heatmap provides spatial distribution, env_params provides local conditions at representative location"
         }
 
-    if any(w in q for w in ["distribution", "spread", "across", "map", "where"]):
+    # Distribution intent — lowest priority, heatmap only
+    if any(w in q for w in ["distribution", "spread", "across"]):
         return {
             "interpreted_intent": "temperature_distribution",
             "selected_tools": ["get_heatmap"],
             "rationale": "Question asks about spatial distribution; heatmap alone provides the needed temperature map across the area"
         }
 
+    # Default: area risk
     return {
         "interpreted_intent": "area_risk_assessment",
         "selected_tools": ["get_heatmap", "get_environmental_parameters"],
