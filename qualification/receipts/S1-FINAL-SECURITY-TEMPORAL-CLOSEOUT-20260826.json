@@ -1,0 +1,42 @@
+{
+  "receipt_id": "S1-FINAL-SECURITY-TEMPORAL-CLOSEOUT-20260826",
+  "receipt_type": "s1_final_closeout",
+  "timestamp": "2026-08-26T21:30:00Z",
+  "project_id": "urban-heat-intelligence",
+  "tls_verification": "ssl.create_default_context() with load_verify_locations(/etc/ssl/cert.pem)",
+  "hostname_verification": true,
+  "tls_bypass_removed": true,
+  "live_time_resolution_method": "resolve_latest_observation_time() \u2014 floors to latest completed hour in America/Phoenix timezone",
+  "phoenix_timezone": "America/Phoenix (GMT-7, no DST)",
+  "requested_observation_time": "2026-08-26T13:00:00-07:00",
+  "returned_observation_time": "2026-08-26T13:00:00-07:00",
+  "live_heatmap_activity_id": "8f544701-38d3-4631-bf34-c1c4bd23201a",
+  "live_env_params_activity_id": "510d1f7b-41e5-4826-9338-b47c2adf8c86",
+  "live_result_summary": "Phoenix Aug 26 13:00 local, mean 42.68C, heat_index 39.5C, apparent 46.4C",
+  "replay_observation_time": "2026-08-25T14:00:00-07:00",
+  "replay_network_calls": 0,
+  "evidence_chain_nodes": [
+    "user_request",
+    "plan",
+    "heatmap_request",
+    "heatmap_result",
+    "coordinate_selection",
+    "env_params_request",
+    "env_params_result",
+    "answer"
+  ],
+  "evidence_chain_count": 8,
+  "test_pass": 15,
+  "test_fail": 0,
+  "credential_present": true,
+  "credential_exposed": false,
+  "files_changed": [
+    "src/agent/adapter.py (verified TLS, key stripping)",
+    "src/agent/controller.py (8-node chain, dynamic time)",
+    "src/agent/time_resolver.py (new \u2014 dynamic time resolution)",
+    "tests/test_s1.py (15 tests)",
+    "qualification/receipts/S1-FINAL-SECURITY-TEMPORAL-CLOSEOUT-20260826.json"
+  ],
+  "final_s1_result": "PASS",
+  "s2_status": "PLANNED / NOT AUTHORIZED"
+}

@@ -1,7 +1,8 @@
 """
-FortyGuard Adapter — S1 wrapper around minimal S0 adapter
+FortyGuard Adapter — S1 wrapper with verified TLS
 
 Provides submit_heatmap, submit_env_params, poll_status methods.
+TLS certificate verification is always enabled.
 """
 
 import json
@@ -15,15 +16,22 @@ BASE_URL = "https://api.fortyguard.com/v1"
 
 
 def _make_ssl_context():
-    """Create SSL context — unverified for hackathon API compatibility."""
+    """
+    Create verified TLS context using OS default CA bundle.
+
+    Certificate verification and hostname checking are always enabled.
+    The api-key header is sent only over verified TLS connections.
+    """
     ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    # Load macOS system CA bundle (needed for Python without certifi)
+    ca_path = "/etc/ssl/cert.pem"
+    if Path(ca_path).exists():
+        ctx.load_verify_locations(ca_path)
     return ctx
 
 
 class FortyGuardAdapter:
-    """FortyGuard API adapter with live and replay capabilities."""
+    """FortyGuard API adapter with verified TLS."""
 
     def __init__(self, api_key=None, mode="live"):
         self.mode = mode
@@ -46,7 +54,7 @@ class FortyGuardAdapter:
         raise RuntimeError("FORTYGUARD_API_KEY not found")
 
     def _make_request(self, method, path, body=None):
-        """Make authenticated request."""
+        """Make authenticated request over verified TLS."""
         url = f"{BASE_URL}{path}"
         req = urllib.request.Request(url, method=method)
         req.add_header("api-key", self.api_key)

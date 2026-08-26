@@ -1,28 +1,23 @@
 """
-Agent Controller — Heat-question answering agent with planning
+Agent Controller — Heat-question answering with planning and evidence chain
 
-Decides which tools to call based on user's heat question.
-Composes evidence chain and produces structured answer.
+8-node evidence chain:
+    user_request → plan → heatmap_request → heatmap_result
+    → coordinate_selection → env_params_request → env_params_result → answer
 """
 
 import json
 from datetime import datetime, timezone
-from pathlib import Path
 
 from src.tools.heatmap import normalize_heatmap_result
 from src.tools.env_params import normalize_env_params_result
+from src.agent.time_resolver import resolve_latest_observation_time, format_observation_time
 
 
 def plan_question(question, context=None):
-    """
-    Minimal question planner — produces tool plan based on intent.
-
-    Returns:
-        dict with interpreted_intent, selected_tools, rationale
-    """
+    """Minimal question planner — produces tool plan based on intent."""
     q = question.lower()
 
-    # Area risk question — needs heatmap + env_params
     if any(w in q for w in ["risk", "danger", "heat risk", "heat index", "how hot", "feel like"]):
         return {
             "interpreted_intent": "area_risk_assessment",
@@ -30,7 +25,6 @@ def plan_question(question, context=None):
             "rationale": "Question asks about area-level heat risk; heatmap provides spatial distribution, env_params provides local conditions at representative location"
         }
 
-    # Distribution question — needs heatmap only
     if any(w in q for w in ["distribution", "spread", "across", "map", "where"]):
         return {
             "interpreted_intent": "temperature_distribution",
@@ -38,7 +32,6 @@ def plan_question(question, context=None):
             "rationale": "Question asks about spatial distribution; heatmap alone provides the needed temperature map across the area"
         }
 
-    # Default: area risk (most common)
     return {
         "interpreted_intent": "area_risk_assessment",
         "selected_tools": ["get_heatmap", "get_environmental_parameters"],
@@ -47,9 +40,7 @@ def plan_question(question, context=None):
 
 
 class HeatAgent:
-    """
-    Agent that answers heat questions using FortyGuard tools.
-    """
+    """Agent that answers heat questions using FortyGuard tools."""
 
     def __init__(self, adapter, mode="live"):
         self.adapter = adapter
@@ -57,17 +48,21 @@ class HeatAgent:
         self.evidence_chain = []
 
     def answer(self, question, location="Phoenix, AZ", date_time=None):
-        """Answer a heat question with planning, tool calls, and evidence."""
+        """Answer a heat question with planning, tool calls, and 8-node evidence."""
         self.evidence_chain = []
 
-        # Step 1: Record user request
+        # Resolve observation time for LIVE
+        if self.mode == "live" and date_time is None:
+            date_time = resolve_latest_observation_time()
+
+        # 1. user_request
         self._add_evidence("user_request", {
             "question": question,
             "location": location,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
 
-        # Step 2: Plan — question-dependent tool selection
+        # 2. plan
         plan = plan_question(question)
         self._add_evidence("plan", {
             "interpreted_intent": plan["interpreted_intent"],
@@ -75,12 +70,23 @@ class HeatAgent:
             "rationale": plan["rationale"]
         })
 
-        # Step 3: Execute plan
         heatmap_result = None
         env_result = None
 
         if "get_heatmap" in plan["selected_tools"]:
-            heatmap_result = self._call_heatmap(location, date_time)
+            # 3. heatmap_request
+            heatmap_request = self._build_heatmap_request(date_time)
+            self._add_evidence("heatmap_request", {
+                "endpoint": "/v1/heatmap",
+                "mode": self.mode,
+                "aoi": "Phoenix downtown (~0.02 degree polygon)",
+                "requested_observation_time": format_observation_time(date_time) if date_time else None,
+                "granularity": 100,
+                "date_time": date_time
+            })
+
+            # 4. heatmap_result
+            heatmap_result = self._call_heatmap(date_time)
             if heatmap_result is None:
                 return self._error_answer("Heatmap call failed")
 
@@ -95,18 +101,29 @@ class HeatAgent:
             })
 
         if "get_environmental_parameters" in plan["selected_tools"] and heatmap_result:
-            # Select coordinate from global hottest feature
             candidates = heatmap_result.get("candidates_for_env_params", [])
             if not candidates:
                 return self._error_answer("No temperature candidates found")
 
-            selected = candidates[0]  # Global hottest
+            selected = candidates[0]
+
+            # 5. coordinate_selection
             self._add_evidence("coordinate_selection", {
                 "selected_coordinate": selected,
                 "selection_method": "global_maximum_temperature_feature",
                 "observation_time": heatmap_result["observation_time"]
             })
 
+            # 6. env_params_request
+            self._add_evidence("env_params_request", {
+                "endpoint": "/v1/env_params",
+                "mode": self.mode,
+                "coordinate": {"latitude": selected["latitude"], "longitude": selected["longitude"]},
+                "temperature_supplied": selected["temperature_celsius"],
+                "requested_observation_time": format_observation_time(date_time) if date_time else None
+            })
+
+            # 7. env_params_result
             env_result = self._call_env_params(selected, date_time)
             if env_result is None:
                 return self._error_answer("Environmental parameters call failed")
@@ -121,17 +138,20 @@ class HeatAgent:
                 "mode": self.mode
             })
 
-        # Step 4: Compose answer
+        # 8. answer
         answer = self._compose_answer(heatmap_result, env_result, question, location, plan)
+
+        self._add_evidence("answer", {
+            "summary": answer["answer"]["summary"],
+            "mode": self.mode,
+            "observation_time": answer["answer"]["observation_time"],
+            "source_nodes": ["heatmap_result", "env_params_result"]
+        })
+
         return answer
 
-    def _call_heatmap(self, location, date_time):
-        if self.mode == "replay":
-            return self._replay_heatmap()
-        return self._live_heatmap(location, date_time)
-
-    def _live_heatmap(self, location, date_time):
-        request_params = {
+    def _build_heatmap_request(self, date_time):
+        return {
             "polygon_aoi": {
                 "type": "FeatureCollection",
                 "features": [{
@@ -140,22 +160,24 @@ class HeatAgent:
                     "geometry": {
                         "type": "Polygon",
                         "coordinates": [[
-                            [-112.08, 33.44],
-                            [-112.06, 33.44],
-                            [-112.06, 33.46],
-                            [-112.08, 33.46],
+                            [-112.08, 33.44], [-112.06, 33.44],
+                            [-112.06, 33.46], [-112.08, 33.46],
                             [-112.08, 33.44]
                         ]]
                     }
                 }]
             },
-            "date_time": date_time or {
-                "start_date": "2026-08-25",
-                "start_time": "14:00",
-                "filter_type": 1
-            },
+            "date_time": date_time or {"start_date": "2026-08-25", "start_time": "14:00", "filter_type": 1},
             "granularity": 100
         }
+
+    def _call_heatmap(self, date_time):
+        if self.mode == "replay":
+            return self._replay_heatmap()
+        return self._live_heatmap(date_time)
+
+    def _live_heatmap(self, date_time):
+        request_params = self._build_heatmap_request(date_time)
         try:
             raw = self.adapter.submit_heatmap(request_params)
             activity_id = raw.get("data", {}).get("activity_id")
@@ -172,6 +194,7 @@ class HeatAgent:
             return None
 
     def _replay_heatmap(self):
+        from pathlib import Path
         fixture_path = Path("fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json")
         if not fixture_path.exists():
             return None
@@ -198,11 +221,7 @@ class HeatAgent:
             "latitude": coordinate["latitude"],
             "longitude": coordinate["longitude"],
             "temperature": coordinate["temperature_celsius"],
-            "date_time": date_time or {
-                "start_date": "2026-08-25",
-                "start_time": "14:00",
-                "filter_type": 1
-            }
+            "date_time": date_time or {"start_date": "2026-08-25", "start_time": "14:00", "filter_type": 1}
         }
         try:
             raw = self.adapter.submit_env_params(request_params)
@@ -220,6 +239,7 @@ class HeatAgent:
             return None
 
     def _replay_env_params(self):
+        from pathlib import Path
         fixture_path = Path("fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json")
         if not fixture_path.exists():
             return None
@@ -227,8 +247,7 @@ class HeatAgent:
             raw = json.load(f)
         data = raw.get("data", {})
         request_params = {
-            "latitude": 33.4484,
-            "longitude": -112.0740,
+            "latitude": 33.4484, "longitude": -112.0740,
             "temperature": 42.0,
             "date_time": {"start_date": "2026-08-25", "start_time": "14:00", "filter_type": 1}
         }
@@ -242,17 +261,29 @@ class HeatAgent:
         hm = heatmap["result"] if heatmap else {}
         ep = env_params["result"] if env_params else {}
 
-        # Measured result
         apparent_delta = None
         if ep.get("apparent_temperature_celsius") and ep.get("temperature_celsius"):
             apparent_delta = round(ep["apparent_temperature_celsius"] - ep["temperature_celsius"], 1)
 
-        # Observation time from the tools
         obs_time = heatmap["observation_time"] if heatmap else (env_params["observation_time"] if env_params else None)
+
+        sources = []
+        if heatmap:
+            sources.append({"provider": "FortyGuard", "endpoint": "/v1/heatmap", "mode": heatmap["mode"],
+                            "observation_time": heatmap["observation_time"], "activity_id": heatmap.get("activity_id")})
+        if env_params:
+            sources.append({"provider": "FortyGuard", "endpoint": "/v1/env_params", "mode": env_params["mode"],
+                            "observation_time": env_params["observation_time"], "activity_id": env_params.get("activity_id")})
+
+        # Build summary based on whether observation is live or historical
+        if self.mode == "live":
+            summary = f"Latest available FortyGuard observation for {location}: area experiencing very high thermal conditions."
+        else:
+            summary = f"The queried area in {location} is experiencing very high thermal conditions."
 
         return {
             "answer": {
-                "summary": f"The queried area in {location} is experiencing very high thermal conditions.",
+                "summary": summary,
                 "conditions": {
                     "area_mean_temperature_celsius": hm.get("mean_temperature_celsius"),
                     "area_max_temperature_celsius": hm.get("max_temperature_celsius"),
@@ -271,62 +302,25 @@ class HeatAgent:
                     }
                 },
                 "why_this_answer": plan.get("rationale", ""),
-                "sources": [
-                    {
-                        "provider": "FortyGuard",
-                        "endpoint": s["endpoint"],
-                        "mode": s["mode"],
-                        "observation_time": s.get("observation_time"),
-                        "activity_id": s.get("activity_id")
-                    }
-                    for s in self._collect_sources(heatmap, env_params)
-                ],
+                "sources": sources,
                 "mode": self.mode,
                 "observation_time": obs_time
             },
             "evidence_chain": self.evidence_chain,
-            "raw_results": {
-                "heatmap": heatmap,
-                "env_params": env_params
-            }
+            "raw_results": {"heatmap": heatmap, "env_params": env_params}
         }
-
-    def _collect_sources(self, heatmap, env_params):
-        sources = []
-        if heatmap:
-            sources.append({
-                "endpoint": "/v1/heatmap",
-                "mode": heatmap["mode"],
-                "observation_time": heatmap["observation_time"],
-                "activity_id": heatmap.get("activity_id")
-            })
-        if env_params:
-            sources.append({
-                "endpoint": "/v1/env_params",
-                "mode": env_params["mode"],
-                "observation_time": env_params["observation_time"],
-                "activity_id": env_params.get("activity_id")
-            })
-        return sources
 
     def _error_answer(self, message):
         return {
-            "answer": {
-                "summary": f"Unable to answer: {message}",
-                "conditions": {},
-                "why_this_answer": message,
-                "sources": [],
-                "mode": self.mode,
-                "observation_time": None,
-                "error": True
-            },
+            "answer": {"summary": f"Unable to answer: {message}", "conditions": {},
+                       "why_this_answer": message, "sources": [], "mode": self.mode,
+                       "observation_time": None, "error": True},
             "evidence_chain": self.evidence_chain,
             "raw_results": {}
         }
 
     def _add_evidence(self, step, data):
         self.evidence_chain.append({
-            "step": step,
-            "data": data,
+            "step": step, "data": data,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
