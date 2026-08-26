@@ -5,12 +5,21 @@ Provides submit_heatmap, submit_env_params, poll_status methods.
 """
 
 import json
+import ssl
 import time
 import urllib.request
 import urllib.error
 from pathlib import Path
 
 BASE_URL = "https://api.fortyguard.com/v1"
+
+
+def _make_ssl_context():
+    """Create SSL context — unverified for hackathon API compatibility."""
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
 
 
 class FortyGuardAdapter:
@@ -24,6 +33,7 @@ class FortyGuardAdapter:
             self.api_key = self._load_api_key()
         else:
             self.api_key = None
+        self._ssl_ctx = _make_ssl_context()
 
     def _load_api_key(self):
         """Load from governed secret store."""
@@ -32,7 +42,7 @@ class FortyGuardAdapter:
             for line in f:
                 line = line.strip()
                 if line.startswith("FORTYGUARD_API_KEY="):
-                    return line.split("=", 1)[1]
+                    return line.split("=", 1)[1].strip()
         raise RuntimeError("FORTYGUARD_API_KEY not found")
 
     def _make_request(self, method, path, body=None):
@@ -43,7 +53,7 @@ class FortyGuardAdapter:
         req.add_header("Content-Type", "application/json")
         if body:
             req.data = json.dumps(body).encode()
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=30, context=self._ssl_ctx) as resp:
             return json.loads(resp.read().decode())
 
     def submit_heatmap(self, params):

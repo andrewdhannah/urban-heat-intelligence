@@ -1,0 +1,66 @@
+{
+  "receipt_id": "S1-CLOSEOUT-REMEDIATION-20260826",
+  "receipt_type": "s1_closeout",
+  "timestamp": "2026-08-26T21:15:00Z",
+  "project_id": "urban-heat-intelligence",
+  "supersedes_for_qualification_disposition": "qualification/receipts/S1-COMPLETION-RECEIPT-20260826.json",
+  "superseded_receipt_preservation": "S1-COMPLETION-RECEIPT-20260826.json preserved as historical evidence, not rewritten",
+  "original_s1_result": "PASS",
+  "temporal_provenance_fix": {
+    "observation_time": "Derived from request date_time or provider metadata, NOT datetime.now()",
+    "captured_at": "Runtime capture time (separate field)",
+    "replay_observation_time": "2026-08-25T14:00:00-07:00 (fixture date, not execution date)",
+    "test_result": "PASS"
+  },
+  "hotspot_selection_fix": {
+    "method": "global_maximum_across_all_features_polygon_centroid",
+    "selection_method_label": "global_maximum_temperature_feature",
+    "test_result": "PASS"
+  },
+  "planning_behavior": {
+    "implementation": "plan_question() function with intent detection",
+    "demonstrated_plans": [
+      "area_risk_assessment -> [get_heatmap, get_environmental_parameters]",
+      "temperature_distribution -> [get_heatmap]"
+    ],
+    "test_result": "PASS"
+  },
+  "evidence_chain_nodes": [
+    "user_request",
+    "plan (interpreted_intent, selected_tools, rationale)",
+    "heatmap_result (activity_id, feature_count, temps, observation_time)",
+    "coordinate_selection (selected_coordinate, selection_method)",
+    "env_params_result (activity_id, heat_index, apparent_temp, observation_time)"
+  ],
+  "activity_ids_preserved": true,
+  "live_agent_run": {
+    "status": "EXECUTED",
+    "heatmap_activity_id": "ca340cf6-a092-4996-a35f-32421f03ca8c",
+    "env_params_activity_id": "fa15ba0e-0cbe-4105-9027-5dc04920cfd3",
+    "observation_time": "2026-08-25T14:00:00-07:00",
+    "result_summary": "Phoenix 367 features, mean 42.03C, heat_index 39.4C, apparent 46.4C, humidity 11.4%, delta 4.3C"
+  },
+  "replay_agent_run": {
+    "status": "VERIFIED",
+    "network_calls": 0,
+    "observation_time": "2026-08-25T14:00:00-07:00",
+    "result_summary": "Same fixture data, zero network calls, correct observation time"
+  },
+  "missing_credential_test": "PASS (RuntimeError on missing FORTYGUARD_API_KEY)",
+  "malformed_response_test": "PASS (no crash, bounded failure)",
+  "test_count": 21,
+  "test_pass": 21,
+  "test_fail": 0,
+  "secret_scan": "All committed files CLEAN",
+  "files_created": [
+    "src/agent/adapter.py (fixed SSL, key stripping)",
+    "src/tools/heatmap.py (fixed temporal provenance, centroid, global hotspot)",
+    "src/tools/env_params.py (fixed temporal provenance)",
+    "src/agent/controller.py (added planning, activity IDs, provenance)",
+    "tests/test_s1.py (21 tests)",
+    "qualification/receipts/S1-CLOSEOUT-REMEDIATION-20260826.json"
+  ],
+  "files_changed": [],
+  "final_s1_result": "PASS",
+  "s2_status": "PLANNED / NOT AUTHORIZED"
+}

@@ -9,7 +9,27 @@ import hashlib
 from datetime import datetime, timezone
 
 
-def normalize_env_params_result(raw_response, request_params, mode="live", fixture_path=None):
+def _derive_observation_time(request_params, provider_metadata=None):
+    """Derive observation time from provider metadata or request date_time."""
+    # Prefer provider metadata timestamps
+    if provider_metadata:
+        time_range = provider_metadata.get("time_range", {})
+        start = time_range.get("start")
+        if start:
+            return start
+
+    # Fall back to request date_time
+    dt = request_params.get("date_time", {})
+    start_date = dt.get("start_date", "")
+    start_time = dt.get("start_time", "")
+    if start_date and start_time:
+        return f"{start_date}T{start_time}:00-07:00"
+    elif start_date:
+        return f"{start_date}T12:00:00-07:00"
+    return None
+
+
+def normalize_env_params_result(raw_response, request_params, mode="live", fixture_path=None, activity_id=None):
     """
     Normalize FortyGuard env_params response into stable application contract.
 
@@ -18,6 +38,7 @@ def normalize_env_params_result(raw_response, request_params, mode="live", fixtu
         request_params: Original request parameters
         mode: "live" or "replay"
         fixture_path: Path to fixture file if replay
+        activity_id: Provider activity ID if available
 
     Returns:
         Normalized env_params result dict
@@ -34,19 +55,17 @@ def normalize_env_params_result(raw_response, request_params, mode="live", fixtu
     heat_index = None
     apparent_temp = None
     humidity = None
-    solar_irradiance = None
+
+    def _extract(val):
+        if isinstance(val, list) and len(val) > 0:
+            return val[0]
+        return val
 
     if isinstance(params, dict):
-        # Dict format: {"heat_index_celsius": 39.3, ...} — value may be scalar or list
-        def _extract(val):
-            if isinstance(val, list) and len(val) > 0:
-                return val[0]
-            return val
         heat_index = _extract(params.get("heat_index_celsius"))
         apparent_temp = _extract(params.get("apparent_temperature_celsius"))
         humidity = _extract(params.get("relative_humidity_percent"))
     elif isinstance(params, list):
-        # List format: [{"name": "heat_index_celsius", "value": 39.3}, ...]
         for p in params:
             name = p.get("name", "")
             value = p.get("value")
@@ -58,15 +77,21 @@ def normalize_env_params_result(raw_response, request_params, mode="live", fixtu
                 humidity = value
 
     solar = loc.get("solar_irradiance")
+    solar_irradiance = None
     if solar and isinstance(solar, dict):
-        solar_irradiance = solar.get("value") or solar.get("ghi")
+        solar_irradiance = _extract(solar.get("value")) or solar.get("ghi")
+
+    # Derive observation time from provider metadata (preferred) or request
+    observation_time = _derive_observation_time(request_params, metadata)
 
     return {
         "tool": "get_environmental_parameters",
         "provider": "FortyGuard",
         "endpoint": "/v1/env_params",
         "mode": mode,
-        "observation_time": datetime.now(timezone.utc).isoformat(),
+        "observation_time": observation_time,
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "activity_id": activity_id,
         "request": {
             "latitude": request_params.get("latitude"),
             "longitude": request_params.get("longitude"),
