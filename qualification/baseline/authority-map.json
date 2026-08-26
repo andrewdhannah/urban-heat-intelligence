@@ -1,0 +1,86 @@
+{
+  "authority_map": "pre-hackathon",
+  "captured_at": "2026-08-05T20:45:00Z",
+  "source": "derived from all docs",
+  
+  "authority_boundaries": {
+    "implementation_detail": {
+      "description": "Can be changed without governance decision",
+      "includes": [
+        "MCP tool parameter defaults",
+        "Database caching strategy",
+        "UI layout and styling",
+        "Embedding model selection",
+        "Seed data content"
+      ]
+    },
+    "contract_candidate": {
+      "description": "May become canonical — requires decision if changed",
+      "includes": [
+        "Database schema (temperature_cache, heat_documents, evidence_log)",
+        "MCP tool response shapes",
+        "Evidence receipt format",
+        "API integration contract"
+      ]
+    },
+    "governance_boundary": {
+      "description": "Cannot be changed without authority",
+      "includes": [
+        "Evidence log schema (evidence_log table)",
+        "Receipt standard (tool, source, query_time, cached, confidence)",
+        "Authority classification system"
+      ]
+    }
+  },
+  
+  "decision_surfaces": [
+    {
+      "question": "Should API response schema become canonical?",
+      "classification": "decision_packet",
+      "current_state": "implementation_detail",
+      "risk": "medium"
+    },
+    {
+      "question": "Should evidence receipt format be governance boundary?",
+      "classification": "governance_boundary",
+      "current_state": "contract_candidate",
+      "risk": "high"
+    },
+    {
+      "question": "Should database schema become canonical?",
+      "classification": "decision_packet",
+      "current_state": "contract_candidate",
+      "risk": "medium"
+    },
+    {
+      "question": "Should MCP tool definitions be governance-relevant?",
+      "classification": "decision_packet",
+      "current_state": "implementation_detail",
+      "risk": "low"
+    }
+  ],
+  
+  "human_decision_points": [
+    {
+      "point": "Project name selection",
+      "status": "pending",
+      "candidates": ["Isotherm", "Shadecast", "Heatline", "Swelter", "HeatLedger"]
+    },
+    {
+      "point": "Challenge track selection",
+      "status": "pending",
+      "options": ["Resilient Cities", "Future Buildings", "Industrial", "Government", "Model Designing", "Agentic AI", "Data Analysis"]
+    },
+    {
+      "point": "API integration approach",
+      "status": "pending",
+      "question": "Direct API calls vs. MCP wrapper pattern?"
+    }
+  ],
+  
+  "ai_roles": {
+    "code_generation": "Implementation detail — AI generates code, human reviews",
+    "architecture_decisions": "Human authority — AI can suggest, human decides",
+    "evidence_classification": "Governance boundary — system classifies, human approves changes"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "capability_map": "pre-hackathon",
+  "captured_at": "2026-08-05T20:45:00Z",
+  "source": "docs/MCP-SCHEMA.md + docs/ARCHITECTURE.md",
+  
+  "mcp_capabilities": [
+    {
+      "name": "get_temperature",
+      "type": "data_retrieval",
+      "description": "Current temperature at 2-meter resolution",
+      "input": "lat, lng, units",
+      "output": "temperature, feels_like, location, receipt",
+      "evidence": true
+    },
+    {
+      "name": "get_forecast",
+      "type": "data_retrieval",
+      "description": "Hourly temperature forecast (up to 48h)",
+      "input": "lat, lng, hours",
+      "output": "forecast array, receipt",
+      "evidence": true
+    },
+    {
+      "name": "get_heat_index",
+      "type": "calculation",
+      "description": "Heat index with humidity/wind factors",
+      "input": "lat, lng, include_breakdown",
+      "output": "heat_index, danger_level, factors, recommendations, receipt",
+      "evidence": true
+    },
+    {
+      "name": "search_locations",
+      "type": "search",
+      "description": "Find areas exceeding heat threshold",
+      "input": "region, threshold, metric",
+      "output": "locations array, receipt",
+      "evidence": true
+    },
+    {
+      "name": "get_heat_events",
+      "type": "data_retrieval",
+      "description": "Historical extreme heat events",
+      "input": "lat, lng, years_back",
+      "output": "events array, receipt",
+      "evidence": true
+    },
+    {
+      "name": "query_evidence",
+      "type": "rag_search",
+      "description": "Semantic search over heat-safety documents",
+      "input": "query, max_results, category",
+      "output": "results array with relevance scores, receipt",
+      "evidence": true
+    }
+  ],
+  
+  "evidence_capability": {
+    "receipt_standard": {
+      "fields": ["tool", "source", "query_time", "cached", "confidence"],
+      "purpose": "Every answer shows its work",
+      "format": "JSON object in every tool response"
+    }
+  },
+  
+  "rag_capability": {
+    "documents": "20-30 heat-safety reference documents",
+    "categories": ["who_guidelines", "epa_standards", "city_plans", "research", "fortyguard_docs"],
+    "embeddings": "all-MiniLM-L6-v2 (384 dimensions)",
+    "search": "sqlite-vec vector similarity or fallback to BLOB + cosine"
+  },
+  
+  "presentation_capabilities": [
+    {
+      "name": "chat_interface",
+      "type": "interaction",
+      "description": "Message in, agent reasons with visible sources, card out"
+    },
+    {
+      "name": "dashboard",
+      "type": "visualization",
+      "description": "Interactive map with heat overlay, timeline slider"
+    }
+  ],
+  
+  "pre_seed_cities": [
+    "Phoenix, AZ",
+    "San Jose, CA",
+    "Dubai, UAE",
+    "Miami, FL",
+    "Delhi, India"
+  ]
+}

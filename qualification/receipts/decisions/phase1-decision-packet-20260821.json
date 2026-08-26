@@ -1,0 +1,70 @@
+{
+  "receipt_id": "PHASE1-DECISION-PACKET-20260821",
+  "created_at": "2026-08-21T04:40:00Z",
+  "phase": "Phase 1 — Discovery",
+  "qualification_fixture": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001",
+  
+  "decision_type": "provider_reallocation",
+  "classification": "contract_candidate",
+  "authority_required": "Owner decision",
+  
+  "discovery_basis": {
+    "source": "PHASE1-BASELINE-COMPARISON-20260821",
+    "key_finding": "Government GIS (USGS/NLCD) provides direct, independently attributable physical-environment evidence that is stronger than the assumed FortyGuard satellite segmentation role for vegetation, impervious surface, and land cover analysis."
+  },
+  
+  "proposed_evolution": {
+    "description": "Introduce government GIS as primary physical-environment evidence source; reassign FortyGuard satellite segmentation to optional corroboration role.",
+    "rationale": "USGS/NLCD provides 30m resolution tree canopy cover, fractional impervious surface, and land cover classification — direct physical-environment evidence with federal authority. This is more directly attributable than requiring FortyGuard satellite segmentation to perform that role.",
+    "changes": [
+      {
+        "component": "Phoenix GIS / USGS",
+        "new_role": "Primary physical-environment evidence",
+        "evidence_type": "Authoritative observational",
+        "data": "Tree canopy, impervious surface, land cover, building footprints"
+      },
+      {
+        "component": "FortyGuard satellite segmentation",
+        "new_role": "Optional specialized corroboration",
+        "evidence_type": "Specialized thermal intelligence",
+        "data": "Vegetation %, pavement %, building density (where available)"
+      },
+      {
+        "component": "NWS",
+        "new_role": "Primary current-observation source",
+        "evidence_type": "Authoritative observational",
+        "data": "Forecast, alerts, observations, grid data"
+      },
+      {
+        "component": "NOAA/NCEI",
+        "new_role": "Primary historical-climate source",
+        "evidence_type": "Authoritative observational",
+        "data": "Daily/historical temperatures, climatological records, heat events"
+      },
+      {
+        "component": "Local reporting",
+        "new_role": "Contextual/human-impact evidence",
+        "evidence_type": "Contextual",
+        "data": "Heat event reporting, cooling centers, municipal response"
+      }
+    ]
+  },
+  
+  "invariants_preserved": [
+    "Evidence-first architecture",
+    "Provider-independent normalized evidence contracts",
+    "FortyGuard remains thermal intelligence specialist",
+    "Search remains discovery-only",
+    "Biblio remains ingestion/provenance",
+    "Vault remains custody/verification",
+    "Agent remains synthesis/derivation",
+    "LINK remains Owner decision surface",
+    "Owner retains final authority"
+  ],
+  
+  "invariants_threatened": "None",
+  
+  "authority_classification": "contract_candidate — provider reallocation changes implementation details but does not alter architectural meaning",
+  
+  "recommended_disposition": "Authorize provider reallocation as implementation evolution, not architectural redesign. The central abstraction (evidence-first, provider-independent) is strengthened, not weakened, by this change."
+}

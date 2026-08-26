@@ -1,0 +1,72 @@
+{
+  "architecture_state": "pre-hackathon",
+  "captured_at": "2026-08-05T20:45:00Z",
+  "source": "docs/ARCHITECTURE.md",
+  
+  "stack": {
+    "mcp_server": {
+      "technology": "TypeScript + MCP SDK",
+      "purpose": "Structured tool definitions for FortyGuard API",
+      "location": "/mcp"
+    },
+    "database": {
+      "technology": "SQLite + sqlite-vec",
+      "purpose": "Local evidence store, cached API responses, vector embeddings",
+      "location": "/db"
+    },
+    "interface": {
+      "technology": "HTML + TypeScript",
+      "purpose": "Chat shell + dashboard, rebuilt from LINK pattern",
+      "location": "/interface"
+    },
+    "embeddings": {
+      "technology": "Local model or cheap API",
+      "purpose": "Semantic search over heat-safety documents",
+      "location": "via sqlite-vec"
+    }
+  },
+  
+  "components": [
+    {
+      "name": "MCP Server",
+      "type": "service",
+      "technology": "TypeScript",
+      "owns": ["tool definitions", "API integration"],
+      "retrieves": ["temperature data from FortyGuard"],
+      "produces": ["evidence receipts"]
+    },
+    {
+      "name": "Database",
+      "type": "storage",
+      "technology": "SQLite + sqlite-vec",
+      "owns": ["cached data", "evidence log", "document embeddings"],
+      "schema_version": 1
+    },
+    {
+      "name": "Chat Interface",
+      "type": "presentation",
+      "technology": "HTML + TypeScript",
+      "owns": ["user interaction", "card rendering"],
+      "retrieves": ["agent responses"]
+    },
+    {
+      "name": "Dashboard",
+      "type": "presentation",
+      "technology": "HTML + Leaflet.js",
+      "owns": ["map visualization", "heat overlay"],
+      "retrieves": ["temperature data"]
+    }
+  ],
+  
+  "data_flow": "Temperature MCP → Knowledge MCP → Evidence Composer → Receipt → Answer",
+  
+  "external_dependencies": [
+    {
+      "name": "FortyGuard Temperature API",
+      "type": "external_api",
+      "endpoint": "POST /v1/heat-intelligence",
+      "authentication": "API key (TBD)",
+      "caching": "SQLite cache for demo reliability"
+    }
+  ]
+}

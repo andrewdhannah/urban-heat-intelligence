@@ -1,0 +1,40 @@
+# Secrets — NEVER commit
+.secrets/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database (local only)
+*.db
+*.sqlite
+*.sqlite-vec
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log

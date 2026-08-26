@@ -1,0 +1,63 @@
+{
+  "decision_boundary": "hackathon26",
+  "created_at": "2026-08-05T21:00:00Z",
+  
+  "purpose": "Simple rules for handling changes during the hackathon. Prevents speed pressure from silently changing architecture.",
+  
+  "rules": [
+    {
+      "change_type": "Bug fix inside existing contract",
+      "handling": "Execute + receipt",
+      "classification": "implementation_detail",
+      "evidence": "receipt in changes/receipts/"
+    },
+    {
+      "change_type": "UI change",
+      "handling": "Execute",
+      "classification": "implementation_detail",
+      "evidence": "none required"
+    },
+    {
+      "change_type": "Internal refactor",
+      "handling": "Execute + evidence",
+      "classification": "implementation_detail",
+      "evidence": "evidence in changes/receipts/"
+    },
+    {
+      "change_type": "Schema meaning change",
+      "handling": "Decision surface",
+      "classification": "contract_candidate",
+      "evidence": "decision in changes/decisions/"
+    },
+    {
+      "change_type": "New authority source",
+      "handling": "Stop + classify",
+      "classification": "governance_boundary",
+      "evidence": "decision in changes/decisions/"
+    },
+    {
+      "change_type": "New MCP capability",
+      "handling": "Capability review",
+      "classification": "contract_candidate",
+      "evidence": "review in changes/decisions/"
+    },
+    {
+      "change_type": "Evidence format change",
+      "handling": "Contract review",
+      "classification": "governance_boundary",
+      "evidence": "decision in changes/decisions/"
+    }
+  ],
+  
+  "quick_reference": {
+    "green_light": ["Bug fix", "UI change", "Internal refactor"],
+    "yellow_light": ["Schema meaning change", "New MCP capability"],
+    "red_light": ["New authority source", "Evidence format change"]
+  },
+  
+  "escalation_path": {
+    "implementation_detail": "Execute freely",
+    "contract_candidate": "Execute with receipt, flag for review",
+    "governance_boundary": "Stop, classify, decide before proceeding"
+  }
+}

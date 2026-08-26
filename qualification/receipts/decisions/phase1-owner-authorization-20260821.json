@@ -1,0 +1,75 @@
+{
+  "receipt_id": "PHASE1-OWNER-AUTHORIZATION-20260821",
+  "created_at": "2026-08-21T05:00:00Z",
+  "phase": "Phase 1 — Discovery",
+  "qualification_fixture": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001",
+  
+  "decision_type": "owner_authorization",
+  "decision_packet": "PHASE1-DECISION-PACKET-20260821",
+  
+  "authorization": {
+    "status": "AUTHORIZED",
+    "scope": "Provider reallocation as governed post-baseline architectural evolution",
+    "owner": "Andrew Hannah",
+    "timestamp": "2026-08-21T05:00:00Z"
+  },
+  
+  "authorized_provider_allocation": {
+    "fortyguard": {
+      "role": "Specialized thermal-intelligence capability",
+      "capabilities": "Heatmap, environmental parameters, heat intelligence, and other available FortyGuard capabilities remain central",
+      "satellite_segmentation": "Reclassified from principal physical-environment evidence to specialized corroborative evidence",
+      "documentation_status": "DOCUMENTED_CONFIRMED",
+      "runtime_status": "RUNTIME_UNRESOLVED",
+      "entitlement_status": "UNRESOLVED",
+      "note": "FORTYGUARD_API_KEY unavailable; live authentication not exercised; account entitlement not established"
+    },
+    "usgs_gis": {
+      "role": "Primary physical-environment evidence class",
+      "datasets": "NLCD land cover, tree canopy cover, fractional impervious surface, impervious descriptor",
+      "authority": "Federal (USGS/MRLC)",
+      "resolution": "30m raster",
+      "temporal": "1985-2025 annual",
+      "access": "Public domain, download via mrlc.gov",
+      "qualification_required": "Individual datasets must be qualified for spatial resolution, temporal vintage, provenance, and applicability before use"
+    },
+    "nws": {
+      "role": "Preferred authoritative source for current official weather observations, alerts, and forecasts",
+      "api": "api.weather.gov",
+      "authentication": "None required",
+      "phoenix_data_exercised": "Forecast (109-113°F), Extreme Heat Warning, Air Quality Alert",
+      "spatial_applicability": "Grid-based — must be explicit per claim"
+    },
+    "noaa_ncei": {
+      "role": "Preferred authoritative source for historical climatology, historical observations, and documented heat/weather events",
+      "api": "www.ncei.noaa.gov/cdo-web/api/v2",
+      "authentication": "API key required",
+      "status": "DOCUMENTED_NOT_EXERCISED"
+    },
+    "local_context": {
+      "role": "Contextual/human-impact evidence",
+      "constraint": "Must not replace authoritative meteorological, geographic, or thermal observations when those authoritative sources are available"
+    }
+  },
+  
+  "architectural_invariants_preserved": [
+    "Evidence-first architecture",
+    "Provider-independent normalized evidence contracts",
+    "FortyGuard remains thermal specialist",
+    "Search remains discovery",
+    "Biblio remains ingestion/provenance",
+    "Vault remains custody/verification",
+    "Agent remains synthesis/derivation",
+    "LINK remains Owner decision surface",
+    "Owner retains final authority"
+  ],
+  
+  "governing_abstraction": "Analysis consumes governed evidence, not provider responses.",
+  
+  "linked_receipts": [
+    "qualification/receipts/discovery/phase1-discovery-record-20260821.json",
+    "qualification/receipts/discovery/phase1-baseline-comparison-20260821.json",
+    "qualification/receipts/decisions/phase1-decision-packet-20260821.json",
+    "qualification/receipts/phase1-qualification-receipt-20260821.json"
+  ]
+}

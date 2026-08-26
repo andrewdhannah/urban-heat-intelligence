@@ -1,0 +1,70 @@
+{
+  "sprint_ledger": {
+    "project_id": "urban-heat-intelligence",
+    "namespace": "urban-heat-intelligence",
+    "model": "five-stage",
+    "created_at": "2026-08-26T18:30:00.000000+00:00",
+    "created_by": "governed-phase-a-instantiation",
+    "current_stage": null,
+    "stages": [
+      {
+        "stage_id": "Phase A",
+        "name": "Governed Project Instantiation",
+        "status": "SEALED",
+        "authorized_at": "2026-08-26T14:15:00Z",
+        "executed_at": "2026-08-26T18:30:00Z",
+        "receipt": "qualification/PROJECT-CREATION-RECEIPT.json"
+      },
+      {
+        "stage_id": "Phase B",
+        "name": "Fresh-Context Re-Entry Proof",
+        "status": "PLANNED",
+        "authorized_at": null,
+        "executed_at": null,
+        "receipt": null
+      },
+      {
+        "stage_id": "S0",
+        "name": "FortyGuard Preflight + Runtime",
+        "status": "PLANNED",
+        "authorized_at": null,
+        "executed_at": null,
+        "receipt": null
+      },
+      {
+        "stage_id": "S1",
+        "name": "Agent + Evidence Core",
+        "status": "PLANNED",
+        "authorized_at": null,
+        "executed_at": null,
+        "receipt": null
+      },
+      {
+        "stage_id": "S2",
+        "name": "Decision Experience + Replay",
+        "status": "PLANNED",
+        "authorized_at": null,
+        "executed_at": null,
+        "receipt": null
+      },
+      {
+        "stage_id": "S3",
+        "name": "Deployment + Hardening",
+        "status": "PLANNED",
+        "authorized_at": null,
+        "executed_at": null,
+        "receipt": null
+      },
+      {
+        "stage_id": "S4",
+        "name": "Submission Certification",
+        "status": "PLANNED",
+        "authorized_at": null,
+        "executed_at": null,
+        "receipt": null
+      }
+    ],
+    "sealed_count": 1,
+    "total_stages": 7
+  }
+}

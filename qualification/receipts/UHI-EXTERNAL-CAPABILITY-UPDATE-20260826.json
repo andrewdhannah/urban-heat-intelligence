@@ -1,0 +1,75 @@
+{
+  "receipt_id": "UHI-EXTERNAL-CAPABILITY-UPDATE-20260826",
+  "receipt_type": "external_capability_update",
+  "timestamp": "2026-08-26T14:00:00Z",
+  "project_id": "urban-heat-intelligence",
+  "project_root": "active/hackathon26/",
+
+  "trigger": "New authoritative competition evidence became available from the FortyGuard Hackathon '26 Participant Handbook supplied to registered participants.",
+
+  "evidence_chain": {
+    "source": "FortyGuard Hackathon '26 Participant Handbook",
+    "source_format": "Locked Google-hosted PDF",
+    "evidence_form": "Owner-created screenshots (22 PNGs) captured from the locked participant PDF",
+    "extraction_method": "Agent extraction / analysis of screenshot images",
+    "screenshot_location": "active/hackathon26/FortyGuard/",
+    "legitimacy": "Legitimate derivative evidence chain. The extraction is derivative; the screenshots remain the closest preserved representation of the authoritative source."
+  },
+
+  "previous_state": {
+    "reference_receipt": "UHI-PRE-INSTANTIATION-001",
+    "reference_date": "2026-08-21",
+    "fortyguard_api_credential": "unavailable",
+    "fortyguard_dashboard_access": "unknown",
+    "live_validation_status": "blocked",
+    "synthetic_fixtures_required": true,
+    "track_selection": "Track 01 — Resilient Cities & Infrastructure",
+    "primary_data_sources": ["NWS", "USGS", "NOAA", "FortyGuard"],
+    "assessment": "Historically correct on 2026-08-21. These values accurately reflected the state at that time."
+  },
+
+  "current_execution_state": {
+    "fortyguard_api_credential": "AVAILABLE",
+    "fortyguard_dashboard_access": "AVAILABLE to execution agent",
+    "live_validation_status": "READY TO EXECUTE",
+    "synthetic_fixtures_required": false,
+    "track_selection": "Track 6 — Agentic Track (API + Agentic)",
+    "primary_data_source": "FortyGuard (required, central)",
+    "supplementary_sources": ["NWS", "USGS", "NOAA"],
+    "quickstart_available": true,
+    "cached_mode_available": true
+  },
+
+  "supersessions": [
+    {
+      "field": "track_selection",
+      "previous": "Track 01 — Resilient Cities & Infrastructure",
+      "current": "Track 6 — Agentic Track (API + Agentic)",
+      "source": "Participant Handbook (screenshots from locked PDF)",
+      "reason": "Handbook track definitions establish Track 6 as the match for agent-based API wrappers. The implemented product thesis directly matches the handbook's agentic workflow definition."
+    },
+    {
+      "field": "primary_data_sources",
+      "previous": ["NWS", "USGS", "NOAA", "FortyGuard"],
+      "current": "FortyGuard (required, central); NWS/USGS/NOAA supplementary",
+      "source": "Participant Handbook (screenshots from locked PDF)",
+      "reason": "Handbook establishes FortyGuard as the required data source for the hackathon. Other providers are supplementary at best."
+    }
+  ],
+
+  "preserved_historical_receipts": [
+    "UHI-PRE-INSTANTIATION-001",
+    "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE",
+    "phase1-qualification-receipt-20260821.json",
+    "phase1-discovery-record-20260821.json",
+    "phase1-owner-authorization-20260821.json"
+  ],
+
+  "distinction": "was true ≠ is true. Historical receipts describe the truthful state on August 21. This receipt describes the current execution state on August 26. Neither supersedes the other; they are sequential truth claims at different points in time.",
+
+  "plan_impact": {
+    "plan_v3_2": "SUPERSEDED FOR EXECUTION (preserved as historical authority)",
+    "plan_v3_3": "CURRENT EXECUTION PLAN (created from handbook reconciliation)",
+    "sprint_decomposition": "SUPERSEDED (original S0-S12 replaced by five-stage model)"
+  }
+}

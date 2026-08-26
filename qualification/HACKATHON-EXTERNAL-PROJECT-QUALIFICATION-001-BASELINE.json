@@ -1,0 +1,88 @@
+{
+  "receipt_id": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE",
+  "created_at": "2026-08-05T21:00:00Z",
+  "status": "sealed",
+  
+  "subject": {
+    "project": "FortyGuard Hackathon Application",
+    "qualification_type": "External Project Qualification",
+    "methodology_under_test": "Governed Recovery Methodology v1",
+    "hackathon": "Hackathon'26 — Building the World's Temperature AI",
+    "dates": "August 18–30, 2026",
+    "project_root": "/Users/andrew/Desktop/CarbideFrame/active/hackathon26"
+  },
+  
+  "baseline_artifacts": {
+    "architecture_state": {
+      "file": "qualification/baseline/architecture-state.json",
+      "source": "docs/ARCHITECTURE.md",
+      "components": ["MCP Server", "Database", "Chat Interface", "Dashboard"],
+      "stack": "TypeScript MCP + SQLite/sqlite-vec + HTML/TS"
+    },
+    "ownership_map": {
+      "file": "qualification/baseline/ownership-map.json",
+      "source": "docs/DB-SCHEMA.md + docs/MCP-SCHEMA.md",
+      "db_tables": 6,
+      "mcp_tools": 6,
+      "authority_levels": ["implementation_detail", "contract_candidate", "governance_boundary"]
+    },
+    "capability_map": {
+      "file": "qualification/baseline/capability-map.json",
+      "source": "docs/MCP-SCHEMA.md",
+      "mcp_capabilities": 6,
+      "evidence_enabled": true
+    },
+    "authority_map": {
+      "file": "qualification/baseline/authority-map.json",
+      "source": "derived",
+      "decision_surfaces": 4,
+      "human_decision_points": 3
+    },
+    "api_contract": {
+      "file": "qualification/baseline/api-contract.json",
+      "source": "docs/MCP-SCHEMA.md",
+      "provider": "FortyGuard",
+      "endpoint": "POST /v1/heat-intelligence"
+    }
+  },
+  
+  "pre_hackathon_state": {
+    "architecture_documented": true,
+    "database_schema_defined": true,
+    "mcp_tools_specified": true,
+    "evidence_model_designed": true,
+    "trust_package_planned": true,
+    "sprint_plan_defined": true,
+    "code_written": false,
+    "api_integrated": false,
+    "tests_executed": false
+  },
+  
+  "authority_baseline": {
+    "canonical_models_modified": 0,
+    "compatibility_aliases": 0,
+    "duplicate_authority_sources": 0,
+    "governance_boundaries": ["evidence_log schema", "receipt standard"],
+    "contract_candidates": ["database schema", "mcp tool response shapes", "api integration contract"]
+  },
+  
+  "validation_reference": {
+    "post_hackathon_comparison": "Compare against this baseline to measure authority drift",
+    "checks": [
+      "Did authority sources multiply?",
+      "Did contracts weaken?",
+      "Did evidence remain complete?",
+      "Did ownership remain discoverable?",
+      "Did changes require escalation?"
+    ]
+  },
+  
+  "evidence_trail": [
+    "qualification/baseline/baseline-timestamp.json",
+    "qualification/baseline/architecture-state.json",
+    "qualification/baseline/ownership-map.json",
+    "qualification/baseline/capability-map.json",
+    "qualification/baseline/authority-map.json",
+    "qualification/baseline/api-contract.json"
+  ]
+}

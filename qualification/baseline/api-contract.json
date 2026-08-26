@@ -1,0 +1,66 @@
+{
+  "api_contract": "pre-hackathon",
+  "captured_at": "2026-08-05T20:45:00Z",
+  "source": "docs/MCP-SCHEMA.md",
+  
+  "provider": "FortyGuard",
+  "api_name": "Temperature API",
+  "base_url": "https://api.fortyguard.com",
+  
+  "authentication": {
+    "method": "API key",
+    "location": "TBD (header or query param)",
+    "environment_variable": "FORTYGUARD_API_KEY"
+  },
+  
+  "endpoints": [
+    {
+      "name": "heat-intelligence",
+      "method": "POST",
+      "path": "/v1/heat-intelligence",
+      "description": "Core temperature data endpoint",
+      "known_response_shape": {
+        "location": "string",
+        "temperature_f": "number",
+        "risk_level": "string (extreme|high|moderate|low)",
+        "resolution": "string (10mi²)",
+        "measured_at": "string (2m above ground)",
+        "credits_remaining": "number"
+      },
+      "status": "validated_against_hackathon_page"
+    }
+  ],
+  
+  "credits": {
+    "hackathon_allocation": "TBD (likely generous)",
+    "strategy": "Cache aggressively, pre-seed demo data"
+  },
+  
+  "caching_strategy": {
+    "table": "temperature_cache",
+    "deduplication": "UNIQUE(lat, lng, timestamp)",
+    "purpose": "Demo reliability, credit conservation"
+  },
+  
+  "pre_seed_cities": [
+    {"name": "Phoenix, AZ", "reason": "Classic extreme heat example"},
+    {"name": "San Jose, CA", "reason": "FortyGuard US HQ location"},
+    {"name": "Dubai, UAE", "reason": "FortyGuard UAE presence, extreme heat"},
+    {"name": "Miami, FL", "reason": "Humidity + heat combination"},
+    {"name": "Delhi, India", "reason": "Global south, massive heat exposure"}
+  ],
+  
+  "open_questions": [
+    "Auth method: header vs query param vs bearer token",
+    "Rate limits: requests per minute/second",
+    "Credit cost per endpoint",
+    "Forecast availability via API",
+    "Bounding box queries support",
+    "Environmental parameters beyond temperature",
+    "Heatmap generation via API vs dashboard only",
+    "Actual JSON response structure validation"
+  ],
+  
+  "authority_classification": "implementation_detail",
+  "risk_if_changed": "low — API integration is implementation detail, not governance boundary"
+}

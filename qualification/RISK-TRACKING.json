@@ -1,0 +1,63 @@
+{
+  "risk_tracking": "hackathon26",
+  "created_at": "2026-08-05T21:00:00Z",
+  
+  "purpose": "Track the four highest-value observation areas during the hackathon. These are the likely sources of authority drift.",
+  
+  "risks": [
+    {
+      "id": "RISK-001",
+      "name": "MCP Capability Drift",
+      "description": "A new tool gets added quickly without a clear authority boundary",
+      "detection_signals": [
+        "new tool registration",
+        "missing ownership",
+        "missing evidence contract"
+      ],
+      "prevention": "Capability review before adding new MCP tools",
+      "status": "monitoring"
+    },
+    {
+      "id": "RISK-002",
+      "name": "Database Authority Drift",
+      "description": "A dashboard or UI layer begins treating cached/projection data as truth",
+      "detection_signals": [
+        "duplicate state storage",
+        "conflicting schemas",
+        "bypassing DB authority"
+      ],
+      "prevention": "Clear ownership map for DB tables",
+      "status": "monitoring"
+    },
+    {
+      "id": "RISK-003",
+      "name": "Evidence Erosion",
+      "description": "Receipts become incomplete because the demo needs speed",
+      "detection_signals": [
+        "missing provenance",
+        "missing decision owner",
+        "missing execution context"
+      ],
+      "prevention": "Evidence receipt standard enforced",
+      "status": "monitoring"
+    },
+    {
+      "id": "RISK-004",
+      "name": "AI-Generated Architectural Drift",
+      "description": "An agent creates a convenient abstraction that becomes an accidental authority source",
+      "detection_signals": [
+        "duplicate models",
+        "new singleton state",
+        "parallel configuration sources"
+      ],
+      "prevention": "Authority surface audit during code review",
+      "status": "monitoring"
+    }
+  ],
+  
+  "monitoring_approach": {
+    "frequency": "After each significant change",
+    "method": "Compare against baseline authority map",
+    "escalation": "If any risk detected, stop and classify before proceeding"
+  }
+}

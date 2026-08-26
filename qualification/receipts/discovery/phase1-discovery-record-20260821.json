@@ -1,0 +1,144 @@
+{
+  "receipt_id": "PHASE1-DISCOVERY-RECORD-20260821",
+  "created_at": "2026-08-21T04:30:00Z",
+  "phase": "Phase 1 — Discovery",
+  "qualification_fixture": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001",
+  "methodology": "Governed Recovery Methodology v1",
+  
+  "discovery_scope": {
+    "fortyguard_reality": "Documented from quickstart analysis and API documentation",
+    "nws_discovery": "Live API exercise — Phoenix forecast and alerts",
+    "usgs_discovery": "MRLC/NLCD documentation review — tree canopy and land cover",
+    "noaa_ncei_discovery": "CDO API requires key — documented from public documentation",
+    "phoenix_gis_discovery": "ArcGIS services not directly accessible — documented from planning docs",
+    "local_context_discovery": "Documented from planning docs and competition analysis"
+  },
+  
+  "fortyguard_reality_check": {
+    "status": "DOCUMENTED_FROM_QUICKSTART",
+    "reason": "No API credentials in environment; quickstart provides cached responses",
+    "endpoints_confirmed": [
+      "POST /v1/heatmap (surface temperature, persistence, exceedance)",
+      "POST /v1/env_params (heat index, humidity, AQI, solar irradiance)",
+      "POST /v1/satellite_segmentation (vegetation %, pavement %, building density)",
+      "POST /v1/street_view_segmentation",
+      "POST /v1/heat_intelligence (PDF report)"
+    ],
+    "authentication": "API key via FORTYGUARD_API_KEY env var",
+    "constraints": ["U.S. only", "Date range: 2021-present", "Coordinates: [lng, lat] GeoJSON"],
+    "cached_mode": "Available — quickstart ships with cached responses for demo",
+    "entitlement_level": "TBD — requires live API key exercise"
+  },
+  
+  "nws_discovery": {
+    "status": "LIVE_EXERCISE_CONFIRMED",
+    "api": "api.weather.gov",
+    "authentication": "None required",
+    "phoenix_coordinates": {"lat": 33.4484, "lng": -112.0740},
+    "grid_id": "PSR",
+    "forecast_office": "https://api.weather.gov/offices/PSR",
+    "endpoints_exercised": [
+      "GET /points/{lat},{lng} — grid resolution, forecast URLs",
+      "GET /gridpoints/{gridId}/{gridX},{gridY}/forecast — 7-day forecast",
+      "GET /alerts/active?point={lat},{lng} — active alerts"
+    ],
+    "forecast_data": {
+      "temperatures_f": [86, 110, 88, 111, 90, 109, 89, 110, 89, 112, 91, 113, 91, 111],
+      "heat_index_values": "Up to 111°F",
+      "elevation_m": 345.0336
+    },
+    "alerts": [
+      {
+        "event": "Extreme Heat Warning",
+        "severity": "Severe",
+        "certainty": "Likely",
+        "urgency": "Expected",
+        "effective": "2026-08-20T11:44:00-07:00",
+        "expires": "2026-08-21T03:00:00-07:00",
+        "ends": "2026-08-23T20:00:00-07:00",
+        "headline": "Extreme Heat Warning issued August 20 at 11:44AM MST until August 23 at 8:00PM MST",
+        "area": "Phoenix metropolitan area"
+      },
+      {
+        "event": "Air Quality Alert",
+        "severity": "Unknown",
+        "description": "Ozone High Pollution Advisory for Phoenix Metro Area",
+        "effective": "2026-08-20T09:09:00-07:00",
+        "expires": "2026-08-21T21:00:00-07:00"
+      }
+    ],
+    "spatial_applicability": "Grid-based — PSR/159,58 covers central Phoenix. Polygon-specific applicability requires point-to-grid mapping.",
+    "provenance_fields": ["@id", "generatedAt", "updateTime", "validTimes", "forecastOffice", "gridId"]
+  },
+  
+  "usgs_discovery": {
+    "status": "DOCUMENTED_FROM_MRLC",
+    "source": "Multi-Resolution Land Characteristics Consortium (MRLC)",
+    "datasets": [
+      {
+        "name": "National Tree Canopy Cover (TCC)",
+        "coverage": "CONUS 1985-2025",
+        "resolution": "30 meters",
+        "temporal": "Annual",
+        "publisher": "USDA Forest Service Geospatial Office + FIA",
+        "relevance": "Direct physical-environment evidence for vegetation/shade analysis"
+      },
+      {
+        "name": "Annual NLCD Collection 1.2",
+        "coverage": "CONUS 1985-2025",
+        "products": ["Land Cover", "Land Cover Change", "Fractional Impervious Surface", "Impervious Descriptor", "Spectral Change Day of Year"],
+        "resolution": "30 meters",
+        "publisher": "MRLC Consortium (USGS lead)",
+        "relevance": "Direct physical-environment evidence for impervious surface and land cover classification"
+      }
+    ],
+    "access_method": "Download via mrlc.gov or ArcGIS Online",
+    "spatial_resolution": "30m raster",
+    "temporal_vintage": "Annual, 1985-2025",
+    "license": "Public domain (USGS)",
+    "suitability_for_spatial_joins": "High — 30m raster aligns with FortyGuard polygon analysis"
+  },
+  
+  "noaa_ncei_discovery": {
+    "status": "DOCUMENTED_FROM_PUBLIC_DOCS",
+    "api": "www.ncei.noaa.gov/cdo-web/api/v2",
+    "authentication": "API key required (not exercised)",
+    "available_data": [
+      "Daily/historical temperatures",
+      "Climatological records",
+      "Comparable heat events",
+      "Official storm/excessive-heat event records"
+    ],
+    "station_identifiers": "Phoenix Sky Harbor (USW00023183) and other GHCN stations",
+    "temporal_granularity": "Daily",
+    "access_mechanism": "REST API with token authentication",
+    "provenance_fields": ["station", "date", "datatype", "value", "attributes"],
+    "limitation": "Requires API key — not exercised during Phase 1"
+  },
+  
+  "phoenix_gis_discovery": {
+    "status": "DOCUMENTED_FROM_PLANNING_DOCS",
+    "source": "hackathon-plan-v3.md and architecture docs",
+    "datasets_expected": [
+      "Tree canopy data",
+      "Parks/green space",
+      "Impervious surfaces",
+      "Land use/land cover",
+      "Building footprints"
+    ],
+    "access_method": "ArcGIS REST services (not directly verified)",
+    "limitation": "ArcGIS services returned 404 — access method needs verification"
+  },
+  
+  "local_context_discovery": {
+    "status": "DOCUMENTED_FROM_PLANNING_DOCS",
+    "sources": [
+      "Local news reporting",
+      "Municipal cooling center information",
+      "Maricopa County heat resources (www.maricopa.gov/heat)",
+      "ADEQ air quality forecasts"
+    ],
+    "evidence_class": "Contextual — not primary observational evidence",
+    "flow": "Web Search → Biblio → Vault"
+  }
+}

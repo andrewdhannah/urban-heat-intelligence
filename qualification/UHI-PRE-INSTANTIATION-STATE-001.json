@@ -1,0 +1,208 @@
+{
+  "receipt_id": "UHI-PRE-INSTANTIATION-001",
+  "receipt_type": "pre_instantiation_state",
+  "timestamp": "2026-08-21T21:00:00Z",
+  "project_concept": "Urban Heat Intelligence",
+  "hackathon": "FortyGuard Hackathon 26",
+  "event_dates": "2026-08-18 to 2026-08-30",
+  "team": "Andrew (solo)",
+
+  "planning_state": {
+    "status": "governed_complete",
+    "documents": [
+      "PROJECT-OVERVIEW.md",
+      "ARCHITECTURE.md",
+      "DB-SCHEMA.md",
+      "MCP-SCHEMA.md",
+      "SPRINT-PLAN.md",
+      "LIBRARIAN-RC-PLAN.md",
+      "DEMO-SCRIPT.md",
+      "COMPETITION-ANALYSIS.md",
+      "TRUST-PACKAGE.md",
+      "PITCH.md",
+      "PRE-HACKATHON-PREP.md"
+    ],
+    "location": "active/hackathon26/docs/",
+    "governance_lineage": "preserved"
+  },
+
+  "architecture_state": {
+    "version": "v3.2",
+    "status": "accepted",
+    "provider_reallocation": {
+      "authorized": true,
+      "date": "2026-08-21",
+      "decision": "NWS primary current-observation, USGS primary physical-environment, NOAA primary historical-climate, FortyGuard specialized thermal intelligence",
+      "receipt": "active/hackathon26/qualification/phase1-owner-authorization-20260821.json"
+    }
+  },
+
+  "qa_strategy_state": {
+    "status": "accepted",
+    "document": "UHI-QA-STRATEGY-001.md",
+    "location": "active/qa-pilot/strategy/",
+    "verification_domains": "18 (A-R)",
+    "certification_levels": "3 (Sprint, Integration, Final)"
+  },
+
+  "sprint_qa_planning_state": {
+    "status": "deferred",
+    "reason": "hackathon plan v3.2 and sprint decomposition not yet created",
+    "blocker": "DEFECT-SPEC-001 from UHI-QA-STRATEGY-001.md"
+  },
+
+  "qualification_baseline": {
+    "status": "sealed",
+    "document": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE.json",
+    "location": "active/hackathon26/qualification/",
+    "sealed_date": "2026-08-05",
+    "snapshot_count": 6
+  },
+
+  "phase1_discovery": {
+    "status": "complete",
+    "date": "2026-08-21",
+    "findings": "7 baseline assumptions compared: 1 confirmed, 2 contradicted, 3 new information, 1 unresolved",
+    "key_contradictions": [
+      "FortyGuard is NOT the only primary data source (NWS is authoritative for weather)",
+      "USGS provides better physical-environment evidence than FortyGuard satellite"
+    ],
+    "receipts": [
+      "phase1-discovery-record-20260821.json",
+      "phase1-baseline-comparison-20260821.json",
+      "phase1-decision-packet-20260821.json",
+      "phase1-owner-authorization-20260821.json",
+      "phase1-qualification-receipt-20260821.json"
+    ]
+  },
+
+  "owner_decisions": {
+    "status": "recorded",
+    "decision_count": 2,
+    "decisions": [
+      {
+        "id": "provider-reallocation",
+        "date": "2026-08-21",
+        "summary": "Reallocate FortyGuard from primary to specialized thermal intelligence"
+      },
+      {
+        "id": "hackathon-track",
+        "date": "2026-08-05",
+        "summary": "Track 01: Resilient Cities & Infrastructure"
+      }
+    ]
+  },
+
+  "application_implementation": {
+    "status": "none",
+    "code_files": 0,
+    "database_files": 0,
+    "config_files": 0,
+    "test_files": 0
+  },
+
+  "operational_project_identity": {
+    "status": "not_yet_instantiated",
+    "librarian_project_id": null,
+    "project_registry_entry": null,
+    "startup_contract": null,
+    "project_identity": null,
+    "project_profile": null
+  },
+
+  "project_git_repository": {
+    "status": "not_yet_created",
+    "git_initialized": false,
+    "commit_count": 0
+  },
+
+  "runtime_state": {
+    "status": "none",
+    "mcp_server": "not_running",
+    "database": "not_initialized",
+    "knowledge_base": "not_collected",
+    "api_integration": "not_configured",
+    "fortyguard_api_key": "unavailable"
+  },
+
+  "implementation_receipts": {
+    "status": "none",
+    "receipt_count": 0,
+    "sprint_ledger": "not_created"
+  },
+
+  "governance_infrastructure": {
+    "status": "not_yet_instantiated",
+    "meaning": "Operational project governance infrastructure (project identity, startup contract, receipt ledger, sprint ledger) has not yet been instantiated through the Librarian's project creation flow. This is intentional — governed planning and qualification evidence exist before project birth. The distinction is between governance-before-creation (present) and governance-after-creation (not yet instantiated).",
+    "present_before_creation": [
+      "governed planning documents (11 files in docs/)",
+      "sealed qualification baseline (6 snapshots)",
+      "Phase 1 discovery evidence (5 receipts)",
+      "Owner decisions (2 recorded)",
+      "QA strategy (accepted)",
+      "qualification test contract (UHI-GOVERNED-LIFECYCLE-QUAL-001.md)"
+    ],
+    "not_yet_instantiated": [
+      "operational project identity (.librarian/)",
+      "startup-contract.json",
+      "project registry entry",
+      "receipt ledger",
+      "sprint ledger",
+      "assurance contracts",
+      "evidence directory",
+      "session context records"
+    ],
+    "note": "Operational governance infrastructure will be created when the Librarian instantiates the project. This receipt preserves the boundary between governed-planning-complete and operational-project-created."
+  },
+
+  "qualification_test": {
+    "status": "preserved",
+    "document": "UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+    "location": "active/librarian/qualification/",
+    "test_id": "UHI-GOVERNED-LIFECYCLE-QUAL-001",
+    "phases": "13 (A-M)",
+    "purpose": "Qualify Librarian's ability to transform governed intent into governed execution",
+    "content_hash": "4eeb4629928ef0a20abdad119f8ddcbd4b1c0d8184b98d6e08aea7571876eefd",
+    "hash_algorithm": "SHA-256"
+  },
+
+  "reason_for_deferral": "Preserve clean project-creation qualification boundary. The planning corpus is governed. The instantiation event is the experiment. Creating the project manually would consume the clean opportunity to observe project birth before newer registry, LINK, ownership, startup/context, retrieval, and evidence mechanisms are in place.",
+
+  "experimental_boundary": {
+    "before": [
+      "governed planning documents",
+      "sealed T0 qualification baseline",
+      "Phase 1 discovery evidence",
+      "Owner decisions",
+      "current architecture and build specifications",
+      "QA strategy and sprint QA plans"
+    ],
+    "must_not_exist_before_instantiation": [
+      "operational UHI project identity",
+      "project-local implementation Git history",
+      "implementation code",
+      "project runtime state",
+      "sprint execution receipts",
+      "implementation evidence",
+      "project-specific build artifacts",
+      "final certification evidence"
+    ]
+  },
+
+  "immutable_after_creation": true,
+  "superseded_by": null,
+
+  "immutable_reference": {
+    "description": "This receipt and the qualification test are immutable reference points. The eventual PROJECT-CREATION RECEIPT must reference both hashes.",
+    "this_receipt": {
+      "path": "active/hackathon26/qualification/UHI-PRE-INSTANTIATION-STATE-001.json",
+      "content_hash": "c3a6783e3f8deee8af074a5025a80e0917a429d92c05bd4fe63026bf22ccd545",
+      "hash_algorithm": "SHA-256"
+    },
+    "qualification_test": {
+      "path": "active/librarian/qualification/UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+      "content_hash": "4eeb4629928ef0a20abdad119f8ddcbd4b1c0d8184b98d6e08aea7571876eefd",
+      "hash_algorithm": "SHA-256"
+    }
+  }
+}

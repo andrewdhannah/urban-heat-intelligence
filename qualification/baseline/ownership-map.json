@@ -1,0 +1,102 @@
+{
+  "ownership_map": "pre-hackathon",
+  "captured_at": "2026-08-05T20:45:00Z",
+  "source": "docs/DB-SCHEMA.md + docs/MCP-SCHEMA.md",
+  
+  "database_ownership": {
+    "temperature_cache": {
+      "owner": "mcp_server",
+      "purpose": "Cached API responses for demo reliability",
+      "authority": "implementation_detail",
+      "schema": "lat, lng, timestamp, data_json, fetched_at"
+    },
+    "heat_documents": {
+      "owner": "rag_layer",
+      "purpose": "Heat-safety reference documents for semantic search",
+      "authority": "implementation_detail",
+      "schema": "title, content, source, category, url"
+    },
+    "heat_embeddings": {
+      "owner": "rag_layer",
+      "purpose": "Vector embeddings for semantic search",
+      "authority": "implementation_detail",
+      "schema": "document_id, embedding, model_name"
+    },
+    "evidence_log": {
+      "owner": "evidence_system",
+      "purpose": "Every agent interaction logged with reasoning chain",
+      "authority": "governance_boundary",
+      "schema": "session_id, tool_name, parameters, result_summary, reasoning, receipt_json"
+    },
+    "sessions": {
+      "owner": "interface",
+      "purpose": "Chat session tracking",
+      "authority": "implementation_detail",
+      "schema": "id, title, created_at, updated_at"
+    },
+    "messages": {
+      "owner": "interface",
+      "purpose": "Chat messages within sessions",
+      "authority": "implementation_detail",
+      "schema": "session_id, role, content, tools_called, evidence_ids"
+    }
+  },
+  
+  "mcp_tool_ownership": {
+    "get_temperature": {
+      "owner": "mcp_server",
+      "purpose": "Current temperature at lat/lng",
+      "data_source": "fortyguard_api",
+      "authority": "implementation_detail"
+    },
+    "get_forecast": {
+      "owner": "mcp_server",
+      "purpose": "Hourly forecast for location",
+      "data_source": "fortyguard_api",
+      "authority": "implementation_detail"
+    },
+    "get_heat_index": {
+      "owner": "mcp_server",
+      "purpose": "Heat index with humidity/wind factors",
+      "data_source": "fortyguard_api + local_calculation",
+      "authority": "implementation_detail"
+    },
+    "search_locations": {
+      "owner": "mcp_server",
+      "purpose": "Find areas exceeding heat threshold",
+      "data_source": "fortyguard_api",
+      "authority": "implementation_detail"
+    },
+    "get_heat_events": {
+      "owner": "mcp_server",
+      "purpose": "Historical extreme heat events",
+      "data_source": "fortyguard_api",
+      "authority": "implementation_detail"
+    },
+    "query_evidence": {
+      "owner": "rag_layer",
+      "purpose": "RAG search over heat-safety documents",
+      "data_source": "local_rag",
+      "authority": "implementation_detail"
+    }
+  },
+  
+  "component_ownership": {
+    "mcp_server": {
+      "owner": "implementation",
+      "authority": "tool_behavior"
+    },
+    "database": {
+      "owner": "implementation",
+      "authority": "storage"
+    },
+    "chat_interface": {
+      "owner": "implementation",
+      "authority": "presentation"
+    },
+    "dashboard": {
+      "owner": "implementation",
+      "authority": "visualization"
+    }
+  }
+}

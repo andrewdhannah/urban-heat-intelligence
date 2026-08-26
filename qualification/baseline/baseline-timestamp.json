@@ -1,0 +1,14 @@
+{
+  "baseline_timestamp": "2026-08-05T20:45:00Z",
+  "captured_from": [
+    "docs/ARCHITECTURE.md",
+    "docs/DB-SCHEMA.md",
+    "docs/MCP-SCHEMA.md",
+    "docs/PROJECT-OVERVIEW.md",
+    "docs/SPRINT-PLAN.md",
+    "docs/TRUST-PACKAGE.md"
+  ],
+  "project": "FortyGuard Hackathon Application",
+  "hackathon": "Hackathon'26 — Building the World's Temperature AI",
+  "dates": "August 18–30, 2026"
+}

@@ -1,0 +1,68 @@
+{
+  "receipt_id": "PHASE1-BASELINE-COMPARISON-20260821",
+  "created_at": "2026-08-21T04:35:00Z",
+  "phase": "Phase 1 — Discovery",
+  "qualification_fixture": "HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001",
+  
+  "baseline_source": "qualification/baseline/BASELINE.json (sealed 2026-08-05T20:45:00Z)",
+  "discovery_source": "PHASE1-DISCOVERY-RECORD-20260821",
+  
+  "comparisons": [
+    {
+      "baseline_assumption": "FortyGuard temperature API is the primary external data source",
+      "observed_reality": "NWS API provides authoritative real-time weather data (forecast, alerts, observations) without API key. FortyGuard API requires credentials not available in environment.",
+      "classification": "CONTRADICTION",
+      "impact": "provider_assignment",
+      "invariant_impact": "No frozen invariant threatened. Evidence-first architecture preserved — NWS data becomes additional primary evidence source, not a replacement for FortyGuard thermal intelligence."
+    },
+    {
+      "baseline_assumption": "FortyGuard satellite segmentation provides vegetation/pavement/built-environment evidence",
+      "observed_reality": "USGS/NLCD provides 30m resolution tree canopy cover (1985-2025), fractional impervious surface, and land cover classification — direct, independently attributable physical-environment evidence. FortyGuard satellite segmentation remains available but is one of multiple sources.",
+      "classification": "CONTRADICTION",
+      "impact": "provider_assignment",
+      "invariant_impact": "No frozen invariant threatened. Provider-independent evidence contract preserved — government GIS becomes first-class evidence provider alongside FortyGuard."
+    },
+    {
+      "baseline_assumption": "No authoritative weather observation source identified",
+      "observed_reality": "NWS API provides free, authoritative real-time data: forecast, alerts, observations, grid data. Phoenix has active Extreme Heat Warning and Air Quality Alert during discovery.",
+      "classification": "NEW_INFORMATION",
+      "impact": "provider_assignment",
+      "invariant_impact": "No frozen invariant threatened. NWS becomes primary current-observation source."
+    },
+    {
+      "baseline_assumption": "No historical climate data source identified",
+      "observed_reality": "NOAA/NCEI CDO API provides daily/historical temperatures, climatological records, and heat-event data. Requires API key (not exercised).",
+      "classification": "NEW_INFORMATION",
+      "impact": "provider_assignment",
+      "invariant_impact": "No frozen invariant threatened. NOAA/NCEI becomes primary historical-climate source."
+    },
+    {
+      "baseline_assumption": "Local news provides primary contextual evidence",
+      "observed_reality": "Local news remains contextual evidence. NWS alerts provide authoritative weather event documentation. Municipal resources (Maricopa County heat website) provide official response information.",
+      "classification": "CONFIRMED",
+      "impact": "implementation_only",
+      "invariant_impact": "No invariant threatened. Evidence hierarchy preserved."
+    },
+    {
+      "baseline_assumption": "FortyGuard API endpoint is /v1/heat-intelligence",
+      "observed_reality": "Quickstart analysis confirms 5 endpoints: heatmap, env_params, satellite_segmentation, street_view_segmentation, heat_intelligence. The /v1/heat-intelligence endpoint generates a PDF report, not a simple data endpoint.",
+      "classification": "NEW_INFORMATION",
+      "impact": "implementation_only",
+      "invariant_impact": "No invariant threatened. API integration details are implementation-level."
+    },
+    {
+      "baseline_assumption": "Database schema has 6 tables: temperature_cache, heat_documents, heat_embeddings, evidence_log, sessions, messages",
+      "observed_reality": "Schema is appropriate for initial implementation. Adding GIS/NWS/NOAA data may require additional tables or evidence storage patterns.",
+      "classification": "UNRESOLVED",
+      "impact": "data_model",
+      "invariant_impact": "No invariant threatened — schema evolution is implementation detail."
+    }
+  ],
+  
+  "summary": {
+    "confirmed": 1,
+    "contradicted": 2,
+    "new_information": 3,
+    "unresolved": 1
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "contract_schema": "startup-contract-v1",
+  "project_id": "urban-heat-intelligence",
+  "project_name": "Urban Heat Intelligence",
+  "identity_source": "PROJECT-IDENTITY.md",
+  "governing_contract": "qualification/UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+  "authorization_receipt": "qualification/receipts/UHI-PHASE-A-AUTHORIZATION-20260826.json",
+  "startup_state_file": "STARTUP-STATE.md",
+  "startup_checks_script": null,
+  "is_web_app": false,
+  "verification_surfaces": [
+    "Python validators under scripts/validate-*.py",
+    "Shell test runners under scripts/test-*.py"
+  ],
+  "required_files": [
+    "FEATURE-STATUS.md"
+  ],
+  "forbidden_terms_in_generic": [
+    "active/librarian",
+    "sprint-3"
+  ],
+  "context_sources": [
+    {
+      "path": "FEATURE-STATUS.md",
+      "required": false
+    },
+    {
+      "path": "project-state/sprint-ledger.json",
+      "required": false
+    }
+  ],
+  "default_startup_sources": [
+    {
+      "path": ".librarian/current-project.json",
+      "source": "pointer",
+      "read_level": "default"
+    },
+    {
+      "path": ".librarian/project-index.json",
+      "source": "registry",
+      "read_level": "default"
+    },
+    {
+      "path": "startup-contract.json",
+      "source": "contract",
+      "read_level": "default"
+    }
+  ],
+  "mcp_context": {
+    "required": false,
+    "note": "MCP context not required at project creation time"
+  },
+  "historical_root": {
+    "path": "/Users/andrew/Desktop/CarbideFrame",
+    "policy": "read-only",
+    "allowed_use": "reference-only unless explicitly authorized"
+  },
+  "working_files": {
+    "registry_and_state": {
+      "project_registry": "project-state/project-index.json",
+      "startup_contract": "startup-contract.json"
+    },
+    "startup_and_status": {
+      "project_index": ".librarian/project-index.json",
+      "session_startup_dir": "SessionStartup/"
+    }
+  },
+  "fallback_docs": [
+    "PROJECT-STARTUP.md",
+    "SessionStartup/STARTUP-DEGRADED-MODE.md"
+  ]
+}

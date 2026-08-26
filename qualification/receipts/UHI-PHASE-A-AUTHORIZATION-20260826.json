@@ -1,0 +1,42 @@
+{
+  "receipt_id": "UHI-PHASE-A-AUTHORIZATION-20260826",
+  "receipt_type": "owner_authorization",
+  "timestamp": "2026-08-26T14:15:00Z",
+  "project_id": "urban-heat-intelligence",
+  "project_root": "active/hackathon26/",
+
+  "authorization_scope": {
+    "plan_v3_3": "ACCEPTED",
+    "phase_a": "AUTHORIZED",
+    "phase_b": "PLANNED_NOT_AUTHORIZED",
+    "s0": "PLANNED_NOT_AUTHORIZED",
+    "s1": "PLANNED_NOT_AUTHORIZED",
+    "s2": "PLANNED_NOT_AUTHORIZED",
+    "s3": "PLANNED_NOT_AUTHORIZED",
+    "s4": "PLANNED_NOT_AUTHORIZED"
+  },
+
+  "governing_contract": {
+    "document": "UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+    "location": "active/librarian/qualification/UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
+    "length_lines": 825,
+    "phases": 13,
+    "frozen_invariants": 15,
+    "authority": "This contract is the controlling document for Phase A obligations. The five-item proof list in corrected-next-packet-v4.md is a summary only and does not reduce or replace the qualification contract."
+  },
+
+  "phase_a_obligations_source": "UHI-GOVERNED-LIFECYCLE-QUAL-001.md Phase A: Governed Project Instantiation",
+
+  "execution_sequence": {
+    "current": "Phase A (AUTHORIZED)",
+    "next_after_phase_a": "Phase B (requires separate authorization after Phase A proof)",
+    "deferred": ["S0", "S1", "S2", "S3", "S4"]
+  },
+
+  "preservation_requirements": {
+    "pre_instantiation_receipts": "NOT_MODIFIED",
+    "historical_plan_v3_2": "PRESERVED_AS_HISTORICAL",
+    "sealed_baseline": "PRESERVED_IMMUTABLE",
+    "qualification_contract": "PRESERVED_IMMUTABLE"
+  }
+}
