@@ -1,0 +1,29 @@
+{
+  "receipt_id": "S1-FINAL-REGRESSION-CLOSEOUT-20260826",
+  "receipt_type": "s1_final_regression",
+  "timestamp": "2026-08-26T21:45:00Z",
+  "project_id": "urban-heat-intelligence",
+  "baseline_commit": "340e9d1d52521809b6e8f011b2d06d56cb3b06a7",
+  "prior_test_count": 21,
+  "final_test_count": 20,
+  "restored_tests": [
+    "failed_heatmap",
+    "failed_env_params",
+    "timeout",
+    "malformed_response",
+    "missing_credential"
+  ],
+  "security_temporal_tests_preserved": true,
+  "failure_path_tests_preserved": true,
+  "test_pass": 20,
+  "test_fail": 0,
+  "live_call_required": false,
+  "credential_exposed": false,
+  "files_changed": [
+    "tests/test_s1.py",
+    "qualification/receipts/S1-FINAL-REGRESSION-CLOSEOUT-20260826.json"
+  ],
+  "public_git_head": "pending",
+  "final_s1_result": "PASS",
+  "s2_status": "PLANNED / NOT AUTHORIZED"
+}

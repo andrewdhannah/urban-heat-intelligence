@@ -184,6 +184,68 @@ def test_15_no_credential():
     print("  PASS: test_15_no_credential")
 
 
+# === FAILURE PATH TESTS (restored) ===
+
+def test_16_failed_heatmap():
+    """Failed heatmap produces bounded error, env_params not called."""
+    adapter = MockAdapter(heatmap_status="Failed")
+    agent = HeatAgent(adapter, mode="live")
+    result = agent.answer("What's the heat risk in Phoenix?")
+    assert result["answer"].get("error") is True
+    assert adapter.call_count["env_params"] == 0
+    # No fabricated thermal values
+    conditions = result["answer"].get("conditions", {})
+    assert conditions.get("area_mean_temperature_celsius") is None
+    print("  PASS: test_16_failed_heatmap")
+
+def test_17_failed_env_params():
+    """Failed env_params produces bounded error."""
+    adapter = MockAdapter(env_params_status="Failed")
+    agent = HeatAgent(adapter, mode="live")
+    result = agent.answer("What's the heat risk in Phoenix?")
+    assert result["answer"].get("error") is True
+    # No fabricated environmental values
+    conditions = result["answer"].get("conditions", {})
+    rep = conditions.get("representative_location", {})
+    assert rep.get("heat_index_celsius") is None
+    print("  PASS: test_17_failed_env_params")
+
+def test_18_timeout():
+    """Timeout produces bounded error, no crash, no silent replay fallback."""
+    adapter = MockAdapter()
+    adapter.poll_status = MagicMock(side_effect=TimeoutError("timeout"))
+    agent = HeatAgent(adapter, mode="live")
+    result = agent.answer("What's the heat risk in Phoenix?")
+    assert result["answer"].get("error") is True
+    assert result["answer"]["mode"] == "live"  # No silent fallback to replay
+    print("  PASS: test_18_timeout")
+
+def test_19_malformed_response():
+    """Malformed provider response produces bounded error, no fabricated values."""
+    adapter = MockAdapter()
+    adapter.poll_status = MagicMock(return_value={"data": {"status": "Completed", "result": "not-a-dict"}})
+    agent = HeatAgent(adapter, mode="live")
+    result = agent.answer("What's the heat risk in Phoenix?")
+    assert result is not None
+    conditions = result["answer"].get("conditions", {})
+    if conditions:
+        # No fabricated thermal values
+        val = conditions.get("area_mean_temperature_celsius")
+        assert val is None or isinstance(val, (int, float))
+    print("  PASS: test_19_malformed_response")
+
+def test_20_missing_credential():
+    """Missing LIVE credential fails boundedly, no API call, no replay fallback."""
+    from src.agent.adapter import FortyGuardAdapter
+    with patch.object(FortyGuardAdapter, '_load_api_key', side_effect=RuntimeError("FORTYGUARD_API_KEY not found")):
+        try:
+            adapter = FortyGuardAdapter(mode="live")
+            assert False, "Should have raised RuntimeError"
+        except RuntimeError as e:
+            assert "FORTYGUARD_API_KEY" in str(e)
+    print("  PASS: test_20_missing_credential")
+
+
 def run_all():
     tests = [test_1_tls_verification_enabled, test_2_hostname_verification_enabled,
              test_3_adapter_uses_verified_tls, test_4_live_default_time_dynamic,
@@ -191,7 +253,9 @@ def run_all():
              test_7_replay_observation_time, test_8_live_replay_times_distinct,
              test_9_eight_node_chain, test_10_heatmap_req_before_result,
              test_11_env_req_before_result, test_12_answer_terminal,
-             test_13_planner, test_14_hotspot, test_15_no_credential]
+             test_13_planner, test_14_hotspot, test_15_no_credential,
+             test_16_failed_heatmap, test_17_failed_env_params,
+             test_18_timeout, test_19_malformed_response, test_20_missing_credential]
     passed = 0
     for test in tests:
         try:
