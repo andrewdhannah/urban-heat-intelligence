@@ -130,6 +130,16 @@
         /* === RANKING DISCLOSURE === */
         .ranking-disclosure { background: #1e1b4b; border: 1px solid #4338ca; border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 11px; color: #a5b4fc; line-height: 1.5; }
 
+        /* === GIS CONTEXT === */
+        .gis-context { background: #0c4a6e; border: 1px solid #0369a1; border-radius: 8px; padding: 12px 14px; }
+        .gis-context h3 { font-size: 11px; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; font-weight: 600; }
+        .gis-context .context-item { margin-bottom: 8px; }
+        .gis-context .context-label { font-size: 10px; color: #7dd3fc; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .gis-context .context-value { font-size: 12px; color: #e0f2fe; line-height: 1.4; }
+        .gis-context .context-value b { color: #ffffff; }
+        .gis-context .context-source { font-size: 9px; color: #0ea5e9; margin-top: 2px; }
+        .gis-context .context-disclosure { font-size: 10px; color: #bae6fd; font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(56,189,248,0.2); }
+
         /* === URBAN HEAT BRIEF === */
         .brief-card { background: #111827; border: 1px solid #6366f1; border-radius: 8px; padding: 14px; }
         .brief-card .brief-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
@@ -211,6 +221,10 @@
                 <div id="nws-alerts"></div>
                 <div class="conditions" id="nws-conditions"></div>
                 <div class="source-tag">Source: National Weather Service</div>
+            </div>
+            <div class="gis-context" id="gis-context" style="display:none">
+                <h3>Local Context — Phoenix GIS</h3>
+                <div id="gis-context-content"></div>
             </div>
             <div class="evidence-section">
                 <button class="evidence-toggle" onclick="toggleEvidence()"><span>Why This Answer?</span><span id="evidence-arrow">▸</span></button>
@@ -382,6 +396,9 @@
             // === NWS WEATHER CONTEXT ===
             renderNWSContext(data.nws_context);
 
+            // === GIS CONTEXT ===
+            renderGISContext(data.gis_context);
+
             // === URBAN HEAT BRIEF ===
             renderUrbanHeatBrief(data.urban_heat_brief);
 
@@ -497,6 +514,70 @@
                 condDiv.appendChild(b);
                 condDiv.appendChild(document.createTextNode(' · ' + (cond.short_forecast || '—') + ' · Wind: ' + (cond.wind_speed || '—') + ' ' + (cond.wind_direction || '')));
             }
+        }
+
+        function renderGISContext(gisContext) {
+            var container = document.getElementById('gis-context');
+            var content = document.getElementById('gis-context-content');
+            if (!gisContext || !gisContext.available) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+            content.textContent = '';
+
+            // Canopy context
+            var canopy = gisContext.canopy;
+            if (canopy && canopy.available) {
+                var canopyDiv = document.createElement('div');
+                canopyDiv.className = 'context-item';
+                var label = document.createElement('div');
+                label.className = 'context-label';
+                label.textContent = 'Canopy Context';
+                var value = document.createElement('div');
+                value.className = 'context-value';
+                value.innerHTML = '<b>' + (canopy.tree_canopy_pct || '—') + '%</b> tree canopy in census tract ' + escapeHtml(canopy.census_tract_geoid || '—');
+                var source = document.createElement('div');
+                source.className = 'context-source';
+                source.textContent = 'Source: ' + escapeHtml(canopy.source_provider || '—') + ' · ' + (canopy.reference_period || '—');
+                canopyDiv.appendChild(label);
+                canopyDiv.appendChild(value);
+                canopyDiv.appendChild(source);
+                content.appendChild(canopyDiv);
+            }
+
+            // Parks context
+            var parks = gisContext.parks;
+            if (parks && parks.available) {
+                var parksDiv = document.createElement('div');
+                parksDiv.className = 'context-item';
+                var label = document.createElement('div');
+                label.className = 'context-label';
+                label.textContent = 'Park Context';
+                var value = document.createElement('div');
+                value.className = 'context-value';
+                if (parks.inside_park) {
+                    value.innerHTML = 'Inside <b>' + escapeHtml(parks.inside_park.park_name) + '</b>';
+                } else if (parks.nearby_parks && parks.nearby_parks.length > 0) {
+                    var parkNames = parks.nearby_parks.slice(0, 2).map(function(p) { return p.park_name; }).join(', ');
+                    value.innerHTML = escapeHtml(parkNames) + ' and other mapped City parks within search area';
+                } else {
+                    value.textContent = 'No mapped park at candidate location';
+                }
+                var source = document.createElement('div');
+                source.className = 'context-source';
+                source.textContent = 'Source: ' + escapeHtml(parks.source_provider || '—');
+                parksDiv.appendChild(label);
+                parksDiv.appendChild(value);
+                parksDiv.appendChild(source);
+                content.appendChild(parksDiv);
+            }
+
+            // Disclosure
+            var disclosure = document.createElement('div');
+            disclosure.className = 'context-disclosure';
+            disclosure.textContent = 'GIS context is provided for local situational awareness and does not alter the current thermal ranking.';
+            content.appendChild(disclosure);
         }
 
         function renderRankedCandidates(candidates, areaMean) {

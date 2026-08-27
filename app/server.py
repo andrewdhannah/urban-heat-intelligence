@@ -193,6 +193,14 @@ def build_visualization_payload(result):
             "timestamp": urban_heat_brief.get("generated_at")
         })
 
+    # Add GIS context to payload (composition, not modification of thermal chain)
+    gis_context = result.get("context", {})
+    context_evidence_chain = result.get("context_evidence_chain", [])
+    
+    # Add context evidence chain to payload
+    if context_evidence_chain:
+        payload_chain.extend(context_evidence_chain)
+
     return {
         "mode": mode,
         "visualization_source": visualization_source,
@@ -220,6 +228,7 @@ def build_visualization_payload(result):
         },
         "ranked_candidates": ranked_candidates,
         "nws_context": nws_context,
+        "gis_context": gis_context,
         "urban_heat_brief": urban_heat_brief,
         "evidence_chain": payload_chain,
         "error": answer.get("error", False)

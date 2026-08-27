@@ -82,9 +82,13 @@ def test_replay_brief_exists():
     brief = payload["urban_heat_brief"]
     assert brief is not None
     assert brief["title"] == "Urban Heat Brief"
-    assert [s["section_id"] for s in brief["sections"]] == [
-        "thermal_finding", "candidate_interpretation", "weather_context", "decision_note"
-    ]
+    # Section count may be 4 or 5 depending on whether GIS context is available
+    section_ids = [s["section_id"] for s in brief["sections"]]
+    assert "thermal_finding" in section_ids
+    assert "candidate_interpretation" in section_ids
+    assert "weather_context" in section_ids
+    assert "decision_note" in section_ids
+    # LOCAL CONTEXT section may be present if GIS data is available
     print("  PASS: test_replay_brief_exists")
 
 
@@ -289,7 +293,9 @@ def test_browser_brief_1440():
             assert page.locator("#urban-heat-brief").is_visible()
             assert page.evaluate("document.body.scrollWidth <= window.innerWidth")
             assert page.locator("#brief-title").text_content() == "Urban Heat Brief"
-            assert page.locator("#brief-sections .brief-section").count() == 4
+            # Section count may be 4 or 5 depending on whether GIS context is available
+            section_count = page.locator("#brief-sections .brief-section").count()
+            assert section_count >= 4, f"Expected at least 4 sections, got {section_count}"
             browser.close()
     finally:
         _stop_server(proc)
@@ -307,7 +313,10 @@ def test_browser_brief_1920():
             page.wait_for_selector("#urban-heat-brief[style*='block']", timeout=10000)
             assert page.locator("#urban-heat-brief").is_visible()
             assert page.evaluate("document.body.scrollWidth <= window.innerWidth")
-            assert page.locator("#brief-sections .brief-section").count() == 4
+            assert page.locator("#brief-title").text_content() == "Urban Heat Brief"
+            # Section count may be 4 or 5 depending on whether GIS context is available
+            section_count = page.locator("#brief-sections .brief-section").count()
+            assert section_count >= 4, f"Expected at least 4 sections, got {section_count}"
             browser.close()
     finally:
         _stop_server(proc)
@@ -426,6 +435,8 @@ def test_zero_unsupported_claims():
         "provenance_disclosure",     # → CONTEXTUAL_STATEMENT
         "availability_disclosure",   # → CONTEXTUAL_STATEMENT
         "product_derived_disclosure", # → DERIVED_FINDING
+        "gis_context_canopy",        # → CONTEXTUAL_STATEMENT (Level A GIS)
+        "gis_context_parks",         # → CONTEXTUAL_STATEMENT (Level A GIS)
     }
     brief = build_visualization_payload(replay_result())["urban_heat_brief"]
     unsupported = []

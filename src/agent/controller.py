@@ -1,9 +1,13 @@
 """
 Agent Controller — Heat-question answering with planning and evidence chain
 
-8-node evidence chain:
+8-node evidence chain (thermal):
     user_request → plan → heatmap_request → heatmap_result
     → coordinate_selection → env_params_request → env_params_result → answer
+
+Context evidence chain (GIS):
+    canopy_request → canopy_result → parks_request → parks_result
+    → context_enrichment_result
 """
 
 import json
@@ -11,6 +15,7 @@ from datetime import datetime, timezone
 
 from src.tools.heatmap import normalize_heatmap_result
 from src.tools.env_params import normalize_env_params_result
+from src.tools.gis_context import enrich_candidate_context
 from src.agent.time_resolver import resolve_latest_observation_time, format_observation_time
 
 # Canonical near-tie threshold — single source of truth for ranking and Brief
@@ -60,10 +65,12 @@ class HeatAgent:
         self.adapter = adapter
         self.mode = mode
         self.evidence_chain = []
+        self.context_evidence_chain = []
 
     def answer(self, question, location="Phoenix, AZ", date_time=None):
         """Answer a heat question with planning, tool calls, and 8-node evidence."""
         self.evidence_chain = []
+        self.context_evidence_chain = []
 
         # Resolve observation time for LIVE
         if self.mode == "live" and date_time is None:
@@ -184,6 +191,27 @@ class HeatAgent:
             "observation_time": answer["answer"]["observation_time"],
             "source_nodes": ["heatmap_result", "env_params_result"]
         })
+
+        # 9. GIS context enrichment (composition, not modification of thermal chain)
+        # GIS context is additive and contextual—MUST NOT alter ranking
+        if ranked_candidates:
+            # Enrich top candidate with GIS context
+            top_candidate = ranked_candidates[0]
+            lat = top_candidate["coordinate"][1]
+            lon = top_candidate["coordinate"][0]
+            
+            context_result = enrich_candidate_context(
+                latitude=lat,
+                longitude=lon,
+                mode=self.mode,
+                adapter=None  # Level A: no live GIS adapter yet
+            )
+            
+            self.context_evidence_chain = context_result["context_evidence_chain"]
+            
+            # Add GIS context to answer (does not alter thermal ranking)
+            answer["context"] = context_result["context"]
+            answer["context_evidence_chain"] = self.context_evidence_chain
 
         return answer
 

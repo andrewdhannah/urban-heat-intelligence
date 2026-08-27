@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 
 from src.agent.controller import TIE_THRESHOLD_CELSIUS
+from src.tools.gis_context import format_canopy_claim, format_parks_claim
 
 
 def _number(value, digits=2):
@@ -323,6 +324,66 @@ def compose_urban_heat_brief(result, nws_context=None):
     weather_section = _nws_section(mode, nws_context, observation_time)
     claims.extend(weather_section["claims"])
 
+    # LOCAL CONTEXT section (GIS enrichment)
+    # GIS context is additive and contextual—MUST NOT alter thermal ranking
+    context = result.get("context", {})
+    local_context_claims = []
+    
+    if context and context.get("available"):
+        canopy = context.get("canopy")
+        parks = context.get("parks")
+        
+        canopy_claim_text = format_canopy_claim(canopy)
+        if canopy_claim_text:
+            local_context_claims.append(
+                _claim(
+                    "local-context-canopy",
+                    canopy_claim_text,
+                    "City of Phoenix / Maricopa Association of Governments",
+                    "gis_context_canopy",
+                    ["canopy_request", "canopy_result"],
+                    mode,
+                    observation_time=observation_time,
+                    retrieved_at=context.get("retrieved_at"),
+                    used_in_decision=False,
+                )
+            )
+        
+        parks_claim_text = format_parks_claim(parks)
+        if parks_claim_text:
+            local_context_claims.append(
+                _claim(
+                    "local-context-parks",
+                    parks_claim_text,
+                    "City of Phoenix",
+                    "gis_context_parks",
+                    ["parks_request", "parks_result"],
+                    mode,
+                    observation_time=observation_time,
+                    retrieved_at=context.get("retrieved_at"),
+                    used_in_decision=False,
+                )
+            )
+        
+        # Add disclosure that GIS does not alter ranking
+        if local_context_claims:
+            local_context_claims.append(
+                _claim(
+                    "local-context-disclosure",
+                    "GIS context is provided for local situational awareness and does not alter the current thermal ranking.",
+                    "UHI",
+                    "product_derived_disclosure",
+                    ["context_enrichment_result"],
+                    mode,
+                    observation_time=observation_time,
+                    used_in_decision=False,
+                )
+            )
+    
+    local_context_section = _section("local_context", "Local context", local_context_claims) if local_context_claims else None
+    if local_context_section:
+        claims.extend(local_context_section["claims"])
+
     if ranking_status == "near_tie":
         decision_text = "These locations warrant comparable attention on thermal evidence alone."
     elif ranked:
@@ -346,8 +407,10 @@ def compose_urban_heat_brief(result, nws_context=None):
         _section("thermal_finding", "Thermal finding", thermal_claims),
         _section("candidate_interpretation", "Candidate interpretation", candidate_claims),
         weather_section,
-        _section("decision_note", "Decision note", [decision_claim]),
     ]
+    if local_context_section:
+        sections.append(local_context_section)
+    sections.append(_section("decision_note", "Decision note", [decision_claim]))
 
     source_list = [
         {
@@ -375,6 +438,32 @@ def compose_urban_heat_brief(result, nws_context=None):
                 "used_in_decision": False,
             }
         )
+    # Add GIS sources if context is available
+    if context and context.get("available"):
+        canopy = context.get("canopy")
+        parks = context.get("parks")
+        if canopy:
+            source_list.append(
+                {
+                    "provider": "City of Phoenix / Maricopa Association of Governments",
+                    "mode": mode,
+                    "source_type": "gis_context_canopy",
+                    "retrieved_at": context.get("retrieved_at"),
+                    "endpoints": [],
+                    "used_in_decision": False,
+                }
+            )
+        if parks:
+            source_list.append(
+                {
+                    "provider": "City of Phoenix",
+                    "mode": mode,
+                    "source_type": "gis_context_parks",
+                    "retrieved_at": context.get("retrieved_at"),
+                    "endpoints": [],
+                    "used_in_decision": False,
+                }
+            )
 
     title = "Urban Heat Brief"
     mode_label = "Historical Replay" if mode == "replay" else "Live API"
@@ -398,4 +487,5 @@ def compose_urban_heat_brief(result, nws_context=None):
         "markdown": plain_text,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "nws_used_in_decision": False,
+        "gis_used_in_decision": False,
     }
