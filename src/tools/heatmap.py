@@ -113,6 +113,7 @@ def normalize_heatmap_result(raw_response, request_params, mode="live", fixture_
             "max_temperature_celsius": max(temps) if temps else None,
             "mean_temperature_celsius": round(sum(temps) / len(temps), 2) if temps else None,
             "temperature_range_celsius": round(max(temps) - min(temps), 2) if temps else None,
+            "map_data": {"features": features},
         },
         "hottest_feature": {
             "temperature_celsius": hottest_props.get("average_temperature"),

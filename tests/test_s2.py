@@ -36,13 +36,11 @@ def test_2_primary_question_executes():
 
 def test_3_replay_zero_network():
     """REPLAY produces zero FortyGuard network calls."""
-    # In replay mode, the adapter never makes API calls
     adapter = FortyGuardAdapter(mode="replay")
-    assert adapter.api_key is None  # No credential loaded in replay
+    assert adapter.api_key is None
     agent = HeatAgent(adapter, mode="replay")
     result = agent.answer("Where should Phoenix prioritize a cooling intervention?")
     assert result["answer"]["mode"] == "replay"
-    # Replay uses fixtures, not adapter calls
     print("  PASS: test_3_replay_zero_network")
 
 def test_4_replay_labeled():
@@ -131,13 +129,6 @@ def test_12_server_exists():
 
 def test_13_demo_scenario_exists():
     """Demo scenario file exists."""
-    # Check if demo scenario is documented in the README or a separate file
-    demo_found = False
-    for f in Path(".").rglob("*.md"):
-        if "demo" in f.name.lower():
-            demo_found = True
-            break
-    # Demo scenario is embedded in the receipt — just verify the app supports it
     html = Path("app/static/index.html").read_text()
     assert "Where should Phoenix prioritize" in html
     print("  PASS: test_13_demo_scenario_exists")

@@ -17,7 +17,7 @@ except ImportError:
     HAS_PLAYWRIGHT = False
 
 
-SERVER_PORT = 8091  # Use different port to avoid conflicts
+SERVER_PORT = 8091
 SERVER_URL = f"http://127.0.0.1:{SERVER_PORT}"
 
 
@@ -63,10 +63,8 @@ def run_browser_tests():
                 page.goto(SERVER_URL, timeout=10000)
                 title = page.title()
                 assert "Urban Heat Intelligence" in title, f"Title: {title}"
-                # Check Leaflet loaded
                 leaflet = page.evaluate("typeof L !== 'undefined'")
                 assert leaflet, "Leaflet not loaded"
-                # Check controls visible
                 assert page.locator("#question-input").is_visible(), "Question input not visible"
                 assert page.locator("#mode-badge").is_visible(), "Mode badge not visible"
                 print("  PASS: browser_test_1_page_load")
@@ -77,8 +75,7 @@ def run_browser_tests():
 
             # === TEST 2: Default replay auto-runs ===
             try:
-                # Wait for auto-run to complete
-                page.wait_for_selector("#decision-summary:not([style*='display: none'])", timeout=10000)
+                page.wait_for_selector("#answer-hero[style*='block']", timeout=10000)
                 badge = page.locator("#mode-badge").text_content()
                 assert "REPLAY" in badge.upper(), f"Badge: {badge}"
                 obs_time = page.locator("#stat-obs-time").text_content()
@@ -89,30 +86,29 @@ def run_browser_tests():
                 print(f"  FAIL: browser_test_2_replay_auto_run: {e}")
                 failed += 1
 
-            # === TEST 3: Priority card visible ===
+            # === TEST 3: Answer hero visible with priority data ===
             try:
-                priority_visible = page.locator("#priority-card").is_visible()
-                assert priority_visible, "Priority card not visible"
-                temp = page.locator("#priority-temp").text_content()
-                assert "°C" in temp, f"Priority temp: {temp}"
-                print("  PASS: browser_test_3_priority_card")
+                hero_visible = page.locator("#answer-hero").is_visible()
+                assert hero_visible, "Answer hero not visible"
+                temp = page.locator("#hero-temp").text_content()
+                assert "°C" in temp, f"Hero temp: {temp}"
+                print("  PASS: browser_test_3_answer_hero")
                 passed += 1
             except Exception as e:
-                print(f"  FAIL: browser_test_3_priority_card: {e}")
+                print(f"  FAIL: browser_test_3_answer_hero: {e}")
                 failed += 1
 
             # === TEST 4: Map rendered with polygons ===
             try:
-                # Check that Leaflet has layers
-                layer_count = page.evaluate("Object.keys(map._layers).length")
-                assert layer_count > 1, f"Map layers: {layer_count}"
-                print("  PASS: browser_test_4_map_rendered")
+                poly_count = page.evaluate("(function(){var c=0;Object.values(map._layers).forEach(function(l){if(l instanceof L.Polygon)c++});return c;})()")
+                assert poly_count > 0, f"Polygons: {poly_count}"
+                print("  PASS: browser_test_4_map_polygons")
                 passed += 1
             except Exception as e:
-                print(f"  FAIL: browser_test_4_map_rendered: {e}")
+                print(f"  FAIL: browser_test_4_map_polygons: {e}")
                 failed += 1
 
-            # === TEST 5: Evidence chain opens ===
+            # === TEST 5: Evidence chain opens with 8 nodes ===
             try:
                 page.click(".evidence-toggle")
                 page.wait_for_selector(".evidence-chain.open", timeout=3000)
@@ -129,7 +125,6 @@ def run_browser_tests():
                 page.click("#btn-live")
                 badge = page.locator("#mode-badge").text_content()
                 assert "LIVE" in badge.upper(), f"Badge after switch: {badge}"
-                # Switch back to replay
                 page.click("#btn-replay")
                 badge = page.locator("#mode-badge").text_content()
                 assert "REPLAY" in badge.upper(), f"Badge after switch back: {badge}"
@@ -144,9 +139,8 @@ def run_browser_tests():
                 errors = []
                 page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
                 page.reload()
-                page.wait_for_selector("#decision-summary:not([style*='display: none'])", timeout=10000)
+                page.wait_for_selector("#answer-hero[style*='block']", timeout=10000)
                 time.sleep(1)
-                # Filter out expected network errors
                 real_errors = [e for e in errors if "favicon" not in e.lower()]
                 assert len(real_errors) == 0, f"Console errors: {real_errors}"
                 print("  PASS: browser_test_7_no_console_errors")
@@ -166,11 +160,10 @@ def run_browser_tests():
                 print(f"  FAIL: browser_test_8_no_credential: {e}")
                 failed += 1
 
-            # === TEST 9: Error state button ===
+            # === TEST 9: Error state with Try Replay ===
             try:
-                # The "Try Replay" button exists
                 btn = page.locator("text=Try Replay")
-                assert btn.count() >= 0, "Try Replay button missing"  # exists in DOM
+                assert btn.count() >= 1, "Try Replay button missing"
                 print("  PASS: browser_test_9_error_state_ui")
                 passed += 1
             except Exception as e:
@@ -181,13 +174,35 @@ def run_browser_tests():
             try:
                 page.set_viewport_size({"width": 1920, "height": 1080})
                 page.reload()
-                page.wait_for_selector("#decision-summary:not([style*='display: none'])", timeout=10000)
+                page.wait_for_selector("#answer-hero[style*='block']", timeout=10000)
                 overflow = page.evaluate("document.body.scrollWidth <= window.innerWidth")
                 assert overflow, "Horizontal overflow detected at 1920x1080"
                 print("  PASS: browser_test_10_responsive_1920")
                 passed += 1
             except Exception as e:
                 print(f"  FAIL: browser_test_10_responsive_1920: {e}")
+                failed += 1
+
+            # === TEST 11: Visualization source matches mode ===
+            try:
+                vis_src = page.evaluate("currentData ? currentData.visualization_source : 'none'")
+                mode = page.evaluate("currentMode")
+                assert vis_src == mode, f"Vis source {vis_src} != mode {mode}"
+                print("  PASS: browser_test_11_vis_source_match")
+                passed += 1
+            except Exception as e:
+                print(f"  FAIL: browser_test_11_vis_source_match: {e}")
+                failed += 1
+
+            # === TEST 12: Heatmap source matches mode ===
+            try:
+                heat_src = page.evaluate("currentData && currentData.heatmap ? currentData.heatmap.source : 'none'")
+                mode = page.evaluate("currentMode")
+                assert heat_src == mode, f"Heat source {heat_src} != mode {mode}"
+                print("  PASS: browser_test_12_heat_source_match")
+                passed += 1
+            except Exception as e:
+                print(f"  FAIL: browser_test_12_heat_source_match: {e}")
                 failed += 1
 
             browser.close()

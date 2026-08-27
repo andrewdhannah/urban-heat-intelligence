@@ -1,40 +1,105 @@
 {
   "receipt_id": "S2-BROWSER-PROVENANCE-CLOSEOUT-20260826",
-  "receipt_type": "s2_browser_closeout",
-  "timestamp": "2026-08-26T23:00:00Z",
+  "receipt_type": "s2_browser_provenance_closeout",
+  "timestamp": "2026-08-26T19:57:00Z",
   "project_id": "urban-heat-intelligence",
-  "original_s2_receipt": "qualification/receipts/S2-COMPLETION-RECEIPT-20260826.json",
-  "primary_question_intent": "cooling_prioritization",
-  "primary_question_tools": [
-    "get_heatmap",
-    "get_environmental_parameters"
+  "authorization": "Owner disposition — Capability-assisted S2 closeout",
+  "capability_registry_source": "Librarian Capability Registry (CarbideFrame)",
+  "capabilities_used": [
+    "OpenWork built-in browser (opencode-chrome-devtools@1.0.4)",
+    "frontend-design (qualified)",
+    "design-taste-frontend (reviewed)"
   ],
-  "live_visualization_source": "server returns visualization payload with LIVE geometry from agent result",
-  "replay_visualization_source": "server returns visualization payload with REPLAY fixture geometry",
-  "cross_mode_data_leakage": "NONE \u2014 server builds visualization from agent result matching request mode",
-  "priority_marker_source": "rendered from priority_location.coordinate in visualization payload (same mode as answer)",
-  "replay_auto_run": true,
-  "replay_auto_run_implementation": "initMap() + setMode(replay) + runQuery() at page load",
-  "user_visible_error_state": "error-state div with message + Try Replay button",
-  "static_s2_tests": 15,
-  "s1_regression_tests": 20,
-  "browser_test_count": 10,
-  "browser_test_pass": 10,
+  "design_audit": {
+    "findings": [
+      "BLOCKING: Heat legend missing — red/orange/yellow had no meaning",
+      "BLOCKING: Visualization provenance not guarded against cross-mode fallback",
+      "HIGH-VALUE: Visual hierarchy flat — decision not leading",
+      "HIGH-VALUE: Mode badge lacked observation source context",
+      "HIGH-VALUE: No fitBounds for feature bounds",
+      "HIGH-VALUE: Heatmap polygons lacked hover interaction"
+    ],
+    "classification": "BLOCKING + HIGH-VALUE only, OPTIONAL skipped"
+  },
+  "design_changes_applied": [
+    "Answer hero: decision-first framing with max temp, heat index, apparent, humidity, delta",
+    "Mode status bar: shows observation source and time on map",
+    "Temperature legend: continuous thermal scale (38°C–45°C+)",
+    "Map fitBounds: uses rendered feature bounds with priority visible",
+    "Feature hover: temperature tooltip on heatmap polygons",
+    "Feature click: popup with temperature and visualization source",
+    "Priority marker: popup with temperature, selection method, and source",
+    "Error state: bounded error with message, mode, and Try Replay button",
+    "Mode context: header shows 'Historical replay — Zero network calls' / 'Live API'"
+  ],
+  "primary_question_intent": "cooling_prioritization",
+  "primary_question_tools": "get_heatmap, get_environmental_parameters",
+  "live_visualization_source": "error (no API key — correct behavior, no replay fallback)",
+  "replay_visualization_source": "replay",
+  "cross_mode_provenance_test": "PASS",
+  "cross_mode_provenance_evidence": "REPLAY: vis_source=replay, features=367, obs=2026-08-25. LIVE: vis_source=none, features=0, obs=None, error=True. Modes differ. No geometry cross-contamination.",
+  "priority_marker": {
+    "source_matches_mode": true,
+    "replay_coordinate": [-112.077362, 33.458059],
+    "replay_temperature": 42.0525
+  },
+  "replay_auto_run": "PASS — auto-runs on page load, deterministic result appears",
+  "user_visible_error_state": {
+    "error_message_visible": true,
+    "mode_displayed": true,
+    "try_replay_button": true,
+    "no_silent_replay_switch": true
+  },
+  "s1_regression": "20/20 PASS",
+  "static_s2_tests": "15/15 PASS",
+  "browser_method": "Playwright 1.62.1 (Chromium headless) + OpenWork built-in browser",
+  "browser_test_count": 12,
+  "browser_test_pass": 12,
   "browser_test_fail": 0,
-  "viewport_1440x900": "PASS (default test viewport)",
-  "viewport_1920x1080": "PASS (explicit responsive test)",
-  "console_errors": "NONE",
-  "credential_exposed": false,
+  "map_browser_test": "367 polygons rendered, 1 priority marker, popup interaction verified",
+  "evidence_browser_test": "8 nodes, cooling_prioritization intent, correct tools",
+  "mode_switch_browser_test": "REPLAY→LIVE badge changes, error state, Try Replay restores REPLAY",
+  "error_browser_test": "LIVE error: message visible, mode stays LIVE, no silent replay",
+  "viewport_1440x900": {
+    "no_overflow": true,
+    "sidebar_px": 360,
+    "map_height": 848,
+    "hero_visible": true,
+    "polygons": 367,
+    "evidence_nodes": 8,
+    "screenshot": "qualification/receipts/viewport-1440x900.png"
+  },
+  "viewport_1920x1080": {
+    "no_overflow": true,
+    "sidebar_px": 360,
+    "map_height": 1028,
+    "hero_visible": true,
+    "polygons": 367,
+    "evidence_nodes": 8,
+    "screenshot": "qualification/receipts/viewport-1920x1080.png"
+  },
+  "console_errors": "none (favicon 404 filtered)",
+  "secret_scan": {
+    "credential_present": true,
+    "credential_exposed": false,
+    "html_clean": true,
+    "dom_clean": true,
+    "js_clean": true,
+    "server_clean": true,
+    "tests_clean_assertion_only": true
+  },
   "files_created": [
-    "tests/test_s2_browser.py"
+    "qualification/receipts/viewport-1440x900.png",
+    "qualification/receipts/viewport-1920x1080.png"
   ],
   "files_changed": [
     "app/server.py",
     "app/static/index.html",
-    "src/agent/controller.py",
-    "tests/test_s2.py"
+    "src/tools/heatmap.py",
+    "tests/test_s2.py",
+    "tests/test_s2_browser.py"
   ],
-  "public_git_head": "pending",
+  "public_git_head": "5719f7e5fa29657f53cc03a13c0722bd8cb1feae (pre-closeout, changes uncommitted)",
   "final_s2_result": "PASS",
-  "s3_status": "PLANNED / NOT AUTHORIZED"
+  "s3_status": "NOT AUTHORIZED"
 }

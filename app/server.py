@@ -29,26 +29,37 @@ def build_visualization_payload(result):
     """
     Build sanitized visualization payload for the browser.
 
+    Visualization contract: each field derives from the SAME mode's data.
+    No cross-mode fallback is permitted. If a mode's data is unavailable,
+    the field is explicitly null — replay geometry is never substituted
+    for live data, and vice versa.
+
     Contains only what the UI needs for rendering.
     No credentials, no raw provider internals.
     """
     answer = result.get("answer", {})
     chain = result.get("evidence_chain", [])
     raw = result.get("raw_results", {})
+    mode = answer.get("mode", "unknown")
 
-    # Extract heatmap features from raw result or chain
+    # Extract heatmap features from the SAME mode's raw result only
     heatmap_features = []
     heatmap_obs_time = None
     hottest = None
+    visualization_source = mode  # Explicit: visualization derives from this mode
 
     heatmap_result_raw = raw.get("heatmap", {})
     if heatmap_result_raw:
-        map_data = heatmap_result_raw.get("result", {}).get("map_data", {})
-        heatmap_features = map_data.get("features", [])
-        heatmap_obs_time = heatmap_result_raw.get("observation_time")
-        hottest = heatmap_result_raw.get("hottest_feature")
+        # Verify the heatmap result's mode matches the answer mode
+        heatmap_mode = heatmap_result_raw.get("mode")
+        if heatmap_mode == mode:
+            map_data = heatmap_result_raw.get("result", {}).get("map_data", {})
+            heatmap_features = map_data.get("features", [])
+            heatmap_obs_time = heatmap_result_raw.get("observation_time")
+            hottest = heatmap_result_raw.get("hottest_feature")
+        # If modes don't match, leave visualization fields empty — never cross-contaminate
 
-    # Get env_params data from chain
+    # Get env_params data from chain (chain nodes are mode-stamped)
     env_data = {}
     for node in chain:
         if node["step"] == "env_params_result":
@@ -63,7 +74,8 @@ def build_visualization_payload(result):
             break
 
     return {
-        "mode": answer.get("mode"),
+        "mode": mode,
+        "visualization_source": visualization_source,
         "observation_time": answer.get("observation_time"),
         "summary": answer.get("summary"),
         "conditions": answer.get("conditions"),
@@ -72,12 +84,14 @@ def build_visualization_payload(result):
         "heatmap": {
             "features": heatmap_features,
             "observation_time": heatmap_obs_time,
-            "feature_count": len(heatmap_features)
+            "feature_count": len(heatmap_features),
+            "source": visualization_source
         },
         "priority_location": {
             "coordinate": hottest.get("coordinate") if hottest else None,
             "temperature": hottest.get("temperature_celsius") if hottest else None,
             "selection_method": hottest.get("selection_method") if hottest else None,
+            "source": visualization_source,
             "env_params": {
                 "heat_index": env_data.get("heat_index"),
                 "apparent_temp": env_data.get("apparent_temp"),
