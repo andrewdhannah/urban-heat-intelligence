@@ -94,10 +94,9 @@ fixtures/
 ## Key Technical Details
 
 - **Stack:** Python 3.10+ stdlib only — no pip install required
-- **Database:** SQLite with sqlite-vec for evidence and embeddings
 - **Dashboard:** Leaflet.js heat overlay with click-to-query
-- **Architecture:** Three layers — MCP Server + Data, Agent + Decision Engine, Interface
-- **Evidence:** Every tool call produces an evidence receipt stored in SQLite
+- **Architecture:** Three layers — Server, Agent + Decision Engine, Interface
+- **Evidence:** Every tool call produces an evidence receipt in the in-memory evidence chain, returned in the JSON API response
 - **Modes:** Live and Replay data never contaminate each other
 
 ---

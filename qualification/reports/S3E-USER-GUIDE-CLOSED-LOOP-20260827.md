@@ -87,7 +87,7 @@ No implementation code was read during documentation generation.
 
 ## DOCUMENTATION DISCREPANCIES
 
-### Initial Discrepancy Found
+### Discrepancy 1 (Initial — Found During First Pass)
 
 **Area:** Claim taxonomy presentation in UNDERSTANDING-YOUR-EVIDENCE.md
 
@@ -95,13 +95,27 @@ No implementation code was read during documentation generation.
 
 **Root cause:** Teaching documents use product aliases; normative specification uses different class names. Documentation inherited the aliases.
 
-### Correction Made
+**Correction made:** Updated UNDERSTANDING-YOUR-EVIDENCE.md claim taxonomy table to use normative SPEC-011 class names with product aliases as secondary labels.
 
-Updated UNDERSTANDING-YOUR-EVIDENCE.md claim taxonomy table to use normative SPEC-011 class names with product aliases as secondary labels. Added reference to `qualification/specifications/UHI-SPEC-011-claim-taxonomy.md` as normative source.
+**Product behavior changed:** False.
 
-### Product Behavior Changed
+### Discrepancy 2 (Found During Owner Review)
 
-**False.** No product code was modified. Only documentation terminology was corrected.
+**Area:** PROVENANCE-MODEL.md and QUICKSTART.md — evidence persistence architecture
+
+**Issue:** PROVENANCE-MODEL.md claimed "Append-only SQLite table" with a `CREATE TABLE evidence_log` schema. QUICKSTART.md claimed "SQLite with sqlite-vec for evidence and embeddings" and "every tool call produces an evidence receipt stored in SQLite." The actual implementation uses an in-memory Python list (`self.evidence_chain = []` in `controller.py`) returned as JSON in the API response. Zero SQLite usage exists in the codebase.
+
+**Root cause:** Teaching docs inherited the SQLite claim from earlier architectural planning. QA-Pilot's closed-loop test verified documentation against documentation (teaching docs), not against the frozen implementation. The test correctly identified that the teaching docs and user-guide docs were consistent — but both were stale relative to the actual code.
+
+**Classification:** Documentation-governance defect. Teaching-doc consistency ≠ teaching-doc truth.
+
+**Correction made:**
+- `docs/data/PROVENANCE-MODEL.md`: Replaced "Evidence Log" SQLite section with "Evidence Chain" describing the in-memory list + JSON API response model. Updated "Why?" Panel section to reference the evidence chain rather than "evidence log."
+- `docs/user-guide/QUICKSTART.md`: Removed "SQLite with sqlite-vec" claim. Replaced with accurate evidence chain description. Restored Dashboard and Architecture lines that were accidentally removed.
+
+**Product behavior changed:** False.
+
+**Lesson:** Future closed-loop tests must verify architectural claims (persistence model, dependencies, data flow) against the actual frozen implementation, not only against the teaching documents.
 
 ---
 
@@ -109,11 +123,13 @@ Updated UNDERSTANDING-YOUR-EVIDENCE.md claim taxonomy table to use normative SPE
 
 | Metric | Value |
 |--------|-------|
-| Final discrepancies | 0 |
+| Final discrepancies | 0 (after remediation) |
 | Product defects found | 0 |
-| Documentation corrections | 1 (terminology only) |
+| Documentation corrections | 2 (taxonomy terminology + provenance architecture) |
 | Product behavior changed | false |
-| **Final result** | **PASS** |
+| **Final result** | **PASS (after remediation)** |
+
+**Note:** The initial closed-loop test reported PASS with zero discrepancies. Owner review identified a documentation-governance defect (stale SQLite provenance claim) that the test missed. This was remediated in a subsequent documentation-only commit. The defect was in documentation accuracy, not in product behavior.
 
 ---
 
