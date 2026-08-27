@@ -42,7 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.agent.controller import HeatAgent
 from src.agent.time_resolver import (
     resolve_latest_observation_time,
-    resolve_latest_available_observation_time,
+    resolve_latest_available_observation,
     format_observation_time
 )
 from src.agent.adapter import FortyGuardAdapter
@@ -123,7 +123,7 @@ def test_format_observation_time():
 
 
 def test_bounded_lookback_exhausted():
-    """resolve_latest_available_observation_time handles exhausted lookback."""
+    """resolve_latest_available_observation handles exhausted lookback."""
     # Create mock adapter that always returns empty features
     mock_adapter = MagicMock()
     mock_adapter.submit_heatmap.return_value = {"data": {"activity_id": "test-id"}}
@@ -134,28 +134,19 @@ def test_bounded_lookback_exhausted():
         }
     }
     
-    result = resolve_latest_available_observation_time(mock_adapter, max_lookback=3)
+    result = resolve_latest_available_observation(mock_adapter, max_lookback=3)
     assert result["found"] is False
     assert result["lookback_used"] == 3
-    assert result["feature_count"] == 0
+    assert result["heatmap_result"] is None
     assert result["observation_time"] is None
     print("  PASS: test_bounded_lookback_exhausted")
 
 
 def test_bounded_lookback_stops_on_first_success():
-    """resolve_latest_available_observation_time stops after first successful result."""
+    """resolve_latest_available_observation stops after first successful result."""
     mock_adapter = MagicMock()
     
-    # First call: no features
-    mock_adapter.submit_heatmap.return_value = {"data": {"activity_id": "test-id-1"}}
-    mock_adapter.poll_status.return_value = {
-        "data": {
-            "status": "Completed",
-            "result": {"map_data": {"features": []}}
-        }
-    }
-    
-    # Simulate: first call returns no features, second call returns features
+    # Track calls
     call_count = [0]
     def mock_submit(params):
         call_count[0] += 1
@@ -173,10 +164,10 @@ def test_bounded_lookback_stops_on_first_success():
     mock_adapter.submit_heatmap = mock_submit
     mock_adapter.poll_status = mock_poll
     
-    result = resolve_latest_available_observation_time(mock_adapter, max_lookback=5)
+    result = resolve_latest_available_observation(mock_adapter, max_lookback=5)
     assert result["found"] is True
     assert result["lookback_used"] == 1
-    assert result["feature_count"] == 1
+    assert result["heatmap_result"] is not None
     # Should have made only 2 submit calls (first failed, second succeeded)
     assert call_count[0] == 2
     print("  PASS: test_bounded_lookback_stops_on_first_success")
@@ -317,18 +308,93 @@ def test_gis_failure_does_not_invalidate_live():
     }
     mock_adapter.submit_env_params.return_value = {"data": {"activity_id": "test-env-id"}}
     
-    # Patch GIS to fail
+    # Patch GIS to fail with exception (not just return None)
     with patch("src.agent.controller.enrich_candidate_context", side_effect=Exception("GIS failed")):
         agent = HeatAgent(mock_adapter, mode="live")
-        # Should still return thermal results
+        # Should still return thermal results without crashing
         try:
             result = agent.answer("What's the heat risk in Phoenix?")
             # If exception is caught, verify thermal results are still present
             assert "answer" in result
-        except Exception:
-            # If exception propagates, that's also acceptable
-            pass
+            assert result["answer"].get("error") is not True
+        except Exception as e:
+            # If exception propagates, that's a bug - GIS failure must not kill thermal
+            assert False, f"GIS exception escaped: {e}"
     print("  PASS: test_gis_failure_does_not_invalidate_live")
+
+
+def test_no_duplicate_heatmap_submission():
+    """Live discovery heatmap is reused, not executed twice."""
+    mock_adapter = MagicMock()
+    
+    # Track all heatmap submissions
+    submissions = []
+    def mock_submit(params):
+        submissions.append(params)
+        return {"data": {"activity_id": "test-id"}}
+    
+    def mock_poll(activity_id, max_polls=30, interval=0):
+        return {"data": {"status": "Completed", "result": {"map_data": {"features": [{"id": 1}]}}}}
+    
+    mock_adapter.submit_heatmap = mock_submit
+    mock_adapter.poll_status = mock_poll
+    
+    agent = HeatAgent(mock_adapter, mode="live")
+    result = agent.answer("What's the heat risk in Phoenix?")
+    
+    # Should have made exactly 1 heatmap submission (discovery = answer)
+    assert len(submissions) == 1, f"Expected 1 heatmap submission, got {len(submissions)}"
+    assert result["provider_metrics"]["heatmap_submissions"] == 1
+    print("  PASS: test_no_duplicate_heatmap_submission")
+
+
+def test_provider_metrics_tracking():
+    """Provider metrics are correctly tracked."""
+    mock_adapter = MagicMock()
+    mock_adapter.submit_heatmap.return_value = {"data": {"activity_id": "test-id"}}
+    mock_adapter.poll_status.return_value = {
+        "data": {
+            "status": "Completed",
+            "result": {"map_data": {"features": [{"id": 1}]}}
+        }
+    }
+    mock_adapter.submit_env_params.return_value = {"data": {"activity_id": "test-env-id"}}
+    
+    agent = HeatAgent(mock_adapter, mode="live")
+    result = agent.answer("What's the heat risk in Phoenix?")
+    
+    metrics = result.get("provider_metrics", {})
+    assert "heatmap_submissions" in metrics
+    assert "env_params_submissions" in metrics
+    assert "status_requests" in metrics
+    # At minimum, we should have 1 heatmap submission
+    assert metrics["heatmap_submissions"] >= 1
+    print("  PASS: test_provider_metrics_tracking")
+
+
+def test_top3_candidate_context_propagated():
+    """Top-3 candidates each have their own GIS context."""
+    adapter = FortyGuardAdapter(mode="replay")
+    agent = HeatAgent(adapter, mode="replay")
+    result = agent.answer("Where should Phoenix prioritize a cooling intervention this afternoon?")
+    
+    # Check that candidate_contexts exists with 3 entries
+    candidate_contexts = result.get("candidate_contexts", {})
+    assert len(candidate_contexts) == 3, f"Expected 3 candidate contexts, got {len(candidate_contexts)}"
+    
+    # Check each candidate has its own context
+    for i in range(3):
+        ctx = candidate_contexts.get(i)
+        assert ctx is not None, f"Missing context for candidate {i}"
+        assert "canopy" in ctx
+        assert "parks" in ctx
+    
+    # Check top candidate has Roosevelt Park
+    top_ctx = candidate_contexts[0]
+    assert top_ctx["parks"]["inside_park"]["park_name"] == "Roosevelt Park"
+    assert top_ctx["canopy"]["tree_canopy_pct"] == 0.87
+    
+    print("  PASS: test_top3_candidate_context_propagated")
 
 
 def run_all():
@@ -354,6 +420,12 @@ def run_all():
         test_provider_failed_activity_bounded,
         # GIS in Live mode
         test_gis_failure_does_not_invalidate_live,
+        # Duplicate prevention
+        test_no_duplicate_heatmap_submission,
+        # Provider metrics
+        test_provider_metrics_tracking,
+        # Top-3 context
+        test_top3_candidate_context_propagated,
     ]
     passed = 0
     for test in tests:

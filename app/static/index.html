@@ -617,6 +617,33 @@
                     compDiv.textContent = compare;
                     div.appendChild(compDiv);
                 }
+                // Add per-candidate GIS context
+                var ctx = c.candidate_context;
+                if (ctx) {
+                    var gisDiv = document.createElement('div');
+                    gisDiv.className = 'rank-gis-context';
+                    gisDiv.style.fontSize = '10px';
+                    gisDiv.style.color = '#7dd3fc';
+                    gisDiv.style.marginTop = '4px';
+                    gisDiv.style.borderTop = '1px solid rgba(56,189,248,0.2)';
+                    gisDiv.style.paddingTop = '4px';
+                    
+                    var gisParts = [];
+                    if (ctx.canopy && ctx.canopy.available) {
+                        gisParts.push(ctx.canopy.tree_canopy_pct + '% canopy');
+                    }
+                    if (ctx.parks && ctx.parks.available) {
+                        if (ctx.parks.inside_park) {
+                            gisParts.push('Inside ' + ctx.parks.inside_park.park_name);
+                        } else {
+                            gisParts.push('No mapped park');
+                        }
+                    }
+                    if (gisParts.length > 0) {
+                        gisDiv.textContent = 'GIS: ' + gisParts.join(' · ');
+                        div.appendChild(gisDiv);
+                    }
+                }
                 list.appendChild(div);
             });
         }

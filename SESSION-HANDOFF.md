@@ -46,23 +46,36 @@ Phase A has been authorized and executed. The project is instantiated as a gover
 
 ## Authorization Status
 
-| Stage | Status |
-|-------|--------|
-| Phase A | AUTHORIZED, EXECUTED |
-| Phase B | PLANNED, NOT AUTHORIZED |
-| S0 | PLANNED, NOT AUTHORIZED |
-| S1 | PLANNED, NOT AUTHORIZED |
-| S2 | PLANNED, NOT AUTHORIZED |
-| S3 | PLANNED, NOT AUTHORIZED |
-| S4 | PLANNED, NOT AUTHORIZED |
+| Stage | Status | Notes |
+|-------|--------|-------|
+| Phase A | AUTHORIZED, EXECUTED, SEALED | Governed project instantiation |
+| Phase B | AUTHORIZED, EXECUTED, SEALED | Fresh-context re-entry proof |
+| S0 | PLANNED | FortyGuard preflight + runtime |
+| S1 | PLANNED | Agent + evidence core |
+| S2 | PLANNED | Decision experience + replay |
+| S3 | PLANNED | Deployment + hardening |
+| S4 | PLANNED | Submission certification |
 
-**Do not automatically continue to Phase B.** Each subsequent stage requires separate Owner authorization.
+**Expansion window:** Governed by `project-state/expansion-window-20260827-29.md` (operating plan, not a lifecycle stage). Covers EXP-A0 through EXP-Q using EXP-X namespace.
+
+**Current plan:** hackathon-plan-v3.6.1 (expansion recovery, governance corrections applied)
+**Submission fallback SHA:** `c13d8eaac7b9fffda30d8db4df88659827a965f3`
+**Submission target:** Saturday Aug 29, 6–7 PM
+**Feature freeze:** Saturday Aug 29, ~9–10 AM
+
+**Do not automatically continue to subsequent stages.** Each subsequent stage requires separate Owner authorization.
 
 ---
 
 ## Next Action
 
-Await Owner direction. Phase A completion report and evidence available for independent review.
+Expansion window authorized. Execute per `project-state/expansion-window-20260827-29.md` and hackathon-plan-v3.6.1 Section 6.2.
+
+Key constraints:
+- Feature freeze Saturday ~9–10 AM
+- Nothing started after Friday afternoon becomes submission-critical
+- Submission fallback: `c13d8eaac7b9fffda30d8db4df88659827a965f3`
+- Target submission Saturday 6–7 PM
 
 ---
 

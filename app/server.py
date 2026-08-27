@@ -195,7 +195,29 @@ def build_visualization_payload(result):
 
     # Add GIS context to payload (composition, not modification of thermal chain)
     gis_context = result.get("context", {})
+    candidate_contexts = result.get("candidate_contexts", {})
     context_evidence_chain = result.get("context_evidence_chain", [])
+    
+    # Merge per-candidate GIS context into ranked_candidates
+    for i, cand in enumerate(ranked_candidates):
+        ctx = candidate_contexts.get(i, {})
+        canopy = ctx.get("canopy")
+        parks = ctx.get("parks")
+        cand["candidate_context"] = {
+            "canopy": {
+                "available": canopy.get("available", False) if canopy else False,
+                "census_tract_geoid": canopy.get("census_tract_geoid") if canopy else None,
+                "tree_canopy_pct": canopy.get("tree_canopy_pct") if canopy else None,
+                "reference_period": canopy.get("reference_period") if canopy else None,
+                "source_provider": canopy.get("source_provider") if canopy else None,
+            } if canopy else None,
+            "parks": {
+                "available": parks.get("available", False) if parks else False,
+                "inside_park": parks.get("inside_park") if parks else None,
+                "source_provider": parks.get("source_provider") if parks else None,
+            } if parks else None,
+            "used_in_decision": False,
+        }
     
     # Add context evidence chain to payload
     if context_evidence_chain:

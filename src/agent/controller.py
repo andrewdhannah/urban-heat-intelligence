@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from src.tools.heatmap import normalize_heatmap_result
 from src.tools.env_params import normalize_env_params_result
 from src.tools.gis_context import enrich_candidate_context
-from src.agent.time_resolver import resolve_latest_observation_time, resolve_latest_available_observation_time, format_observation_time
+from src.agent.time_resolver import resolve_latest_observation_time, resolve_latest_available_observation, format_observation_time
 
 # Canonical near-tie threshold — single source of truth for ranking and Brief
 TIE_THRESHOLD_CELSIUS = 0.1
@@ -66,20 +66,38 @@ class HeatAgent:
         self.mode = mode
         self.evidence_chain = []
         self.context_evidence_chain = []
+        self.provider_metrics = {
+            "heatmap_submissions": 0,
+            "env_params_submissions": 0,
+            "status_requests": 0
+        }
 
     def answer(self, question, location="Phoenix, AZ", date_time=None):
         """Answer a heat question with planning, tool calls, and 8-node evidence."""
         self.evidence_chain = []
         self.context_evidence_chain = []
+        self.provider_metrics = {
+            "heatmap_submissions": 0,
+            "env_params_submissions": 0,
+            "status_requests": 0
+        }
         self.live_diagnostics = {}
 
-        # Resolve observation time for LIVE with bounded lookback
+        # For LIVE mode: use bounded lookback to find latest available observation
+        # The discovery heatmap IS the answer heatmap - no duplicate execution
+        heatmap_result = None
         if self.mode == "live" and date_time is None:
-            # Try to find latest available observation with lookback
-            lookback_result = resolve_latest_available_observation_time(self.adapter)
+            lookback_result = resolve_latest_available_observation(self.adapter)
             self.live_diagnostics = lookback_result
             
+            # Accumulate provider metrics from lookback
+            if "provider_metrics" in lookback_result:
+                self.provider_metrics["heatmap_submissions"] += lookback_result["provider_metrics"].get("heatmap_submissions", 0)
+                self.provider_metrics["status_requests"] += lookback_result["provider_metrics"].get("status_requests", 0)
+            
             if lookback_result["found"]:
+                # Reuse the heatmap result from discovery - no duplicate execution
+                heatmap_result = lookback_result["heatmap_result"]
                 date_time = lookback_result["observation_time"]
             else:
                 # No data found in lookback window - return bounded error
@@ -104,7 +122,6 @@ class HeatAgent:
             "rationale": plan["rationale"]
         })
 
-        heatmap_result = None
         env_result = None
 
         if "get_heatmap" in plan["selected_tools"]:
@@ -120,7 +137,11 @@ class HeatAgent:
             })
 
             # 4. heatmap_result
-            heatmap_result = self._call_heatmap(date_time)
+            # For REPLAY: execute heatmap call
+            # For LIVE: reuse result from lookback discovery (already set above)
+            if heatmap_result is None:
+                heatmap_result = self._call_heatmap(date_time)
+            
             if heatmap_result is None:
                 return self._error_answer("Heatmap call failed")
 
@@ -207,8 +228,9 @@ class HeatAgent:
 
         # 9. GIS context enrichment (composition, not modification of thermal chain)
         # GIS context is additive and contextual—MUST NOT alter ranking
+        # GIS failure MUST NOT invalidate thermal result
         if ranked_candidates:
-            # Enrich top candidates with GIS context (Level A: top 3)
+            # Enrich top-3 candidates with GIS context
             all_context_evidence = []
             candidate_contexts = {}
             
@@ -216,23 +238,30 @@ class HeatAgent:
                 lat = candidate["coordinate"][1]
                 lon = candidate["coordinate"][0]
                 
-                context_result = enrich_candidate_context(
-                    latitude=lat,
-                    longitude=lon,
-                    mode=self.mode,
-                    adapter=None  # Level A: no live GIS adapter yet
-                )
-                
-                # Store per-candidate context
-                candidate_contexts[i] = context_result["context"]
-                all_context_evidence.extend(context_result["context_evidence_chain"])
+                try:
+                    context_result = enrich_candidate_context(
+                        latitude=lat,
+                        longitude=lon,
+                        mode=self.mode,
+                        adapter=None  # Level A: no live GIS adapter yet
+                    )
+                    
+                    # Store per-candidate context
+                    candidate_contexts[i] = context_result["context"]
+                    all_context_evidence.extend(context_result["context_evidence_chain"])
+                except Exception:
+                    # GIS failure must not kill thermal result
+                    candidate_contexts[i] = {"available": False, "canopy": None, "parks": None}
             
             self.context_evidence_chain = all_context_evidence
             
             # Store top-candidate context at top level for brief composition
-            answer["context"] = candidate_contexts[0]
+            answer["context"] = candidate_contexts.get(0, {"available": False})
             answer["candidate_contexts"] = candidate_contexts
             answer["context_evidence_chain"] = self.context_evidence_chain
+
+        # Add provider metrics to answer for traffic accounting
+        answer["provider_metrics"] = self.provider_metrics
 
         return answer
 
@@ -266,10 +295,12 @@ class HeatAgent:
         request_params = self._build_heatmap_request(date_time)
         try:
             raw = self.adapter.submit_heatmap(request_params)
+            self.provider_metrics["heatmap_submissions"] += 1
             activity_id = raw.get("data", {}).get("activity_id")
             if not activity_id:
                 return None
             status_result = self.adapter.poll_status(activity_id)
+            self.provider_metrics["status_requests"] += 1
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":
                 return None
@@ -317,10 +348,12 @@ class HeatAgent:
         }
         try:
             raw = self.adapter.submit_env_params(request_params)
+            self.provider_metrics["env_params_submissions"] += 1
             activity_id = raw.get("data", {}).get("activity_id")
             if not activity_id:
                 return None
             status_result = self.adapter.poll_status(activity_id)
+            self.provider_metrics["status_requests"] += 1
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":
                 return None
@@ -472,7 +505,8 @@ class HeatAgent:
                        "why_this_answer": message, "sources": [], "mode": self.mode,
                        "observation_time": None, "error": True},
             "evidence_chain": self.evidence_chain,
-            "raw_results": {}
+            "raw_results": {},
+            "provider_metrics": self.provider_metrics
         }
 
     def _add_evidence(self, step, data):

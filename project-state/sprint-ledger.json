@@ -65,6 +65,11 @@
       }
     ],
     "sealed_count": 2,
-    "total_stages": 7
+    "total_stages": 7,
+    "expansion_window": {
+      "document": "project-state/expansion-window-20260827-29.md",
+      "governs": ["EXP-A0", "EXP-A1", "EXP-B0", "EXP-B1", "EXP-C0", "EXP-C1", "EXP-D", "EXP-Q"],
+      "note": "Expansion stages use EXP-X namespace. Operating plan governs these stages but is not itself a ledger stage. S3B/S3D/S3E remain historical identifiers with their sealed qualification evidence untouched."
+    }
   }
 }

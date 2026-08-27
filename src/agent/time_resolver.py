@@ -37,12 +37,13 @@ def resolve_latest_observation_time(timezone_name="America/Phoenix"):
     }
 
 
-def resolve_latest_available_observation_time(adapter, timezone_name="America/Phoenix", max_lookback=MAX_LOOKBACK_HOURS):
+def resolve_latest_available_observation(adapter, timezone_name="America/Phoenix", max_lookback=MAX_LOOKBACK_HOURS):
     """
     Resolve the latest available FortyGuard observation with bounded lookback.
 
-    Starts with the most recent completed hour and searches backward up to
-    max_lookback hours for a genuine completed result with usable features.
+    This function executes the heatmap query as part of discovery and returns
+    the full result. The successful discovery heatmap IS the heatmap used by
+    the answer - no duplicate execution.
 
     Args:
         adapter: FortyGuardAdapter instance for making API calls
@@ -51,19 +52,24 @@ def resolve_latest_available_observation_time(adapter, timezone_name="America/Ph
 
     Returns:
         dict with:
-            - observation_time: The resolved observation time dict
             - found: Whether a valid observation was found
-            - lookback_used: Number of hours looked back (0 if latest worked)
-            - calls_used: Total API calls made
-            - feature_count: Number of features if found, else 0
+            - observation_time: The resolved observation time dict
             - observation_time_iso: ISO string of the actual observation time
+            - lookback_used: Number of hours looked back (0 if latest worked)
+            - heatmap_result: Full normalized heatmap result (if found)
+            - heatmap_activity_id: The activity ID (if found)
+            - heatmap_request_params: The request params used (if found)
+            - provider_metrics: Dict with submission/poll counts
     """
-    import json
+    from src.tools.heatmap import normalize_heatmap_result
 
     tz = ZoneInfo(timezone_name)
     now_local = datetime.now(tz)
 
-    calls_used = 0
+    provider_metrics = {
+        "heatmap_submissions": 0,
+        "status_requests": 0
+    }
 
     for lookback in range(max_lookback):
         # Calculate target hour
@@ -75,7 +81,7 @@ def resolve_latest_available_observation_time(adapter, timezone_name="America/Ph
             "filter_type": 1
         }
 
-        # Build test heatmap request
+        # Build heatmap request (same as controller will use)
         request_params = {
             "polygon_aoi": {
                 "type": "FeatureCollection",
@@ -99,15 +105,15 @@ def resolve_latest_available_observation_time(adapter, timezone_name="America/Ph
         try:
             # Submit heatmap request
             raw = adapter.submit_heatmap(request_params)
-            calls_used += 1
+            provider_metrics["heatmap_submissions"] += 1
 
             activity_id = raw.get("data", {}).get("activity_id")
             if not activity_id:
                 continue
 
             # Poll for completion (with bounded polling)
-            status_result = adapter.poll_status(activity_id, max_polls=10, interval=3)
-            calls_used += 1
+            status_result = adapter.poll_status(activity_id, max_polls=15, interval=3)
+            provider_metrics["status_requests"] += 1
 
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":
@@ -119,15 +125,22 @@ def resolve_latest_available_observation_time(adapter, timezone_name="America/Ph
             features = map_data.get("features", [])
 
             if features:
-                # Found usable data
+                # Found usable data - normalize and return
+                # This heatmap result IS the one used by the answer
+                heatmap_result = normalize_heatmap_result(
+                    status_data, request_params, mode="live", activity_id=activity_id
+                )
                 obs_time_iso = f"{observation_time['start_date']}T{observation_time['start_time']}:00-07:00"
+
                 return {
-                    "observation_time": observation_time,
                     "found": True,
+                    "observation_time": observation_time,
+                    "observation_time_iso": obs_time_iso,
                     "lookback_used": lookback,
-                    "calls_used": calls_used,
-                    "feature_count": len(features),
-                    "observation_time_iso": obs_time_iso
+                    "heatmap_result": heatmap_result,
+                    "heatmap_activity_id": activity_id,
+                    "heatmap_request_params": request_params,
+                    "provider_metrics": provider_metrics
                 }
 
         except Exception:
@@ -136,12 +149,14 @@ def resolve_latest_available_observation_time(adapter, timezone_name="America/Ph
 
     # No usable data found in lookback window
     return {
-        "observation_time": None,
         "found": False,
+        "observation_time": None,
+        "observation_time_iso": None,
         "lookback_used": max_lookback,
-        "calls_used": calls_used,
-        "feature_count": 0,
-        "observation_time_iso": None
+        "heatmap_result": None,
+        "heatmap_activity_id": None,
+        "heatmap_request_params": None,
+        "provider_metrics": provider_metrics
     }
 
 

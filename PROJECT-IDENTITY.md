@@ -92,8 +92,10 @@
 
 | Binding | Document | Status |
 |---------|----------|--------|
-| Current Execution Plan | hackathon-plan-v3.3.md | CURRENT |
-| Superseded Plan | hackathon-plan-v3.2.md | HISTORICAL |
+| Current Execution Plan | hackathon-plan-v3.6.md | CURRENT |
+| Superseded Plan | hackathon-plan-v3.5.md | HISTORICAL (convergence update) |
+| Superseded Plan | hackathon-plan-v3.4.md | HISTORICAL (expansion plan) |
+| Superseded Plan | hackathon-plan-v3.3.md | HISTORICAL (handbook reconciliation) |
 | Historical Baseline | HACKATHON-EXTERNAL-PROJECT-QUALIFICATION-001-BASELINE.json | SEALED |
 
 ---
