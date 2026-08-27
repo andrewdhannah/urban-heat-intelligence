@@ -1,0 +1,64 @@
+{
+  "receipt_id": "S3E-R1-DOCUMENTATION-REVALIDATION-20260827",
+  "receipt_type": "s3e_r1_documentation_revalidation",
+  "timestamp": "2026-08-27T14:00:00Z",
+  "project_id": "urban-heat-intelligence",
+  "producer": "qa-pilot",
+  "artifact_owner": "urban-heat-intelligence",
+
+  "frozen_implementation": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+  "original_s3e_evidence_commit": "a1e4035490454b2a8f01988835b90ad27ff05b9d",
+  "first_documentation_remediation": "91bad03bbdf9ad43218c0add0d778626150c8cea",
+
+  "qualification_outcome": "QUALIFIED_WITH_KNOWN_LIMITATIONS",
+  "qualification_outcome_preserved": true,
+  "product_requalification_required": false,
+  "product_files_changed": false,
+
+  "documentation_files_audited": [
+    "docs/user-guide/USER-GUIDE.md",
+    "docs/user-guide/QUICKSTART.md",
+    "docs/user-guide/UNDERSTANDING-YOUR-EVIDENCE.md",
+    "docs/data/PROVENANCE-MODEL.md"
+  ],
+
+  "stale_claims_found": [
+    "UNDERSTANDING-YOUR-EVIDENCE.md: 'evidence receipt' terminology (should be 'evidence chain node')",
+    "UNDERSTANDING-YOUR-EVIDENCE.md: receipt-schema field descriptions (receipt_id, cached, confidence, query_time) not present in frozen implementation",
+    "QUICKSTART.md: 'evidence receipt in the in-memory evidence chain' (should be 'evidence chain node')"
+  ],
+
+  "stale_claims_corrected": [
+    "UNDERSTANDING-YOUR-EVIDENCE.md: replaced 'evidence receipt' with 'evidence chain node' throughout",
+    "UNDERSTANDING-YOUR-EVIDENCE.md: added Brief Claim Provenance section documenting claim envelope structure",
+    "QUICKSTART.md: replaced 'evidence receipt' with 'evidence chain node'"
+  ],
+
+  "evidence_model_verified_against_implementation": true,
+  "evidence_chain_node_structure": {
+    "fields": ["step", "data", "timestamp"],
+    "verified_at": "src/agent/controller.py:L425-429",
+    "matches_documentation": true
+  },
+  "brief_claim_envelope_structure": {
+    "fields": ["claim_id", "text", "source_provider", "source_type", "evidence_nodes", "mode", "observation_time", "retrieved_at", "effective_period", "used_in_decision", "governing_threshold_celsius"],
+    "verified_at": "src/agent/brief.py:L30-56",
+    "matches_documentation": true
+  },
+  "sqlite_usage_in_codebase": 0,
+  "sqlite_matches_documentation": true,
+
+  "final_documentation_discrepancies": 0,
+  "closed_loop_revalidation": "PASS",
+
+  "root_lessons": [
+    "teaching-doc consistency ≠ teaching-doc truth",
+    "partial remediation ≠ obligation closure",
+    "implementation-aware verification must check claims against frozen source code"
+  ],
+
+  "documentation_recommendation": "ACCEPT",
+  "s3_owner_acceptance": "PENDING",
+  "s3_sealed": false,
+  "s4_status": "NOT AUTHORIZED"
+}

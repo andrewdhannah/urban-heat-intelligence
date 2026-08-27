@@ -87,35 +87,41 @@ No implementation code was read during documentation generation.
 
 ## DOCUMENTATION DISCREPANCIES
 
-### Discrepancy 1 (Initial — Found During First Pass)
+### Discrepancy 1 (Found During First Pass)
 
 **Area:** Claim taxonomy presentation in UNDERSTANDING-YOUR-EVIDENCE.md
 
-**Issue:** Documentation used product aliases (DERIVED_CALCULATION, COMPARATIVE_STATEMENT, etc.) instead of normative SPEC-011 class names (DERIVED_FINDING, PRIORITY_CLASSIFICATION, etc.).
+**Issue:** Documentation used product aliases instead of normative SPEC-011 class names.
 
-**Root cause:** Teaching documents use product aliases; normative specification uses different class names. Documentation inherited the aliases.
-
-**Correction made:** Updated UNDERSTANDING-YOUR-EVIDENCE.md claim taxonomy table to use normative SPEC-011 class names with product aliases as secondary labels.
+**Correction:** Updated to normative SPEC-011 class names with aliases as secondary labels.
 
 **Product behavior changed:** False.
 
-### Discrepancy 2 (Found During Owner Review)
+### Discrepancy 2 (Found During Owner Review — First Remediation)
 
 **Area:** PROVENANCE-MODEL.md and QUICKSTART.md — evidence persistence architecture
 
-**Issue:** PROVENANCE-MODEL.md claimed "Append-only SQLite table" with a `CREATE TABLE evidence_log` schema. QUICKSTART.md claimed "SQLite with sqlite-vec for evidence and embeddings" and "every tool call produces an evidence receipt stored in SQLite." The actual implementation uses an in-memory Python list (`self.evidence_chain = []` in `controller.py`) returned as JSON in the API response. Zero SQLite usage exists in the codebase.
+**Issue:** PROVENANCE-MODEL.md claimed "Append-only SQLite table" with `CREATE TABLE evidence_log` schema. QUICKSTART.md claimed "SQLite with sqlite-vec for evidence and embeddings." Actual implementation uses in-memory Python list returned as JSON.
 
-**Root cause:** Teaching docs inherited the SQLite claim from earlier architectural planning. QA-Pilot's closed-loop test verified documentation against documentation (teaching docs), not against the frozen implementation. The test correctly identified that the teaching docs and user-guide docs were consistent — but both were stale relative to the actual code.
+**Root cause:** Teaching-doc consistency ≠ teaching-doc truth. QA-Pilot verified documentation against documentation, not against frozen implementation.
 
-**Classification:** Documentation-governance defect. Teaching-doc consistency ≠ teaching-doc truth.
-
-**Correction made:**
-- `docs/data/PROVENANCE-MODEL.md`: Replaced "Evidence Log" SQLite section with "Evidence Chain" describing the in-memory list + JSON API response model. Updated "Why?" Panel section to reference the evidence chain rather than "evidence log."
-- `docs/user-guide/QUICKSTART.md`: Removed "SQLite with sqlite-vec" claim. Replaced with accurate evidence chain description. Restored Dashboard and Architecture lines that were accidentally removed.
+**Correction:** PROVENANCE-MODEL.md replaced SQLite section with in-memory evidence chain model. QUICKSTART.md removed SQLite claim.
 
 **Product behavior changed:** False.
 
-**Lesson:** Future closed-loop tests must verify architectural claims (persistence model, dependencies, data flow) against the actual frozen implementation, not only against the teaching documents.
+### Discrepancy 3 (Found During Owner Review — Second Remediation)
+
+**Area:** UNDERSTANDING-YOUR-EVIDENCE.md — residual receipt-schema terminology
+
+**Issue:** After the first remediation, UNDERSTANDING-YOUR-EVIDENCE.md still used "evidence receipt" terminology and described receipt-schema fields (`receipt_id`, `cached`, `confidence`, `query_time`) that do not exist in the frozen implementation. The frozen implementation's evidence chain nodes contain only `step`, `data`, `timestamp`. The brief claim envelope contains `claim_id`, `text`, `source_provider`, `source_type`, `evidence_nodes`, `mode`, `observation_time`, `retrieved_at`, `effective_period`, `used_in_decision`, `governing_threshold_celsius`.
+
+**Root cause:** Partial remediation ≠ obligation closure. The first remediation corrected PROVENANCE-MODEL.md and QUICKSTART.md but did not fully propagate to UNDERSTANDING-YOUR-EVIDENCE.md.
+
+**Correction:** Replaced "evidence receipt" with "evidence chain node" throughout. Added Brief Claim Provenance section documenting the claim envelope structure. Updated QUICKSTART.md "evidence receipt" to "evidence chain node" for consistency.
+
+**Product behavior changed:** False.
+
+**Lesson:** teaching-doc consistency ≠ teaching-doc truth, AND partial remediation ≠ obligation closure. Implementation-aware verification must check claims against frozen source code, not only against other documentation.
 
 ---
 
@@ -123,13 +129,20 @@ No implementation code was read during documentation generation.
 
 | Metric | Value |
 |--------|-------|
-| Final discrepancies | 0 (after remediation) |
+| Final discrepancies | 0 (after 3 remediation passes) |
 | Product defects found | 0 |
-| Documentation corrections | 2 (taxonomy terminology + provenance architecture) |
+| Documentation corrections | 3 (taxonomy terminology + provenance architecture + receipt terminology) |
 | Product behavior changed | false |
+| Implementation-aware revalidation | PASS |
 | **Final result** | **PASS (after remediation)** |
 
-**Note:** The initial closed-loop test reported PASS with zero discrepancies. Owner review identified a documentation-governance defect (stale SQLite provenance claim) that the test missed. This was remediated in a subsequent documentation-only commit. The defect was in documentation accuracy, not in product behavior.
+**History:**
+1. Initial closed-loop: PASS with 0 discrepancies (but missed stale claims)
+2. Owner review #1: Found stale SQLite provenance claim → first remediation
+3. Owner review #2: Found residual receipt-schema terminology → second remediation
+4. Implementation-aware revalidation: PASS — evidence chain nodes verified as step/data/timestamp, brief claims verified, zero SQLite in codebase
+
+**Root lessons:** teaching-doc consistency ≠ teaching-doc truth; partial remediation ≠ obligation closure.
 
 ---
 

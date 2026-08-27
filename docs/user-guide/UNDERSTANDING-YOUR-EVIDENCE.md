@@ -4,9 +4,9 @@
 
 ---
 
-## What Is an Evidence Receipt?
+## What Is an Evidence Chain Node?
 
-Every time the product retrieves data, it produces an **evidence receipt** — a record that traces exactly where each data point came from. This is not optional; it is an architectural requirement. An assertion without provenance is treated as a bug.
+Every time the product retrieves data, it appends an **evidence chain node** — a record that traces exactly where each data point came from. This is not optional; it is an architectural requirement. An assertion without provenance is treated as a bug.
 
 An evidence node looks like this:
 
@@ -54,7 +54,7 @@ The product must maintain **0 unsupported claims** at all times. This is machine
 
 Every statement the product makes must belong to one of the 9 active claim classes above. The "UNSUPPORTED" class is forbidden — no assertion may appear without traceable provenance.
 
-When you see the evidence chain, every line traces to a specific receipt. There are no orphan claims, no invented data, and no unattributed assertions. If a source is unavailable, the product discloses the absence rather than fabricating a substitute.
+When you see the evidence chain, every line traces to a specific evidence chain node. There are no orphan claims, no invented data, and no unattributed assertions. If a source is unavailable, the product discloses the absence rather than fabricating a substitute.
 
 ---
 
@@ -115,7 +115,7 @@ When you click **"Why This Answer?"**, the product displays the complete evidenc
 5. **How candidates were compared** — the ranking method and near-tie threshold
 6. **What sources were excluded** — and why (e.g., "NWS excluded in Replay")
 
-Every line in the "Why?" panel traces to a specific evidence receipt. There is no fabricated evidence in the chain.
+Every line in the "Why?" panel traces to a specific evidence chain node. There is no fabricated evidence in the chain.
 
 ---
 
@@ -150,6 +150,24 @@ The Urban Heat Brief — the product's narrative output — inherits the same pr
 | "Current NWS context is not included in historical Replay" | Provenance disclosure |
 
 The narrative may simplify evidence for readability. It may never invent or blur evidence.
+
+### Brief Claim Provenance
+
+Each Brief claim carries structured metadata in a machine-readable envelope:
+
+| Field | Meaning |
+|-------|---------|
+| `claim_id` | Unique identifier for this claim |
+| `text` | The narrative sentence |
+| `source_provider` | Which data provider (FortyGuard, UHI) |
+| `source_type` | Product alias mapping to SPEC-011 normative class |
+| `evidence_nodes` | References to specific evidence chain nodes |
+| `mode` | Live or Replay |
+| `observation_time` | When the observation was captured |
+| `used_in_decision` | Whether this claim influenced the ranking |
+| `governing_threshold_celsius` | Near-tie threshold (0.1°C) when applicable |
+
+This envelope is distinct from the runtime evidence chain. The evidence chain records what happened during execution. The claim envelope records what the Brief asserts and why.
 
 ---
 

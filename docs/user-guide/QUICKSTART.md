@@ -96,7 +96,7 @@ fixtures/
 - **Stack:** Python 3.10+ stdlib only — no pip install required
 - **Dashboard:** Leaflet.js heat overlay with click-to-query
 - **Architecture:** Three layers — Server, Agent + Decision Engine, Interface
-- **Evidence:** Every tool call produces an evidence receipt in the in-memory evidence chain, returned in the JSON API response
+- **Evidence:** Every tool call appends an evidence chain node in memory, returned in the JSON API response
 - **Modes:** Live and Replay data never contaminate each other
 
 ---
