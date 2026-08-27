@@ -24,8 +24,11 @@ Testing on 2026-08-27 at 15:15 MST:
 
 ### Provider Publication Lag
 
-**Minimum observed lag:** >5 hours for current day
+**Minimum observed lag:** >5 hours for current-day data
 **Evidence:** 2026-08-27 14:00 (1 hour prior to test) returned 0 features
+
+**Maximum availability lag:** Not established
+**Note:** We have not determined where availability begins between >5h and ~25h.
 
 **Behavior:** FortyGuard appears to publish heatmap data with significant delay,
 likely related to:
@@ -37,24 +40,24 @@ likely related to:
 
 **Window:** 12 hours (MAX_LOOKBACK_HOURS = 12)
 
+**This is a bounded freshness/product policy, not a proven worst-case publication lag.**
+
 **Rationale:**
-1. **Conservative bound:** 12 hours covers worst-case observed lag
-2. **Provider latency is variable:** Cannot predict exact lag
-3. **No retry fatigue:** Bounded window prevents infinite retry
+1. **Deliberate freshness bound:** 12 hours is a deliberate product decision for acceptable data latency
+2. **Observed lag >5h:** We know provider lag exceeds 5 hours, but haven't established the maximum
+3. **Bounded policy:** If no usable data exists within 12 hours, report Live unavailable
 4. **Fallback exists:** Replay mode provides deterministic alternative
 
 **If genuine provider latency exceeds 12 hours:**
 The bounded window will exhaust and return LIVE unavailable.
-This is correct behavior - it surfaces the limitation rather than
-hiding it.
+This is correct behavior - it surfaces the limitation rather than hiding it.
 
-### Evidence-Backed Justification
+### Policy Definition
 
-The 12-hour window is justified because:
-1. Current-day data availability is unpredictable
-2. Yesterday's data (14:00) is reliably available
-3. 12 hours provides sufficient margin for typical provider lag
-4. The bounded error message clearly communicates the limitation
+- **12 hours:** Bounded Live freshness window (product policy)
+- **Observed lag:** >5 hours (evidence-backed)
+- **Maximum lag:** Not established (would require extensive testing)
+- **If no data within 12h:** Live unavailable, no Replay substitution
 
 ### Recommended Future Enhancement
 

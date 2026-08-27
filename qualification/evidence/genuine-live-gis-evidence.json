@@ -1,0 +1,50 @@
+{
+  "test_type": "genuine_live_gis_execution",
+  "timestamp": "2026-08-27T23:36:47.407997+00:00",
+  "candidates": [
+    {
+      "rank": 1,
+      "coordinate": {
+        "lat": 33.4581,
+        "lon": -112.0774
+      },
+      "canopy": {
+        "GEOID": "04013113100",
+        "mean_tree_canopy_pct": 0.8710644677661185
+      },
+      "park": {
+        "PROPERTY_NAME": "Roosevelt Park",
+        "PARK_TYPE": "Pocket",
+        "PARK_ACRES": 0.64
+      }
+    },
+    {
+      "rank": 2,
+      "coordinate": {
+        "lat": 33.459,
+        "lon": -112.0774
+      },
+      "canopy": {
+        "GEOID": "04013113000",
+        "mean_tree_canopy_pct": 2.5603667855323478
+      },
+      "park": null
+    },
+    {
+      "rank": 3,
+      "coordinate": {
+        "lat": 33.4598,
+        "lon": -112.0774
+      },
+      "canopy": {
+        "GEOID": "04013113000",
+        "mean_tree_canopy_pct": 2.5603667855323478
+      },
+      "park": {
+        "PROPERTY_NAME": "Portland Parkway",
+        "PARK_TYPE": "Linear",
+        "PARK_ACRES": 1.32
+      }
+    }
+  ]
+}
