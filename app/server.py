@@ -7,6 +7,7 @@ for the HeatAgent in both LIVE and REPLAY modes.
 
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -15,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.agent.adapter import FortyGuardAdapter
 from src.agent.controller import HeatAgent
+from src.agent.brief import compose_urban_heat_brief
 
 
 def get_agent_result(question, mode="replay"):
@@ -76,18 +78,53 @@ def build_visualization_payload(result):
     # Get ranked candidates from conditions
     ranked_candidates = answer.get("conditions", {}).get("ranked_candidates", [])
 
-    # Get NWS corroboration context — LIVE only, never in REPLAY
+    # Get NWS corroboration context — LIVE only, never in REPLAY.
+    # The same context is passed to the Brief and represented by explicit
+    # supplemental evidence nodes; NWS never determines thermal ranking.
     nws_context = None
-    if mode == "live":
+    heatmap_available = bool(heatmap_result_raw and heatmap_result_raw.get("result", {}).get("feature_count"))
+    if mode == "live" and not answer.get("error") and heatmap_available:
         try:
             from src.tools.nws import get_nws_context
             nws_context = get_nws_context()
-            if nws_context:
-                nws_context["mode"] = "live"
-                nws_context["used_in_decision"] = False  # Corroborating only, not ranking input
-                nws_context["evidence_status"] = "supplemental_context"
         except Exception:
-            pass
+            nws_context = None
+        if nws_context is None:
+            nws_context = {
+                "provider": "NWS",
+                "mode": "live",
+                "conditions": None,
+                "alerts": [],
+                "alert_count": 0,
+                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                "source_endpoints": [
+                    "/gridpoints/PSR/128,48/forecast",
+                    "/alerts/active?point=33.45,-112.07"
+                ],
+                "used_in_decision": False,
+                "evidence_status": "unavailable"
+            }
+        else:
+            nws_context["mode"] = "live"
+            nws_context["used_in_decision"] = False
+            nws_context["evidence_status"] = (
+                "supplemental_context"
+                if nws_context.get("conditions") or nws_context.get("alerts")
+                else "unavailable"
+            )
+    elif mode == "live":
+        # Do not fetch optional NWS context when FortyGuard has already
+        # failed or returned no usable features.
+        nws_context = {
+            "provider": "NWS",
+            "mode": "live",
+            "conditions": None,
+            "alerts": [],
+            "alert_count": 0,
+            "used_in_decision": False,
+            "evidence_status": "not_requested_fortyguard_unavailable",
+            "source_endpoints": []
+        }
     else:
         nws_context = {
             "provider": "NWS",
@@ -98,8 +135,63 @@ def build_visualization_payload(result):
             "has_extreme_heat_warning": False,
             "used_in_decision": False,
             "evidence_status": "excluded_from_replay",
+            "source_endpoints": [],
             "message": "NWS current context not included in historical Replay"
         }
+
+    payload_chain = list(chain)
+    if mode == "live" and nws_context.get("evidence_status") != "not_requested_fortyguard_unavailable":
+        payload_chain.extend([
+            {
+                "step": "nws_request",
+                "data": {
+                    "provider": "NWS",
+                    "mode": "live",
+                    "endpoints": nws_context.get("source_endpoints", []),
+                    "used_in_decision": False
+                },
+                "timestamp": nws_context.get("retrieved_at")
+            },
+            {
+                "step": "nws_result",
+                "data": {
+                    "provider": "NWS",
+                    "mode": "live",
+                    "retrieved_at": nws_context.get("retrieved_at"),
+                    "effective_start": (nws_context.get("conditions") or {}).get("effective_start"),
+                    "effective_end": (nws_context.get("conditions") or {}).get("effective_end"),
+                    "alert_count": nws_context.get("alert_count", 0),
+                    "available": bool(nws_context.get("conditions") or nws_context.get("alerts")),
+                    "used_in_decision": False
+                },
+                "timestamp": nws_context.get("retrieved_at")
+            }
+        ])
+    else:
+        payload_chain.append({
+            "step": "nws_exclusion",
+            "data": {
+                "provider": "NWS",
+                "mode": "replay",
+                "reason": "Current NWS context is not included in historical Replay",
+                "used_in_decision": False
+            },
+            "timestamp": None
+        })
+
+    urban_heat_brief = compose_urban_heat_brief(result, nws_context)
+    if urban_heat_brief:
+        payload_chain.append({
+            "step": "brief",
+            "data": {
+                "title": urban_heat_brief["title"],
+                "mode": urban_heat_brief["mode"],
+                "claim_count": len(urban_heat_brief["claims"]),
+                "source_providers": [source["provider"] for source in urban_heat_brief["sources"]],
+                "ranking_status": urban_heat_brief["ranking_status"]
+            },
+            "timestamp": urban_heat_brief.get("generated_at")
+        })
 
     return {
         "mode": mode,
@@ -128,7 +220,8 @@ def build_visualization_payload(result):
         },
         "ranked_candidates": ranked_candidates,
         "nws_context": nws_context,
-        "evidence_chain": chain,
+        "urban_heat_brief": urban_heat_brief,
+        "evidence_chain": payload_chain,
         "error": answer.get("error", False)
     }
 

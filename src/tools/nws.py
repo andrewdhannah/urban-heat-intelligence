@@ -56,6 +56,7 @@ def get_current_conditions():
     return {
         "source": "NWS",
         "type": "current_conditions",
+        "source_endpoint": "/gridpoints/PSR/128,48/forecast",
         "period_name": current.get("name"),
         "temperature_f": current.get("temperature"),
         "temperature_unit": current.get("temperatureUnit"),
@@ -63,7 +64,9 @@ def get_current_conditions():
         "detailed_forecast": current.get("detailedForecast", "")[:200],
         "wind_speed": current.get("windSpeed"),
         "wind_direction": current.get("windDirection"),
-        "observation_time": datetime.now(timezone.utc).isoformat()
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "effective_start": current.get("startTime"),
+        "effective_end": current.get("endTime")
     }
 
 
@@ -79,6 +82,7 @@ def get_active_alerts():
         alerts.append({
             "source": "NWS",
             "type": "alert",
+            "source_endpoint": "/alerts/active?point=33.45,-112.07",
             "event": props.get("event"),
             "headline": props.get("headline", "")[:150],
             "severity": props.get("severity"),
@@ -92,6 +96,7 @@ def get_active_alerts():
 
 def get_nws_context():
     """Get combined NWS context for corroboration."""
+    retrieved_at = datetime.now(timezone.utc).isoformat()
     conditions = get_current_conditions()
     alerts = get_active_alerts()
     return {
@@ -103,5 +108,10 @@ def get_nws_context():
             for a in alerts
         ),
         "provider": "NWS",
-        "area": "Phoenix, AZ"
+        "area": "Phoenix, AZ",
+        "retrieved_at": retrieved_at,
+        "source_endpoints": [
+            "/gridpoints/PSR/128,48/forecast",
+            "/alerts/active?point=33.45,-112.07"
+        ]
     }

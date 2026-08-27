@@ -129,6 +129,19 @@
 
         /* === RANKING DISCLOSURE === */
         .ranking-disclosure { background: #1e1b4b; border: 1px solid #4338ca; border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 11px; color: #a5b4fc; line-height: 1.5; }
+
+        /* === URBAN HEAT BRIEF === */
+        .brief-card { background: #111827; border: 1px solid #6366f1; border-radius: 8px; padding: 14px; }
+        .brief-card .brief-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .brief-card h2 { font-size: 16px; color: #f8fafc; letter-spacing: -0.2px; }
+        .brief-card .brief-mode { font-size: 10px; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .brief-card .brief-time { font-size: 10px; color: #64748b; margin-bottom: 12px; }
+        .brief-section { border-top: 1px solid #374151; padding-top: 8px; margin-top: 8px; }
+        .brief-section h3 { font-size: 10px; color: #818cf8; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
+        .brief-claim { font-size: 12px; color: #d1d5db; line-height: 1.45; margin: 0 0 5px; }
+        .brief-claim-source { display: block; font-size: 9px; color: #6b7280; margin-top: 2px; }
+        .brief-sources { border-top: 1px solid #374151; padding-top: 8px; margin-top: 10px; font-size: 10px; color: #9ca3af; }
+        .brief-sources strong { color: #d1d5db; }
     </style>
 </head>
 <body>
@@ -171,6 +184,15 @@
                 </div>
                 <div class="hero-why" id="hero-why">—</div>
             </div>
+            <section class="brief-card" id="urban-heat-brief" style="display:none" aria-labelledby="brief-title">
+                <div class="brief-heading">
+                    <h2 id="brief-title">Urban Heat Brief</h2>
+                    <span class="brief-mode" id="brief-mode">—</span>
+                </div>
+                <div class="brief-time" id="brief-time">—</div>
+                <div id="brief-sections"></div>
+                <div class="brief-sources" id="brief-sources"></div>
+            </section>
             <div class="decision-stats" id="decision-stats" style="display:none">
                 <h3>Area Summary</h3>
                 <div class="stat"><span class="label">Max Temperature</span><span class="value extreme" id="stat-max">—</span></div>
@@ -242,6 +264,7 @@
             document.getElementById('error-message').textContent = msg || 'No data was substituted.';
             document.getElementById('error-mode').textContent = (mode || currentMode).toUpperCase();
             document.getElementById('answer-hero').style.display = 'none';
+            document.getElementById('urban-heat-brief').style.display = 'none';
             document.getElementById('decision-stats').style.display = 'none';
             document.getElementById('map-overlay').style.display = 'none';
             document.getElementById('mode-status').style.display = 'none';
@@ -256,6 +279,7 @@
             document.getElementById('loading').classList.add('active');
             hideError();
             document.getElementById('answer-hero').style.display = 'none';
+            document.getElementById('urban-heat-brief').style.display = 'none';
             document.getElementById('decision-stats').style.display = 'none';
             document.getElementById('map-overlay').style.display = 'none';
             document.getElementById('mode-status').style.display = 'none';
@@ -288,8 +312,12 @@
                 data.mode === 'replay' ? 'Priority Location — Historical' : 'Priority Location — Live';
             document.getElementById('hero-location').textContent =
                 (rep.measured_temperature_celsius != null ? rep.measured_temperature_celsius + '°C observed' : '—');
-            document.getElementById('hero-temp').innerHTML =
-                (c.area_max_temperature_celsius || '—') + '<span class="unit">°C max</span>';
+            var heroTemp = document.getElementById('hero-temp');
+            heroTemp.textContent = (c.area_max_temperature_celsius || '—') + '°C max';
+            var heroUnit = document.createElement('span');
+            heroUnit.className = 'unit';
+            heroUnit.textContent = ' surface';
+            heroTemp.appendChild(heroUnit);
             document.getElementById('hero-heat-index').textContent =
                 (rep.heat_index_celsius || '—') + '°C';
             document.getElementById('hero-apparent').textContent =
@@ -340,8 +368,59 @@
             // === NWS WEATHER CONTEXT ===
             renderNWSContext(data.nws_context);
 
+            // === URBAN HEAT BRIEF ===
+            renderUrbanHeatBrief(data.urban_heat_brief);
+
             renderEvidenceChain(data.evidence_chain || []);
             renderMap(data);
+        }
+
+        function renderUrbanHeatBrief(brief) {
+            var card = document.getElementById('urban-heat-brief');
+            var sections = document.getElementById('brief-sections');
+            var sources = document.getElementById('brief-sources');
+            if (!brief) {
+                card.style.display = 'none';
+                sections.textContent = '';
+                sources.textContent = '';
+                return;
+            }
+
+            card.style.display = 'block';
+            document.getElementById('brief-mode').textContent = brief.mode_label || '—';
+            document.getElementById('brief-time').textContent = 'Observation: ' + (brief.observation_time || 'unavailable');
+            sections.textContent = '';
+
+            (brief.sections || []).forEach(function(section) {
+                var sectionDiv = document.createElement('div');
+                sectionDiv.className = 'brief-section';
+                var heading = document.createElement('h3');
+                heading.textContent = section.heading || section.section_id || 'Brief section';
+                sectionDiv.appendChild(heading);
+
+                (section.claims || []).forEach(function(claim) {
+                    var claimP = document.createElement('p');
+                    claimP.className = 'brief-claim';
+                    claimP.textContent = claim.text || '';
+                    var source = document.createElement('span');
+                    source.className = 'brief-claim-source';
+                    source.textContent = 'Source: ' + (claim.source_provider || '—') +
+                        ' · Mode: ' + (claim.mode || '—') +
+                        ' · ' + (claim.used_in_decision ? 'Used in decision' : 'Context only');
+                    claimP.appendChild(source);
+                    sectionDiv.appendChild(claimP);
+                });
+                sections.appendChild(sectionDiv);
+            });
+
+            sources.textContent = '';
+            var sourceLabel = document.createElement('strong');
+            sourceLabel.textContent = 'Sources: ';
+            sources.appendChild(sourceLabel);
+            var sourceNames = (brief.sources || []).map(function(source) {
+                return source.provider + ' (' + source.mode + ')';
+            });
+            sources.appendChild(document.createTextNode(sourceNames.join(' · ') || 'None'));
         }
 
         function renderNWSContext(nws) {
@@ -447,6 +526,15 @@
             });
         }
 
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function renderMap(data) {
             markerLayer.clearLayers();
             var features = (data.heatmap && data.heatmap.features) || [];
@@ -482,9 +570,9 @@
                 // Click popup with more detail
                 poly.bindPopup(
                     '<div style="font-size:13px;line-height:1.5">' +
-                    '<b style="font-size:15px">' + temp.toFixed(2) + '°C</b><br>' +
+                    '<b style="font-size:15px">' + escapeHtml(temp.toFixed(2)) + '°C</b><br>' +
                     '<span style="color:#94a3b8">Surface temperature</span><br>' +
-                    '<span style="color:#94a3b8">Source: ' + (data.heatmap.source || '—') + '</span>' +
+                    '<span style="color:#94a3b8">Source: ' + escapeHtml(data.heatmap.source || '—') + '</span>' +
                     '</div>'
                 );
 
@@ -506,11 +594,11 @@
                     var marker = L.marker([cand.coordinate[1], cand.coordinate[0]], { icon: icon })
                         .bindPopup(
                             '<div style="font-size:13px;line-height:1.5">' +
-                            '<b style="color:' + markerColor + ';font-size:14px">Priority #' + cand.rank + '</b><br>' +
-                            '<b>' + cand.observed_temp + '°C</b> observed<br>' +
-                            '<span style="color:#94a3b8">Heat Index: ' + (cand.heat_index || '—') + '°C</span><br>' +
-                            '<span style="color:#94a3b8">Apparent: ' + (cand.apparent_temp || '—') + '°C</span><br>' +
-                            '<span style="color:#94a3b8">Source: ' + (data.heatmap.source || '—') + '</span>' +
+                            '<b style="color:' + markerColor + ';font-size:14px">Priority #' + escapeHtml(cand.rank) + '</b><br>' +
+                            '<b>' + escapeHtml(cand.observed_temp) + '°C</b> observed<br>' +
+                            '<span style="color:#94a3b8">Heat Index: ' + escapeHtml(cand.heat_index || '—') + '°C</span><br>' +
+                            '<span style="color:#94a3b8">Apparent: ' + escapeHtml(cand.apparent_temp || '—') + '°C</span><br>' +
+                            '<span style="color:#94a3b8">Source: ' + escapeHtml(data.heatmap.source || '—') + '</span>' +
                             '</div>'
                         )
                         .addTo(markerLayer);
@@ -530,9 +618,9 @@
                     .bindPopup(
                         '<div style="font-size:13px;line-height:1.5">' +
                         '<b style="color:#ef4444;font-size:14px">Priority Hotspot</b><br>' +
-                        '<b>' + (priority.temperature || '—') + '°C</b> observed<br>' +
-                        '<span style="color:#94a3b8">Selection: ' + (priority.selection_method || '—') + '</span><br>' +
-                        '<span style="color:#94a3b8">Source: ' + (priority.source || '—') + '</span>' +
+                        '<b>' + escapeHtml(priority.temperature || '—') + '°C</b> observed<br>' +
+                        '<span style="color:#94a3b8">Selection: ' + escapeHtml(priority.selection_method || '—') + '</span><br>' +
+                        '<span style="color:#94a3b8">Source: ' + escapeHtml(priority.source || '—') + '</span>' +
                         '</div>'
                     )
                     .addTo(markerLayer);

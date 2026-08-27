@@ -12,7 +12,8 @@ Ask "Where should Phoenix prioritize a cooling intervention this afternoon?" and
 2. Ranks top-3 candidate hotspot locations by measured thermal burden
 3. Calls FortyGuard Environmental Parameters for each candidate (heat index, apparent temperature, humidity)
 4. Corroborates with NWS current conditions and active weather alerts
-5. Returns a ranked recommendation with full 8-node evidence chain
+5. Composes an Urban Heat Brief from the same evidence with claim-level provenance
+6. Returns a ranked recommendation with full evidence chain
 
 Every answer carries provenance — data source, observation time, visualization source, and mode.
 
@@ -44,7 +45,7 @@ export FORTYGUARD_API_KEY=your-key-here
 python3 app/server.py
 ```
 
-REPLAY mode (default) requires zero credentials — uses genuine FortyGuard fixtures from Aug 25, 2026.
+REPLAY mode (default) requires zero credentials and zero network calls — it uses genuine FortyGuard fixtures from Aug 25, 2026. Current NWS context is explicitly excluded from historical Replay.
 
 ## Deployment
 
@@ -89,17 +90,17 @@ All suites must pass before any release.
 ## How to Demo
 
 1. Open the application (REPLAY auto-runs by default)
-2. Observe: top-3 ranked candidate locations with comparative analysis
-3. Click "Why This Answer?" to expand the 8-node evidence chain
-4. Observe: NWS weather context with active alerts
-5. Switch to LIVE mode (requires API key) for real-time observations
-6. Observe: mode labels, observation times, visualization sources change
+2. Observe: the Urban Heat Brief, top-3 ranked candidate locations, and near-tie disclosure
+3. Click "Why This Answer?" to expand the evidence chain and supplemental provenance nodes
+4. Observe: Replay explicitly excludes current NWS context
+5. Switch to LIVE mode (requires API key) for real-time observations and NWS corroboration
+6. Observe: mode labels, observation times, and source attribution remain distinct
 
 ## Security
 
 - No credentials in HTML, JavaScript, or browser-visible responses
 - LIVE API key stored server-side only (`.secrets/` or environment variable)
-- REPLAY mode requires zero network calls
+- REPLAY mode requires zero FortyGuard and zero NWS network calls
 - TLS certificate verification always enabled
 - User input passed as URL query parameter (no body injection)
 
