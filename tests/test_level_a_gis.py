@@ -66,6 +66,45 @@ def test_gis_fixture_integrity_parks():
     print("  PASS: test_gis_fixture_integrity_parks")
 
 
+def test_gis_fixture_integrity_fail_closed_missing_manifest():
+    """GIS fixture integrity fails when manifest is missing (fail-closed)."""
+    import tempfile, shutil
+    # Temporarily move the manifest
+    manifest_path = Path("fixtures/phoenix-gis/integrity-manifest.json")
+    backup = manifest_path.with_suffix(".json.bak")
+    try:
+        shutil.move(str(manifest_path), str(backup))
+        result = _validate_fixture_integrity(Path("fixtures/phoenix-gis/canopy.json"), "canopy")
+        assert result is False, "Should fail-closed when manifest is missing"
+    finally:
+        shutil.move(str(backup), str(manifest_path))
+    print("  PASS: test_gis_fixture_integrity_fail_closed_missing_manifest")
+
+
+def test_gis_fixture_integrity_fail_closed_unregistered_fixture():
+    """GIS fixture integrity fails when fixture not in manifest (fail-closed)."""
+    result = _validate_fixture_integrity(Path("fixtures/phoenix-gis/canopy.json"), "nonexistent_type")
+    assert result is False, "Should fail-closed when fixture type not in manifest"
+    print("  PASS: test_gis_fixture_integrity_fail_closed_unregistered_fixture")
+
+
+def test_gis_fixture_integrity_fail_closed_corrupted_fixture():
+    """GIS fixture integrity fails when fixture is corrupted."""
+    import tempfile, shutil
+    fixture_path = Path("fixtures/phoenix-gis/canopy.json")
+    backup = fixture_path.with_suffix(".json.bak")
+    try:
+        shutil.copy(str(fixture_path), str(backup))
+        # Corrupt the fixture
+        with open(fixture_path, "w") as f:
+            f.write('{"corrupted": true}')
+        result = _validate_fixture_integrity(fixture_path, "canopy")
+        assert result is False, "Should fail-closed when fixture is corrupted"
+    finally:
+        shutil.move(str(backup), str(fixture_path))
+    print("  PASS: test_gis_fixture_integrity_fail_closed_corrupted_fixture")
+
+
 def test_gis_fixture_manifest_separate_from_fortyguard():
     """GIS fixtures are NOT in FortyGuard integrity manifest."""
     fg_manifest = Path("fixtures/fortyguard/integrity-manifest.json")
@@ -197,20 +236,22 @@ def test_parks_replay_outside_park():
     result = query_parks(33.459, -112.0774, mode="replay")
     assert result["result"]["available"] is True
     assert result["result"]["inside_park"] is None
-    assert len(result["result"]["nearby_parks"]) > 0
+    # Level A: no nearby_parks claims (proximity not computed)
+    assert "nearby_parks" not in result["result"]
     print("  PASS: test_parks_replay_outside_park")
 
 
 def test_parks_nearby_bounded_query():
-    """Parks query returns nearby parks without distance claims."""
+    """Parks query does not make unsupported proximity claims."""
     # Use actual candidate #2 coordinate
     result = query_parks(33.459, -112.0774, mode="replay")
     assert result["result"]["available"] is True
-    nearby = result["result"]["nearby_parks"]
-    assert len(nearby) > 0
+    # Level A: no nearby_parks — proximity not computed
+    assert "nearby_parks" not in result["result"]
     # Should NOT contain distance claims
     assert "distance" not in str(result).lower()
     assert "nearest" not in str(result).lower()
+    assert "nearby-search" not in str(result).lower()
     print("  PASS: test_parks_nearby_bounded_query")
 
 
@@ -341,19 +382,16 @@ def test_format_parks_claim_inside():
 
 
 def test_format_parks_claim_nearby():
-    """Parks claim formats correctly with nearby parks."""
+    """Parks claim formats correctly when outside all parks."""
     parks = {
         "available": True,
         "inside_park": None,
-        "nearby_parks": [
-            {"park_name": "Cancer Survivors Park"},
-            {"park_name": "Margaret T. Hance Park"}
-        ]
     }
     claim = format_parks_claim(parks)
     assert claim is not None
-    assert "Cancer Survivors Park" in claim
-    assert "nearby-search area" in claim
+    assert "No mapped park" in claim
+    # Level A: no nearby-search area claims
+    assert "nearby-search" not in claim
     print("  PASS: test_format_parks_claim_nearby")
 
 
@@ -389,6 +427,23 @@ def test_controller_replay_includes_context():
     assert "context_evidence_chain" in result
     assert result["context"]["available"] is True
     print("  PASS: test_controller_replay_includes_context")
+
+
+def test_controller_top3_enrichment():
+    """Controller enriches all 3 candidates, not just #1."""
+    agent = HeatAgent(FortyGuardAdapter(mode="replay"), mode="replay")
+    result = agent.answer("Where should Phoenix prioritize a cooling intervention this afternoon?")
+    cc = result.get("candidate_contexts", {})
+    assert len(cc) == 3, f"Expected 3 candidate contexts, got {len(cc)}"
+    # Each candidate should have canopy context
+    for i in range(3):
+        ctx = cc[i]
+        assert "canopy" in ctx, f"Candidate #{i+1} missing canopy context"
+        assert ctx["canopy"] is not None, f"Candidate #{i+1} canopy is None"
+        assert ctx["canopy"].get("available") is True, f"Candidate #{i+1} canopy not available"
+    # Candidate #1 should be inside Roosevelt Park
+    assert cc[0]["parks"]["inside_park"]["park_name"] == "Roosevelt Park"
+    print("  PASS: test_controller_top3_enrichment")
 
 
 def test_controller_thermal_evidence_chain_unchanged():
@@ -663,6 +718,7 @@ def run_all():
         test_format_parks_claim_unavailable,
         # Controller integration
         test_controller_replay_includes_context,
+        test_controller_top3_enrichment,
         test_controller_thermal_evidence_chain_unchanged,
         test_controller_context_evidence_chain_separate,
         test_controller_gis_context_used_in_decision_false,

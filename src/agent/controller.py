@@ -195,22 +195,30 @@ class HeatAgent:
         # 9. GIS context enrichment (composition, not modification of thermal chain)
         # GIS context is additive and contextual—MUST NOT alter ranking
         if ranked_candidates:
-            # Enrich top candidate with GIS context
-            top_candidate = ranked_candidates[0]
-            lat = top_candidate["coordinate"][1]
-            lon = top_candidate["coordinate"][0]
+            # Enrich top candidates with GIS context (Level A: top 3)
+            all_context_evidence = []
+            candidate_contexts = {}
             
-            context_result = enrich_candidate_context(
-                latitude=lat,
-                longitude=lon,
-                mode=self.mode,
-                adapter=None  # Level A: no live GIS adapter yet
-            )
+            for i, candidate in enumerate(ranked_candidates):
+                lat = candidate["coordinate"][1]
+                lon = candidate["coordinate"][0]
+                
+                context_result = enrich_candidate_context(
+                    latitude=lat,
+                    longitude=lon,
+                    mode=self.mode,
+                    adapter=None  # Level A: no live GIS adapter yet
+                )
+                
+                # Store per-candidate context
+                candidate_contexts[i] = context_result["context"]
+                all_context_evidence.extend(context_result["context_evidence_chain"])
             
-            self.context_evidence_chain = context_result["context_evidence_chain"]
+            self.context_evidence_chain = all_context_evidence
             
-            # Add GIS context to answer (does not alter thermal ranking)
-            answer["context"] = context_result["context"]
+            # Store top-candidate context at top level for brief composition
+            answer["context"] = candidate_contexts[0]
+            answer["candidate_contexts"] = candidate_contexts
             answer["context_evidence_chain"] = self.context_evidence_chain
 
         return answer

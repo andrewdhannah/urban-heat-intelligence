@@ -84,11 +84,14 @@ def _validate_fixture_integrity(fixture_path: Path, fixture_type: str) -> bool:
         fixture_type: Type of fixture ('canopy' or 'parks')
     
     Returns:
-        True if integrity check passes or manifest is missing
+        True if integrity check passes, False otherwise
+    
+    Level A invariant: Replay GIS integrity is fail-closed.
+    Missing manifest or unregistered fixture = integrity failure.
     """
     manifest_path = Path("fixtures/phoenix-gis/integrity-manifest.json")
     if not manifest_path.exists():
-        return True  # No manifest = skip validation (backward compatible)
+        return False  # Fail-closed: no manifest = integrity failure
     
     try:
         import hashlib
@@ -102,7 +105,7 @@ def _validate_fixture_integrity(fixture_path: Path, fixture_type: str) -> bool:
                 break
         
         if expected_hash is None:
-            return True  # Fixture not in manifest = skip validation
+            return False  # Fail-closed: fixture not in manifest = integrity failure
         
         actual_hash = hashlib.sha256(fixture_path.read_bytes()).hexdigest()
         return actual_hash == expected_hash
@@ -344,7 +347,6 @@ def query_parks(
             }
         
         inside_park = None
-        nearby_parks = []
         
         for park in fixture.get("parks", []):
             polygon = park.get("geometry", {}).get("coordinates", [[]])[0]
@@ -356,24 +358,11 @@ def query_parks(
                 }
                 break
         
-        # For Level A: report nearby parks without distance claims
-        if not inside_park:
-            nearby_parks = [
-                {
-                    "park_name": p["properties"]["name"],
-                    "park_type": p["properties"].get("type", "unknown"),
-                    "park_acres": p["properties"].get("acres", 0)
-                }
-                for p in fixture.get("parks", [])[:3]
-            ]
-        
         result = {
             "available": True,
             "inside_park": inside_park,
-            "nearby_parks": nearby_parks if not inside_park else [],
             "source_provider": PARKS_PROVIDER,
             "dataset": PARKS_DATASET,
-            "search_radius_meters": search_radius_meters,
             "retrieved_at": _now_iso(),
             "used_in_decision": False,
             "mode": mode
@@ -389,7 +378,6 @@ def query_parks(
                     "dataset": PARKS_DATASET,
                     "inside_park": inside_park is not None,
                     "park_name": inside_park["park_name"] if inside_park else None,
-                    "nearby_parks_count": len(nearby_parks),
                     "mode": mode,
                     "timestamp": _now_iso()
                 }
@@ -547,22 +535,14 @@ def format_parks_claim(parks: Optional[Dict[str, Any]]) -> Optional[str]:
     
     Level A semantic constraints:
     - Do NOT claim distance without explicit calculation
-    - Use conservative language: "inside" or "within search area"
+    - Use conservative language: "inside" only
     """
     if not parks or not parks.get("available"):
         return None
     
     inside = parks.get("inside_park")
-    nearby = parks.get("nearby_parks", [])
     
     if inside:
         return f"This candidate lies inside {inside['park_name']}."
-    
-    if nearby:
-        park_names = [p["park_name"] for p in nearby[:2]]
-        if len(park_names) == 1:
-            return f"{park_names[0]} and other mapped City parks are within the configured nearby-search area."
-        else:
-            return f"{', '.join(park_names)}, and other mapped City parks are within the configured nearby-search area."
     
     return "No mapped park at candidate location."
