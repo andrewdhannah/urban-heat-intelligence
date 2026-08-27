@@ -4,8 +4,8 @@
   "timestamp": "2026-08-26T20:45:00Z",
   "project_id": "urban-heat-intelligence",
   "prior_closeout_commit": "33df1d2d36ffffd68e50b9473eb453b2e5002a6a",
-  "local_head": "33df1d2d36ffffd68e50b9473eb453b2e5002a6a",
-  "public_head": "33df1d2d36ffffd68e50b9473eb453b2e5002a6a",
+  "local_head": "037964cb07c1c6324a700eaefefeac7ebbe70cf9",
+  "public_head": "037964cb07c1c6324a700eaefefeac7ebbe70cf9",
   "public_head_match": "PASS",
 
   "replay_feature_count": 367,
