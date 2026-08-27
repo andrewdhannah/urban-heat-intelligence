@@ -30,10 +30,27 @@
   "public_error_policy": "Bounded error messages ('Unable to complete query'), no stack traces, no credential exposure. Server-side diagnostic logging without credentials.",
 
   "deployment_target": "Render (render.yaml configured)",
-  "public_url": "pending — requires Owner Render account setup",
-  "deployed_commit": "pending",
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+  "deployed_commit": "7a76340bc2ef0b34b6f5ea838b5605674939ea56",
 
-  "public_browser_test": "pending — requires deployed URL",
+  "public_browser_test": {
+    "status": "PASS",
+    "public_page_loads": true,
+    "replay_auto_runs": true,
+    "polygons_rendered": 367,
+    "ranked_candidates_displayed": 3,
+    "near_tie_disclosure": true,
+    "candidate_markers": 3,
+    "evidence_chain_opens": true,
+    "nws_provenance_correct": "Replay: 'NWS current context not included in historical Replay'",
+    "live_replay_labels_distinct": true,
+    "bounded_live_failure": true,
+    "hostile_input_safe": true,
+    "no_credential_visible": true,
+    "no_consequential_console_errors": true,
+    "viewport_1440x900": {"no_overflow": true, "polygons": 367, "ranked": 3, "disclosure": "block"},
+    "viewport_1920x1080": {"no_overflow": true}
+  },
 
   "s1_regression": "20/20 PASS",
   "s2_static": "15/15 PASS",
