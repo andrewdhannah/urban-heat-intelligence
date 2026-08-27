@@ -1,0 +1,63 @@
+{
+  "receipt_id": "S4-SUBMISSION-CERTIFICATION-20260827",
+  "receipt_type": "s4_submission_certification",
+  "timestamp": "2026-08-27T10:00:00Z",
+  "project_id": "urban-heat-intelligence",
+
+  "sealed_product_commit": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+  "final_s3_record_head": "04dd024616a8f5cbc6657e9dfc88df81aa6352f2",
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+
+  "s3_acceptance": "ACCEPTED / SEALED",
+  "s4_authorized": true,
+
+  "submission_assets": {
+    "public_live_demo": true,
+    "public_repository": true,
+    "video_production_script": "docs/demo/VIDEO-PRODUCTION-SCRIPT.md",
+    "submission_summary": "docs/demo/SUBMISSION-SUMMARY.md",
+    "video_storyboard": "docs/demo/VIDEO-PRODUCTION-STORYBOARD.md"
+  },
+
+  "submission_checklist": {
+    "track_6_agentic": true,
+    "fortyguard_centrality": true,
+    "repository_public": true,
+    "no_credentials_committed": true,
+    "video_factual_claims_supported": true,
+    "public_smoke_test": "PASS"
+  },
+
+  "public_smoke_results": {
+    "page_loads": true,
+    "replay_auto_runs": true,
+    "polygons": 367,
+    "ranked_candidates": 3,
+    "near_tie_disclosure": true,
+    "brief_visible": true,
+    "brief_title": "Urban Heat Brief",
+    "why_panel": true,
+    "no_overflow": true,
+    "console_errors": 0,
+    "no_credential": true
+  },
+
+  "known_limitations": [
+    "SPEC-009 broader intervention-opportunity model not implemented",
+    "SPEC-010 six-category intervention model not implemented",
+    "FORMAL_AUTHORIZATION_RECEIPT_GAP for S0-S3 stage-level authorization receipts",
+    "Phoenix GIS / NOAA / local news not integrated",
+    "LIVE availability depends on FortyGuard provider data availability",
+    "Full three-browser smoke not demonstrated; Chromium qualified",
+    "Invalid-mode HTTP behavior code-level verified, not HTTP-boundary exercised in final S3E",
+    "Rate limiting not implemented"
+  ],
+
+  "credential_present": true,
+  "credential_exposed": false,
+
+  "feature_freeze": true,
+  "s4_result": "CERTIFIED — submission-ready",
+  "s3_status": "ACCEPTED / SEALED",
+  "s4_status": "AUTHORIZED / CERTIFIED"
+}

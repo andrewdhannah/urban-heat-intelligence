@@ -1,6 +1,6 @@
 # Urban Heat Intelligence — Developer Quick Start
 
-**CANDIDATE — not canonical until Owner acceptance**
+**CANONICAL — Owner accepted 2026-08-27**
 
 ---
 
@@ -101,4 +101,4 @@ fixtures/
 
 ---
 
-*This document is CANDIDATE — not canonical until Owner acceptance.*
+*This document is CANONICAL — Owner accepted 2026-08-27.*

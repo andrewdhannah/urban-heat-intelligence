@@ -1,6 +1,6 @@
 # Urban Heat Intelligence — User Guide
 
-**CANDIDATE — not canonical until Owner acceptance**
+**CANONICAL — Owner accepted 2026-08-27**
 
 ---
 
@@ -136,4 +136,4 @@ FortyGuard is the only required source. The product degrades gracefully when opt
 
 ---
 
-*This document is CANDIDATE — not canonical until Owner acceptance.*
+*This document is CANONICAL — Owner accepted 2026-08-27.*

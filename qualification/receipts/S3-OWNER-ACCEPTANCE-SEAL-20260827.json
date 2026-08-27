@@ -1,0 +1,36 @@
+{
+  "receipt_id": "S3-OWNER-ACCEPTANCE-SEAL-20260827",
+  "receipt_type": "s3_owner_acceptance_seal",
+  "timestamp": "2026-08-27T09:00:00Z",
+  "project_id": "urban-heat-intelligence",
+
+  "owner_decision": "ACCEPT",
+  "implementation_candidate": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+  "final_s3_record_head": "04dd024616a8f5cbc6657e9dfc88df81aa6352f2",
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+
+  "qualification_outcome": "QUALIFIED_WITH_KNOWN_LIMITATIONS",
+  "qualification_receipt": "qualification/receipts/S3E-FINAL-QUALIFICATION-20260827.json",
+  "documentation_revalidation_receipt": "qualification/receipts/S3E-R1-DOCUMENTATION-REVALIDATION-20260827.json",
+
+  "canonical_user_guide": "docs/user-guide/USER-GUIDE.md",
+  "canonical_quickstart": "docs/user-guide/QUICKSTART.md",
+  "canonical_evidence_guide": "docs/user-guide/UNDERSTANDING-YOUR-EVIDENCE.md",
+
+  "known_limitations": [
+    "SPEC-009 broader intervention-opportunity model not implemented",
+    "SPEC-010 six-category intervention model not implemented",
+    "FORMAL_AUTHORIZATION_RECEIPT_GAP for S0-S3 stage-level authorization receipts",
+    "Phoenix GIS / NOAA / local news not integrated",
+    "LIVE availability depends on FortyGuard provider data availability",
+    "Full three-browser smoke not demonstrated; Chromium is the qualified browser evidence",
+    "Invalid-mode HTTP behavior not independently exercised at HTTP boundary during final S3E; code-level protection verified",
+    "Rate limiting not implemented"
+  ],
+
+  "s3_owner_accepted": true,
+  "s3_sealed": true,
+  "sealed_product_commit": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+  "product_feature_freeze": true,
+  "s4_authorized": true
+}

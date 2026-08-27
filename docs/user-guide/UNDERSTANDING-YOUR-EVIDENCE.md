@@ -1,6 +1,6 @@
 # Urban Heat Intelligence — Understanding Your Evidence
 
-**CANDIDATE — not canonical until Owner acceptance**
+**CANONICAL — Owner accepted 2026-08-27**
 
 ---
 
@@ -182,4 +182,4 @@ This envelope is distinct from the runtime evidence chain. The evidence chain re
 
 ---
 
-*This document is CANDIDATE — not canonical until Owner acceptance.*
+*This document is CANONICAL — Owner accepted 2026-08-27.*
