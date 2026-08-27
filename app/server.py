@@ -248,6 +248,8 @@ class UHIHandler(SimpleHTTPRequestHandler):
             self.serve_answer(question, mode)
         elif parsed.path == "/api/nws":
             self.serve_nws()
+        elif parsed.path == "/api/config":
+            self.serve_config()
         else:
             super().do_GET()
 
@@ -294,6 +296,19 @@ class UHIHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(error.encode())
+
+    def serve_config(self):
+        """Return non-sensitive client configuration."""
+        import os
+        carto_key = os.environ.get("CARTO_BASEMAP_KEY", "")
+        config = {
+            "carto_basemap_key": carto_key
+        }
+        response = json.dumps(config)
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(response.encode())
 
 
 def main():

@@ -237,10 +237,24 @@
         let map, markerLayer;
         let currentMode = 'replay';
         let currentData = null;
+        let cartoBasemapKey = '';
 
-        function initMap() {
+        async function initMap() {
+            // Fetch CARTO basemap key from server config
+            try {
+                var configResp = await fetch('/api/config');
+                var config = await configResp.json();
+                cartoBasemapKey = config.carto_basemap_key || '';
+            } catch (e) {
+                cartoBasemapKey = '';
+            }
+
             map = L.map('map').setView([33.45, -112.07], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            var tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+            if (cartoBasemapKey) {
+                tileUrl += '?key=' + encodeURIComponent(cartoBasemapKey);
+            }
+            L.tileLayer(tileUrl, {
                 attribution: '© OpenStreetMap contributors, © CARTO', maxZoom: 19
             }).addTo(map);
             markerLayer = L.layerGroup().addTo(map);
@@ -667,9 +681,10 @@
         }
 
         // === INITIALIZE AND AUTO-RUN REPLAY ===
-        initMap();
-        setMode('replay');
-        runQuery();
+        initMap().then(function() {
+            setMode('replay');
+            runQuery();
+        });
     </script>
 </body>
 </html>
