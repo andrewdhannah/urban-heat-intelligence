@@ -5,7 +5,7 @@
   "project_id": "urban-heat-intelligence",
   "supersedes_readiness_claim_from": "S3D-RECONCILIATION-FREEZE-20260827",
   "baseline_commit": "72c5b975ee38f5397fc53875b3430f7e2d5473de",
-  "resulting_commit": "pending-commit",
+  "resulting_commit": "c13d8ea",
 
   "governing_plan_path": "docs/hackathon-plan-v3.5.md",
   "governing_plan_hash": "f5e1af10683b40232c2380569b22a0785928ff260b042c9b81a50d5a66b07ef8",
@@ -41,7 +41,7 @@
 
   "public_url": "https://urban-heat-intelligence.onrender.com/",
   "deployed_commit": "pending — Render deploys from main after push",
-  "final_s3e_candidate_commit": "pending-commit",
+  "final_s3e_candidate_commit": "c13d8ea",
 
   "feature_freeze": true,
   "ready_for_final_s3e": true,
