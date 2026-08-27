@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: urban-heat-intelligence
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 app/server.py
+    envVars:
+      - key: FORTYGUARD_API_KEY
+        sync: false
+      - key: PORT
+        value: 8080

@@ -1,61 +1,107 @@
 # Urban Heat Intelligence — FortyGuard Hackathon '26
 
-> An evidence-backed heat decision support agent — ask a question about urban heat in natural language, get an answer built from FortyGuard temperature data, retrieved safety knowledge, and visible reasoning, all wrapped in a receipt showing exactly where every number came from.
+> An agentic decision-support system for urban heat intervention prioritization. Ask where Phoenix should prioritize cooling, get an evidence-backed answer from FortyGuard thermal data with visible reasoning and inspectable provenance.
 
 **Track:** 6 — Agentic Track (API + Agentic)
 
 ## What It Does
 
-Ask a question like "What's the heat risk for construction workers in Phoenix right now?" and the agent:
+Ask "Where should Phoenix prioritize a cooling intervention this afternoon?" and the agent:
 
-1. Calls FortyGuard's Temperature API for live observations (2m resolution)
-2. Retrieves relevant passages from heat-safety literature (WHO, OSHA, city guidelines)
-3. Returns an answer with a full evidence chain: data source, retrieved references, and a receipt
+1. Calls FortyGuard's Temperature API for live heatmap observations (2m resolution, ~367 features)
+2. Ranks top-3 candidate hotspot locations by measured thermal burden
+3. Calls FortyGuard Environmental Parameters for each candidate (heat index, apparent temperature, humidity)
+4. Corroborates with NWS current conditions and active weather alerts
+5. Returns a ranked recommendation with full 8-node evidence chain
 
-Every answer carries a receipt — the data source, the reasoning, the confidence.
+Every answer carries provenance — data source, observation time, visualization source, and mode.
 
 ## Quick Start
 
 ```bash
 # Clone the repo
-git clone <repo-url>
-cd hackathon26
+git clone https://github.com/andrewdhannah/urban-heat-intelligence.git
+cd urban-heat-intelligence
 
-# Set up Python environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# No external dependencies — Python 3.10+ stdlib only
+python3 app/server.py
 
-# Configure API key
-cp .env.example .env
-# Edit .env and add your FortyGuard API key
-
-# Run the agent
-python -m src.main
+# Open in browser
+open http://localhost:8080
 ```
 
-## Tech Stack
+## LIVE Mode (Optional)
+
+To enable live FortyGuard API queries:
+
+```bash
+# Create secret store
+mkdir -p .secrets
+echo "FORTYGUARD_API_KEY=your-key-here" > .secrets/fortyguard.env
+
+# Or set environment variable
+export FORTYGUARD_API_KEY=your-key-here
+python3 app/server.py
+```
+
+REPLAY mode (default) requires zero credentials — uses genuine FortyGuard fixtures from Aug 25, 2026.
+
+## Deployment
+
+### Render (recommended)
+
+1. Push to GitHub
+2. Connect repo at [render.com](https://dashboard.render.com)
+3. Create a **Web Service** → Python
+4. Set environment variable: `FORTYGUARD_API_KEY` (optional, for LIVE mode)
+5. Deploy
+
+### Any Python Hosting
+
+```bash
+PORT=8080 HOST=0.0.0.0 python3 app/server.py
+```
+
+The server binds to `0.0.0.0` by default (configurable via `HOST` env var).
+
+## Architecture
 
 | Layer | Technology |
 |-------|-----------|
-| Agent | Python |
-| Temperature API | FortyGuard Temperature API |
-| Database | SQLite + sqlite-vec |
-| Interface | HTML + TypeScript |
+| Server | Python stdlib `http.server` |
+| Agent | Python — planning, tool orchestration, evidence chain |
+| Temperature API | FortyGuard Temperature API (heatmap + env_params) |
+| Weather Context | National Weather Service API (corroboration) |
+| Frontend | HTML + CSS + JavaScript + Leaflet.js |
+| Map | CARTO dark basemap, FortyGuard heatmap polygons |
+
+## Test Suites
+
+```bash
+python3 tests/test_s1.py          # S1 regression — 20 tests
+python3 tests/test_s2.py          # S2 application — 15 tests
+python3 tests/test_s2_browser.py  # Browser qualification — 12 tests
+python3 tests/test_s2_controlled_live.py  # Controlled LIVE proof — 7 tests
+```
+
+All suites must pass before any release.
 
 ## How to Demo
 
-1. Start the application
-2. Ask: "What's the heat risk in downtown Phoenix right now?"
-3. Observe: agent calls FortyGuard API, retrieves safety knowledge, returns answer with receipt
-4. Ask: "What should construction workers know about this heat level?"
-5. Observe: agent connects temperature to OSHA/WHO guidance with source citations
+1. Open the application (REPLAY auto-runs by default)
+2. Observe: top-3 ranked candidate locations with comparative analysis
+3. Click "Why This Answer?" to expand the 8-node evidence chain
+4. Observe: NWS weather context with active alerts
+5. Switch to LIVE mode (requires API key) for real-time observations
+6. Observe: mode labels, observation times, visualization sources change
 
-## API Provenance
+## Security
 
-- **Temperature data:** FortyGuard Temperature API (2m resolution, U.S. locations)
-- **Safety knowledge:** OSHA Heat Illness Prevention Guide, WHO Heat Health Guidance
-- **Every answer** includes a structured receipt showing data source, timestamp, and confidence
+- No credentials in HTML, JavaScript, or browser-visible responses
+- LIVE API key stored server-side only (`.secrets/` or environment variable)
+- REPLAY mode requires zero network calls
+- TLS certificate verification always enabled
+- User input passed as URL query parameter (no body injection)
 
 ## License
 

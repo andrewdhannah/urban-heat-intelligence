@@ -116,41 +116,64 @@ class HeatAgent:
             if not candidates:
                 return self._error_answer("No temperature candidates found")
 
-            selected = candidates[0]
+            # Top-3 candidate comparison
+            top_n = min(3, len(candidates))
+            ranked_candidates = []
 
-            # 5. coordinate_selection
-            self._add_evidence("coordinate_selection", {
-                "selected_coordinate": selected,
-                "selection_method": "global_maximum_temperature_feature",
-                "observation_time": heatmap_result["observation_time"]
-            })
+            for i in range(top_n):
+                cand = candidates[i]
+                # 5. coordinate_selection (for each candidate)
+                self._add_evidence("coordinate_selection", {
+                    "selected_coordinate": cand,
+                    "selection_method": f"top_{i+1}_temperature_feature",
+                    "rank": i + 1,
+                    "observation_time": heatmap_result["observation_time"]
+                })
 
-            # 6. env_params_request
-            self._add_evidence("env_params_request", {
-                "endpoint": "/v1/env_params",
-                "mode": self.mode,
-                "coordinate": {"latitude": selected["latitude"], "longitude": selected["longitude"]},
-                "temperature_supplied": selected["temperature_celsius"],
-                "requested_observation_time": format_observation_time(date_time) if date_time else None
-            })
+                # 6. env_params_request
+                self._add_evidence("env_params_request", {
+                    "endpoint": "/v1/env_params",
+                    "mode": self.mode,
+                    "coordinate": {"latitude": cand["latitude"], "longitude": cand["longitude"]},
+                    "temperature_supplied": cand["temperature_celsius"],
+                    "requested_observation_time": format_observation_time(date_time) if date_time else None
+                })
 
-            # 7. env_params_result
-            env_result = self._call_env_params(selected, date_time)
-            if env_result is None:
-                return self._error_answer("Environmental parameters call failed")
+                # 7. env_params_result
+                env_result = self._call_env_params(cand, date_time)
+                if env_result is None:
+                    continue  # Skip failed candidates
 
-            self._add_evidence("env_params_result", {
-                "tool": "get_environmental_parameters",
-                "activity_id": env_result.get("activity_id"),
-                "heat_index": env_result["result"]["heat_index_celsius"],
-                "apparent_temp": env_result["result"]["apparent_temperature_celsius"],
-                "humidity": env_result["result"]["relative_humidity_percent"],
-                "observation_time": env_result["observation_time"],
-                "mode": self.mode
-            })
+                self._add_evidence("env_params_result", {
+                    "tool": "get_environmental_parameters",
+                    "activity_id": env_result.get("activity_id"),
+                    "heat_index": env_result["result"]["heat_index_celsius"],
+                    "apparent_temp": env_result["result"]["apparent_temperature_celsius"],
+                    "humidity": env_result["result"]["relative_humidity_percent"],
+                    "observation_time": env_result["observation_time"],
+                    "mode": self.mode,
+                    "rank": i + 1
+                })
+
+                ranked_candidates.append({
+                    "rank": i + 1,
+                    "coordinate": [cand["longitude"], cand["latitude"]],
+                    "observed_temp": cand["temperature_celsius"],
+                    "tile_id": cand.get("tile_id"),
+                    "heat_index": env_result["result"]["heat_index_celsius"],
+                    "apparent_temp": env_result["result"]["apparent_temperature_celsius"],
+                    "humidity": env_result["result"]["relative_humidity_percent"],
+                    "observation_time": env_result["observation_time"],
+                    "env_params_activity_id": env_result.get("activity_id"),
+                    "selection_method": f"top_{i+1}_temperature_feature"
+                })
+
+            if not ranked_candidates:
+                return self._error_answer("Environmental parameters call failed for all candidates")
 
         # 8. answer
-        answer = self._compose_answer(heatmap_result, env_result, question, location, plan)
+        answer = self._compose_answer(heatmap_result, env_result, question, location, plan,
+                                      ranked_candidates=ranked_candidates if "get_environmental_parameters" in plan["selected_tools"] else None)
 
         self._add_evidence("answer", {
             "summary": answer["answer"]["summary"],
@@ -268,7 +291,7 @@ class HeatAgent:
             activity_id=data.get("activity_id")
         )
 
-    def _compose_answer(self, heatmap, env_params, question, location, plan):
+    def _compose_answer(self, heatmap, env_params, question, location, plan, ranked_candidates=None):
         hm = heatmap["result"] if heatmap else {}
         ep = env_params["result"] if env_params else {}
 
@@ -292,6 +315,24 @@ class HeatAgent:
         else:
             summary = f"The queried area in {location} is experiencing very high thermal conditions."
 
+        # Build ranked candidates with comparative analysis
+        candidates_for_response = []
+        if ranked_candidates:
+            area_mean = hm.get("mean_temperature_celsius", 0)
+            for cand in ranked_candidates:
+                delta_from_mean = round(cand["observed_temp"] - area_mean, 2) if area_mean else None
+                candidates_for_response.append({
+                    "rank": cand["rank"],
+                    "coordinate": cand["coordinate"],
+                    "observed_temp": cand["observed_temp"],
+                    "delta_from_area_mean": delta_from_mean,
+                    "heat_index": cand["heat_index"],
+                    "apparent_temp": cand["apparent_temp"],
+                    "humidity": cand["humidity"],
+                    "selection_method": cand["selection_method"],
+                    "tile_id": cand.get("tile_id")
+                })
+
         return {
             "answer": {
                 "summary": summary,
@@ -310,7 +351,8 @@ class HeatAgent:
                     "measured_result": {
                         "apparent_vs_measured_delta_celsius": apparent_delta,
                         "interpretation": "Apparent temperature exceeds measured temperature due to solar and environmental factors"
-                    }
+                    },
+                    "ranked_candidates": candidates_for_response
                 },
                 "why_this_answer": plan.get("rationale", ""),
                 "sources": sources,

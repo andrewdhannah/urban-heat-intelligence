@@ -103,6 +103,29 @@
         .error-state h3 { color: #fca5a5; font-size: 13px; margin-bottom: 6px; }
         .error-state p { color: #fca5a5; font-size: 12px; }
         .error-state .error-mode { color: #94a3b8; font-size: 11px; margin-top: 4px; }
+
+        /* === RANKED CANDIDATES === */
+        .ranked-candidates { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 14px; }
+        .ranked-candidates h3 { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; font-weight: 600; }
+        .rank-item { border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; position: relative; }
+        .rank-item.top { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+        .rank-item .rank-badge { position: absolute; top: 8px; right: 8px; background: #334155; color: #94a3b8; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; }
+        .rank-item.top .rank-badge { background: #ef4444; color: white; }
+        .rank-item .rank-temp { font-size: 16px; font-weight: 700; color: #f8fafc; }
+        .rank-item .rank-delta { font-size: 11px; color: #f97316; margin-left: 4px; }
+        .rank-item .rank-details { font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+        .rank-item .rank-details b { color: #cbd5e1; }
+        .rank-item .rank-compare { font-size: 10px; color: #64748b; margin-top: 4px; font-style: italic; }
+
+        /* === WEATHER ADVISORY === */
+        .weather-advisory { background: #1c1917; border: 1px solid #78350f; border-radius: 8px; padding: 12px 14px; }
+        .weather-advisory h3 { font-size: 11px; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; font-weight: 600; }
+        .weather-advisory .alert-item { border-top: 1px solid #44403c; padding-top: 6px; margin-top: 6px; }
+        .weather-advisory .alert-event { font-size: 12px; font-weight: 600; color: #fbbf24; }
+        .weather-advisory .alert-headline { font-size: 11px; color: #a8a29e; margin-top: 2px; line-height: 1.4; }
+        .weather-advisory .conditions { font-size: 11px; color: #d6d3d1; margin-top: 6px; }
+        .weather-advisory .conditions b { color: #fbbf24; }
+        .weather-advisory .source-tag { font-size: 9px; color: #78716c; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -152,6 +175,16 @@
                 <div class="stat"><span class="label">Temperature Range</span><span class="value" id="stat-range">—</span></div>
                 <div class="stat"><span class="label">Heatmap Features</span><span class="value" id="stat-features">—</span></div>
                 <div class="stat"><span class="label">Observation</span><span class="value" id="stat-obs-time">—</span></div>
+            </div>
+            <div class="ranked-candidates" id="ranked-candidates" style="display:none">
+                <h3>Candidate Comparison</h3>
+                <div id="ranked-list"></div>
+            </div>
+            <div class="weather-advisory" id="weather-advisory" style="display:none">
+                <h3>Weather Context — NWS</h3>
+                <div id="nws-alerts"></div>
+                <div class="conditions" id="nws-conditions"></div>
+                <div class="source-tag">Source: National Weather Service</div>
             </div>
             <div class="evidence-section">
                 <button class="evidence-toggle" onclick="toggleEvidence()"><span>Why This Answer?</span><span id="evidence-arrow">▸</span></button>
@@ -288,14 +321,78 @@
             document.getElementById('map-overlay').style.display = 'block';
             document.getElementById('overlay-time').textContent = data.observation_time || '—';
 
+            // === RANKED CANDIDATES ===
+            renderRankedCandidates(data.ranked_candidates || [], c.area_mean_temperature_celsius);
+
+            // === NWS WEATHER CONTEXT ===
+            renderNWSContext(data.nws_context);
+
             renderEvidenceChain(data.evidence_chain || []);
             renderMap(data);
+        }
+
+        function renderNWSContext(nws) {
+            var container = document.getElementById('weather-advisory');
+            var alertsDiv = document.getElementById('nws-alerts');
+            var condDiv = document.getElementById('nws-conditions');
+            if (!nws) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+            alertsDiv.innerHTML = '';
+            var alerts = nws.alerts || [];
+            if (alerts.length > 0) {
+                alerts.forEach(function(a) {
+                    var div = document.createElement('div');
+                    div.className = 'alert-item';
+                    div.innerHTML = '<div class="alert-event">' + (a.event || 'Alert') + '</div>' +
+                        '<div class="alert-headline">' + (a.headline || '') + '</div>';
+                    alertsDiv.appendChild(div);
+                });
+            } else {
+                alertsDiv.innerHTML = '<div class="alert-item"><span style="color:#a8a29e;font-size:11px">No active alerts</span></div>';
+            }
+            var cond = nws.conditions;
+            if (cond) {
+                condDiv.innerHTML = 'Current: <b>' + (cond.temperature_f || '—') + '°' + (cond.temperature_unit || 'F') + '</b> · ' +
+                    (cond.short_forecast || '—') + ' · Wind: ' + (cond.wind_speed || '—') + ' ' + (cond.wind_direction || '');
+            }
+        }
+
+        function renderRankedCandidates(candidates, areaMean) {
+            var container = document.getElementById('ranked-candidates');
+            var list = document.getElementById('ranked-list');
+            if (!candidates || candidates.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+            list.innerHTML = '';
+            candidates.forEach(function(c, idx) {
+                var div = document.createElement('div');
+                div.className = 'rank-item' + (idx === 0 ? ' top' : '');
+                var delta = c.delta_from_area_mean != null ? (c.delta_from_area_mean >= 0 ? '+' : '') + c.delta_from_area_mean + '°C vs mean' : '';
+                var compare = idx > 0 && candidates[0] ?
+                    '−' + (candidates[0].observed_temp - c.observed_temp).toFixed(2) + '°C vs #1' : '';
+                div.innerHTML =
+                    '<span class="rank-badge">#' + c.rank + '</span>' +
+                    '<div class="rank-temp">' + c.observed_temp + '°C <span class="rank-delta">' + delta + '</span></div>' +
+                    '<div class="rank-details">' +
+                    'Heat Index: <b>' + (c.heat_index || '—') + '°C</b> · ' +
+                    'Apparent: <b>' + (c.apparent_temp || '—') + '°C</b> · ' +
+                    'Humidity: <b>' + (c.humidity || '—') + '%</b>' +
+                    '</div>' +
+                    (compare ? '<div class="rank-compare">' + compare + '</div>' : '');
+                list.appendChild(div);
+            });
         }
 
         function renderMap(data) {
             markerLayer.clearLayers();
             var features = (data.heatmap && data.heatmap.features) || [];
             var priority = data.priority_location || {};
+            var ranked = data.ranked_candidates || [];
             var allBounds = [];
 
             // === HEATMAP POLYGONS with hover ===
@@ -335,8 +432,36 @@
                 poly.addTo(markerLayer);
             });
 
-            // === PRIORITY MARKER ===
-            if (priority.coordinate) {
+            // === RANKED CANDIDATE MARKERS ===
+            var markers = [];
+            if (ranked && ranked.length > 0) {
+                ranked.forEach(function(cand, idx) {
+                    var isTop = idx === 0;
+                    var markerColor = isTop ? '#ef4444' : '#f97316';
+                    var markerSize = isTop ? 18 : 14;
+                    var icon = L.divIcon({
+                        html: '<div style="background:' + markerColor + ';width:' + markerSize + 'px;height:' + markerSize + 'px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.6)"></div>',
+                        iconSize: [markerSize, markerSize],
+                        className: ''
+                    });
+                    var marker = L.marker([cand.coordinate[1], cand.coordinate[0]], { icon: icon })
+                        .bindPopup(
+                            '<div style="font-size:13px;line-height:1.5">' +
+                            '<b style="color:' + markerColor + ';font-size:14px">Priority #' + cand.rank + '</b><br>' +
+                            '<b>' + cand.observed_temp + '°C</b> observed<br>' +
+                            '<span style="color:#94a3b8">Heat Index: ' + (cand.heat_index || '—') + '°C</span><br>' +
+                            '<span style="color:#94a3b8">Apparent: ' + (cand.apparent_temp || '—') + '°C</span><br>' +
+                            '<span style="color:#94a3b8">Source: ' + (data.heatmap.source || '—') + '</span>' +
+                            '</div>'
+                        )
+                        .addTo(markerLayer);
+                    markers.push(marker);
+                    if (cand.coordinate) {
+                        allBounds.push([cand.coordinate[1], cand.coordinate[0]]);
+                    }
+                });
+            } else if (priority.coordinate) {
+                // Fallback to single priority marker
                 var icon = L.divIcon({
                     html: '<div style="background:#ef4444;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.6)"></div>',
                     iconSize: [18, 18],
@@ -352,15 +477,11 @@
                         '</div>'
                     )
                     .addTo(markerLayer);
+                allBounds.push([priority.coordinate[1], priority.coordinate[0]]);
+            }
 
-                // fitBounds with priority visible
-                if (allBounds.length > 0) {
-                    allBounds.push([priority.coordinate[1], priority.coordinate[0]]);
-                    map.fitBounds(allBounds, { padding: [40, 40], maxZoom: 15 });
-                } else {
-                    map.setView([priority.coordinate[1], priority.coordinate[0]], 14);
-                }
-            } else if (allBounds.length > 0) {
+            // fitBounds with all candidates visible
+            if (allBounds.length > 0) {
                 map.fitBounds(allBounds, { padding: [40, 40], maxZoom: 15 });
             }
         }

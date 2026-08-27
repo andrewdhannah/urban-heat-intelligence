@@ -73,6 +73,17 @@ def build_visualization_payload(result):
             coord_data = node["data"]
             break
 
+    # Get ranked candidates from conditions
+    ranked_candidates = answer.get("conditions", {}).get("ranked_candidates", [])
+
+    # Get NWS corroboration context
+    nws_context = None
+    try:
+        from src.tools.nws import get_nws_context
+        nws_context = get_nws_context()
+    except Exception:
+        pass
+
     return {
         "mode": mode,
         "visualization_source": visualization_source,
@@ -98,6 +109,8 @@ def build_visualization_payload(result):
                 "humidity": env_data.get("humidity")
             }
         },
+        "ranked_candidates": ranked_candidates,
+        "nws_context": nws_context,
         "evidence_chain": chain,
         "error": answer.get("error", False)
     }
@@ -119,6 +132,8 @@ class UHIHandler(SimpleHTTPRequestHandler):
             question = params.get("question", ["Where should Phoenix prioritize a cooling intervention this afternoon?"])[0]
             mode = params.get("mode", ["replay"])[0]
             self.serve_answer(question, mode)
+        elif parsed.path == "/api/nws":
+            self.serve_nws()
         else:
             super().do_GET()
 
@@ -147,11 +162,29 @@ class UHIHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(error.encode())
 
+    def serve_nws(self):
+        try:
+            from src.tools.nws import get_nws_context
+            nws_data = get_nws_context()
+            response = json.dumps(nws_data)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(response.encode())
+        except Exception as e:
+            error = json.dumps({"error": True, "message": str(e)})
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(error.encode())
+
 
 def main():
     import os
     port = int(os.environ.get("PORT", 8080))
-    server = HTTPServer(("127.0.0.1", port), UHIHandler)
+    host = os.environ.get("HOST", "0.0.0.0")
+    server = HTTPServer((host, port), UHIHandler)
     print(f"Urban Heat Intelligence — Decision Experience")
     print(f"Running at http://localhost:{port}")
     print(f"Open in browser to use the application")

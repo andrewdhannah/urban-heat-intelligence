@@ -23,10 +23,12 @@ def _make_ssl_context():
     The api-key header is sent only over verified TLS connections.
     """
     ctx = ssl.create_default_context()
-    # Load macOS system CA bundle (needed for Python without certifi)
-    ca_path = "/etc/ssl/cert.pem"
-    if Path(ca_path).exists():
-        ctx.load_verify_locations(ca_path)
+    # Load system CA bundle — try macOS first, fall back to system default
+    for ca_path in ["/etc/ssl/cert.pem", "/etc/ssl/certs/ca-certificates.crt"]:
+        from pathlib import Path as _P
+        if _P(ca_path).exists():
+            ctx.load_verify_locations(ca_path)
+            break
     return ctx
 
 
@@ -44,14 +46,21 @@ class FortyGuardAdapter:
         self._ssl_ctx = _make_ssl_context()
 
     def _load_api_key(self):
-        """Load from governed secret store."""
+        """Load from environment variable or governed secret store."""
+        # 1. Check environment variable (deployment)
+        import os
+        env_key = os.environ.get("FORTYGUARD_API_KEY")
+        if env_key:
+            return env_key
+        # 2. Check governed secret store (local development)
         env_path = Path(__file__).resolve().parent.parent.parent / ".secrets" / "fortyguard.env"
-        with open(env_path) as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("FORTYGUARD_API_KEY="):
-                    return line.split("=", 1)[1].strip()
-        raise RuntimeError("FORTYGUARD_API_KEY not found")
+        if env_path.exists():
+            with open(env_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("FORTYGUARD_API_KEY="):
+                        return line.split("=", 1)[1].strip()
+        raise RuntimeError("FORTYGUARD_API_KEY not found in environment or .secrets/fortyguard.env")
 
     def _make_request(self, method, path, body=None):
         """Make authenticated request over verified TLS."""

@@ -166,12 +166,18 @@ def test_13_planner():
     print("  PASS: test_13_planner")
 
 def test_14_hotspot():
-    """Existing hotspot test still passes."""
+    """Top-3 ranked candidates with correct selection methods."""
     adapter = MockAdapter()
     agent = HeatAgent(adapter, mode="replay")
     result = agent.answer("What's the heat risk in Phoenix?")
-    coord_step = next(e for e in result["evidence_chain"] if e["step"] == "coordinate_selection")
-    assert coord_step["data"]["selection_method"] == "global_maximum_temperature_feature"
+    coord_steps = [e for e in result["evidence_chain"] if e["step"] == "coordinate_selection"]
+    assert len(coord_steps) == 3, f"Expected 3 coordinate selections, got {len(coord_steps)}"
+    methods = [c["data"]["selection_method"] for c in coord_steps]
+    assert "top_1_temperature_feature" in methods, f"Missing top_1 method: {methods}"
+    # Verify ranked candidates in answer
+    ranked = result["answer"]["conditions"].get("ranked_candidates", [])
+    assert len(ranked) == 3, f"Expected 3 ranked candidates, got {len(ranked)}"
+    assert ranked[0]["rank"] == 1, f"First candidate rank: {ranked[0]['rank']}"
     print("  PASS: test_14_hotspot")
 
 def test_15_no_credential():

@@ -1,0 +1,99 @@
+{
+  "receipt_id": "S3-COMPLETION-RECEIPT-20260826",
+  "receipt_type": "s3_completion",
+  "timestamp": "2026-08-26T21:40:00Z",
+  "project_id": "urban-heat-intelligence",
+  "s3_authorization": "Owner disposition — Expanded S3 (Decision Intelligence + Deployment + Hardening + Demo Readiness)",
+  "s2_final_baseline": "a3c9720",
+
+  "top3_decision_flow": "FortyGuard heatmap → global thermal ranking → top-3 candidates → env_params per candidate → comparative measured evidence → ranked recommendation",
+  "ranking_method": "Deterministic by observed temperature, descending. Delta from area mean computed. No opaque AI score.",
+  "candidate_comparison": {
+    "candidate_count": 3,
+    "per_candidate_data": ["coordinate", "observed_temp", "delta_from_area_mean", "heat_index", "apparent_temp", "humidity", "selection_method", "tile_id"],
+    "comparative_analysis": "Each candidate shows delta from area mean and delta vs #1"
+  },
+
+  "nws_integration": {
+    "status": "integrated",
+    "current_conditions": true,
+    "active_alerts": true,
+    "extreme_heat_warning_detected": true,
+    "corroboration_type": "secondary context alongside FortyGuard observation"
+  },
+
+  "phoenix_gis_preflight": "Deferred — FortyGuard thermal data sufficient for demo. GIS integration would require authoritative source verification beyond hackathon scope.",
+
+  "noaa_context": "Deferred — NWS current conditions + alerts provide sufficient context. Historical NOAA analysis beyond hackathon scope.",
+
+  "fortyguard_heat_intelligence_preflight": "Not checked — FortyGuard heatmap + env_params endpoints sufficient for decision flow.",
+
+  "visual_compatibility_pass": {
+    "status": "bounded pass complete",
+    "changes": [
+      "Top-3 candidate comparison with ranked badges",
+      "NWS weather advisory section with alerts + conditions",
+      "Temperature legend on map",
+      "Mode status bar with observation source",
+      "Candidate markers on map (red=#1, orange=#2/#3)"
+    ]
+  },
+
+  "deployment_config": {
+    "render_yaml": "created",
+    "host_binding": "0.0.0.0 (configurable via HOST env var)",
+    "secret_handling": "FORTYGUARD_API_KEY from env var or .secrets/fortyguard.env",
+    "requirements_txt": "created (stdlib only, no external deps)",
+    "readme": "updated with deployment instructions"
+  },
+
+  "security_review": {
+    "secret_handling": "PASS — env var or .secrets/fortyguard.env",
+    "error_disclosure": "PASS — bounded error messages, no stack traces",
+    "client_exposure": "PASS — no credential in HTML/JS/API responses",
+    "tls_verification": "PASS — always enabled for FortyGuard + NWS",
+    "replay_live_separation": "PASS — mode-stamped visualization sources"
+  },
+
+  "evidence_chain": "user_request → plan → heatmap_request → heatmap_result → coordinate_selection(x3) → env_params_request(x3) → env_params_result(x3) → answer",
+  "evidence_node_count": "17 (expanded for top-3 candidates)",
+
+  "s1_regression": "20/20 PASS",
+  "s2_static": "15/15 PASS",
+  "browser_tests": "12/12 PASS",
+  "controlled_live_tests": "7/7 PASS",
+  "total_tests": 54,
+  "total_pass": 54,
+
+  "secret_scan": {
+    "credential_present": true,
+    "credential_exposed": false,
+    "html_clean": true,
+    "dom_clean": true,
+    "js_clean": true
+  },
+
+  "files_created": [
+    "src/tools/nws.py",
+    "requirements.txt",
+    "render.yaml",
+    "tests/test_s2_controlled_live.py",
+    "qualification/receipts/s3-final-1440x900.png",
+    "qualification/receipts/s3-final-scrolled.png"
+  ],
+  "files_changed": [
+    "app/server.py",
+    "app/static/index.html",
+    "src/agent/adapter.py",
+    "src/agent/controller.py",
+    "src/tools/heatmap.py",
+    "tests/test_s1.py",
+    "tests/test_s2.py",
+    "tests/test_s2_browser.py",
+    "README.md"
+  ],
+
+  "public_git_head": "local — not yet committed",
+  "final_s3_result": "PASS",
+  "s4_status": "NOT AUTHORIZED"
+}
