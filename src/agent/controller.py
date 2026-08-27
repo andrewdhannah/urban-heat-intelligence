@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from src.tools.heatmap import normalize_heatmap_result
 from src.tools.env_params import normalize_env_params_result
 from src.tools.gis_context import enrich_candidate_context
-from src.agent.time_resolver import resolve_latest_observation_time, format_observation_time
+from src.agent.time_resolver import resolve_latest_observation_time, resolve_latest_available_observation_time, format_observation_time
 
 # Canonical near-tie threshold — single source of truth for ranking and Brief
 TIE_THRESHOLD_CELSIUS = 0.1
@@ -71,10 +71,23 @@ class HeatAgent:
         """Answer a heat question with planning, tool calls, and 8-node evidence."""
         self.evidence_chain = []
         self.context_evidence_chain = []
+        self.live_diagnostics = {}
 
-        # Resolve observation time for LIVE
+        # Resolve observation time for LIVE with bounded lookback
         if self.mode == "live" and date_time is None:
-            date_time = resolve_latest_observation_time()
+            # Try to find latest available observation with lookback
+            lookback_result = resolve_latest_available_observation_time(self.adapter)
+            self.live_diagnostics = lookback_result
+            
+            if lookback_result["found"]:
+                date_time = lookback_result["observation_time"]
+            else:
+                # No data found in lookback window - return bounded error
+                return self._error_answer(
+                    "LIVE unavailable: No FortyGuard observation data found in the "
+                    f"last {lookback_result['lookback_used']} hours. "
+                    "Please try Replay mode for historical data."
+                )
 
         # 1. user_request
         self._add_evidence("user_request", {
@@ -260,9 +273,13 @@ class HeatAgent:
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":
                 return None
-            return normalize_heatmap_result(
+            result = normalize_heatmap_result(
                 status_data, request_params, mode="live", activity_id=activity_id
             )
+            # Store the actual observation time for diagnostic reporting
+            if result and date_time:
+                result["requested_observation_time"] = date_time
+            return result
         except Exception:
             return None
 
