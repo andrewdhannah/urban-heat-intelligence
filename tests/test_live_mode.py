@@ -333,11 +333,33 @@ def test_no_duplicate_heatmap_submission():
         submissions.append(params)
         return {"data": {"activity_id": "test-id"}}
     
+    # Return proper heatmap structure with candidates
     def mock_poll(activity_id, max_polls=30, interval=0):
-        return {"data": {"status": "Completed", "result": {"map_data": {"features": [{"id": 1}]}}}}
+        return {
+            "data": {
+                "status": "Completed",
+                "result": {
+                    "map_data": {
+                        "features": [{
+                            "id": 0,
+                            "type": "Feature",
+                            "properties": {"tile_id": 0, "average_temperature": 42.0},
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [[[-112.08, 33.44], [-112.06, 33.44], [-112.06, 33.46], [-112.08, 33.46], [-112.08, 33.44]]]
+                            }
+                        }],
+                        "type": "FeatureCollection"
+                    },
+                    "stats_data": {}
+                }
+            }
+        }
     
     mock_adapter.submit_heatmap = mock_submit
     mock_adapter.poll_status = mock_poll
+    mock_adapter.get_request_counts.return_value = {"heatmap_submissions": 1, "env_params_submissions": 0, "status_gets": 1}
+    mock_adapter.reset_request_counts = MagicMock()
     
     agent = HeatAgent(mock_adapter, mode="live")
     result = agent.answer("What's the heat risk in Phoenix?")
@@ -349,7 +371,7 @@ def test_no_duplicate_heatmap_submission():
 
 
 def test_provider_metrics_tracking():
-    """Provider metrics are correctly tracked."""
+    """Provider metrics are correctly tracked via adapter request counters."""
     mock_adapter = MagicMock()
     mock_adapter.submit_heatmap.return_value = {"data": {"activity_id": "test-id"}}
     mock_adapter.poll_status.return_value = {
@@ -359,6 +381,12 @@ def test_provider_metrics_tracking():
         }
     }
     mock_adapter.submit_env_params.return_value = {"data": {"activity_id": "test-env-id"}}
+    mock_adapter.get_request_counts.return_value = {
+        "heatmap_submissions": 1,
+        "env_params_submissions": 1,
+        "status_gets": 1
+    }
+    mock_adapter.reset_request_counts = MagicMock()
     
     agent = HeatAgent(mock_adapter, mode="live")
     result = agent.answer("What's the heat risk in Phoenix?")
@@ -366,7 +394,7 @@ def test_provider_metrics_tracking():
     metrics = result.get("provider_metrics", {})
     assert "heatmap_submissions" in metrics
     assert "env_params_submissions" in metrics
-    assert "status_requests" in metrics
+    assert "status_gets" in metrics
     # At minimum, we should have 1 heatmap submission
     assert metrics["heatmap_submissions"] >= 1
     print("  PASS: test_provider_metrics_tracking")

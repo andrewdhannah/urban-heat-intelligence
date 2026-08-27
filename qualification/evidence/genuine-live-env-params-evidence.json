@@ -1,0 +1,26 @@
+{
+  "test_type": "genuine_live_env_params_execution",
+  "timestamp": "2026-08-27T23:26:30.041696+00:00",
+  "target_observation_time": "2026-08-26T14:00:00-07:00",
+  "heatmap_activity_id": "787f3a80-b75e-496e-8e40-3f804bfb1dbd",
+  "heatmap_features": 367,
+  "top_candidate": {
+    "lat": 33.44821386819277,
+    "lon": -112.07723977383121,
+    "temperature": 42.9224
+  },
+  "env_params_activity_id": "512a33f9-8c1a-4d4c-af43-5f9c3606e341",
+  "env_params_result": {
+    "heat_index": [
+      39.7
+    ],
+    "apparent_temp": [
+      45.5
+    ],
+    "humidity": [
+      9.2
+    ]
+  },
+  "credential_present": true,
+  "credential_exposed": false
+}

@@ -66,22 +66,16 @@ class HeatAgent:
         self.mode = mode
         self.evidence_chain = []
         self.context_evidence_chain = []
-        self.provider_metrics = {
-            "heatmap_submissions": 0,
-            "env_params_submissions": 0,
-            "status_requests": 0
-        }
 
     def answer(self, question, location="Phoenix, AZ", date_time=None):
         """Answer a heat question with planning, tool calls, and 8-node evidence."""
         self.evidence_chain = []
         self.context_evidence_chain = []
-        self.provider_metrics = {
-            "heatmap_submissions": 0,
-            "env_params_submissions": 0,
-            "status_requests": 0
-        }
         self.live_diagnostics = {}
+
+        # Reset adapter request counters for this query
+        if hasattr(self.adapter, 'reset_request_counts'):
+            self.adapter.reset_request_counts()
 
         # For LIVE mode: use bounded lookback to find latest available observation
         # The discovery heatmap IS the answer heatmap - no duplicate execution
@@ -89,11 +83,6 @@ class HeatAgent:
         if self.mode == "live" and date_time is None:
             lookback_result = resolve_latest_available_observation(self.adapter)
             self.live_diagnostics = lookback_result
-            
-            # Accumulate provider metrics from lookback
-            if "provider_metrics" in lookback_result:
-                self.provider_metrics["heatmap_submissions"] += lookback_result["provider_metrics"].get("heatmap_submissions", 0)
-                self.provider_metrics["status_requests"] += lookback_result["provider_metrics"].get("status_requests", 0)
             
             if lookback_result["found"]:
                 # Reuse the heatmap result from discovery - no duplicate execution
@@ -261,7 +250,11 @@ class HeatAgent:
             answer["context_evidence_chain"] = self.context_evidence_chain
 
         # Add provider metrics to answer for traffic accounting
-        answer["provider_metrics"] = self.provider_metrics
+        # These are actual HTTP request counts from the adapter
+        if hasattr(self.adapter, 'get_request_counts'):
+            answer["provider_metrics"] = self.adapter.get_request_counts()
+        else:
+            answer["provider_metrics"] = {}
 
         return answer
 
@@ -295,12 +288,10 @@ class HeatAgent:
         request_params = self._build_heatmap_request(date_time)
         try:
             raw = self.adapter.submit_heatmap(request_params)
-            self.provider_metrics["heatmap_submissions"] += 1
             activity_id = raw.get("data", {}).get("activity_id")
             if not activity_id:
                 return None
             status_result = self.adapter.poll_status(activity_id)
-            self.provider_metrics["status_requests"] += 1
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":
                 return None
@@ -348,12 +339,10 @@ class HeatAgent:
         }
         try:
             raw = self.adapter.submit_env_params(request_params)
-            self.provider_metrics["env_params_submissions"] += 1
             activity_id = raw.get("data", {}).get("activity_id")
             if not activity_id:
                 return None
             status_result = self.adapter.poll_status(activity_id)
-            self.provider_metrics["status_requests"] += 1
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":
                 return None
@@ -500,13 +489,18 @@ class HeatAgent:
         }
 
     def _error_answer(self, message):
+        # Include provider metrics even in error case
+        if hasattr(self.adapter, 'get_request_counts'):
+            metrics = self.adapter.get_request_counts()
+        else:
+            metrics = {}
         return {
             "answer": {"summary": f"Unable to answer: {message}", "conditions": {},
                        "why_this_answer": message, "sources": [], "mode": self.mode,
                        "observation_time": None, "error": True},
             "evidence_chain": self.evidence_chain,
             "raw_results": {},
-            "provider_metrics": self.provider_metrics
+            "provider_metrics": metrics
         }
 
     def _add_evidence(self, step, data):

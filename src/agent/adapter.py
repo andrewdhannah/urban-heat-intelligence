@@ -3,6 +3,7 @@ FortyGuard Adapter — S1 wrapper with verified TLS
 
 Provides submit_heatmap, submit_env_params, poll_status methods.
 TLS certificate verification is always enabled.
+Tracks actual HTTP request counts for provider traffic accounting.
 """
 
 import json
@@ -44,6 +45,12 @@ class FortyGuardAdapter:
         else:
             self.api_key = None
         self._ssl_ctx = _make_ssl_context()
+        # Request counters for provider traffic accounting
+        self._request_counts = {
+            "heatmap_submissions": 0,
+            "env_params_submissions": 0,
+            "status_gets": 0
+        }
 
     def _load_api_key(self):
         """Load from environment variable or governed secret store."""
@@ -75,18 +82,33 @@ class FortyGuardAdapter:
 
     def submit_heatmap(self, params):
         """Submit heatmap request, return raw response."""
+        self._request_counts["heatmap_submissions"] += 1
         return self._make_request("POST", "/heatmap", params)
 
     def submit_env_params(self, params):
         """Submit env_params request, return raw response."""
+        self._request_counts["env_params_submissions"] += 1
         return self._make_request("POST", "/env_params", params)
 
     def poll_status(self, activity_id, max_polls=30, interval=3):
-        """Poll until terminal state."""
+        """Poll until terminal state. Each iteration is one HTTP GET /status/{id}."""
         for i in range(max_polls):
             time.sleep(interval)
+            self._request_counts["status_gets"] += 1
             result = self._make_request("GET", f"/status/{activity_id}")
             status = result.get("data", {}).get("status", "unknown")
             if status in ("Completed", "Failed"):
                 return result
         raise TimeoutError(f"Activity {activity_id} did not reach terminal status")
+
+    def get_request_counts(self):
+        """Return actual HTTP request counts for provider traffic accounting."""
+        return dict(self._request_counts)
+
+    def reset_request_counts(self):
+        """Reset request counters."""
+        self._request_counts = {
+            "heatmap_submissions": 0,
+            "env_params_submissions": 0,
+            "status_gets": 0
+        }
