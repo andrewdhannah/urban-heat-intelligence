@@ -9,6 +9,7 @@
       {
         "path": "docs/hackathon-plan-v3.5.md",
         "authority": "CURRENT / GOVERNING EXECUTION PLAN",
+        "content_hash": "f5e1af10683b40232c2380569b22a0785928ff260b042c9b81a50d5a66b07ef8",
         "supersedes": ["hackathon-plan-v3.4.md", "hackathon-plan-v3.3.md"],
         "authority_basis": "Owner-approved expansion and planning state"
       },
@@ -32,6 +33,7 @@
       {
         "path": "docs/hackathon-plan-v3.4.md",
         "authority": "HISTORICAL — superseded by v3.5",
+        "content_hash": "c3411774a6116310f07650f9e933734a8d767cc22e41d7cf0a731bf5205d944e",
         "preservation": "Original bytes preserved, not rewritten"
       },
       {
@@ -89,10 +91,32 @@
         "notes": "Historical prep document, retained as-is"
       },
       {
-        "path": "qualification/UHI-GOVERNED-LIFECYCLE-QUAL-001.md",
-        "authority": "PROTECTED — IMMUTABLE",
-        "hash": "4eeb4629928ef0a20abdad119f8ddcbd4b1c0d8184b98d6e08aea7571876eefd",
-        "source": "active/librarian/qualification/"
+        "path": "qualification/specifications/UHI-SPEC-009-priority-ranking.md",
+        "authority": "NORMATIVE — materialized from qa-pilot",
+        "content_hash": "2b1bd39caf50ffb76567c30fc31ee788e893bb4cbaf57dd1cbd4ff433b40ef36",
+        "source_project": "qa-pilot",
+        "source_path": "active/qa-pilot/specifications/UHI-SPEC-009-priority-ranking.md"
+      },
+      {
+        "path": "qualification/specifications/UHI-SPEC-010-intervention-rules.md",
+        "authority": "NORMATIVE — materialized from qa-pilot",
+        "content_hash": "bcc3e784b572974b2fed57c0d9b663887c7a50f955aac83bfe68a4d3c2d4d80c",
+        "source_project": "qa-pilot",
+        "source_path": "active/qa-pilot/specifications/UHI-SPEC-010-intervention-rules.md"
+      },
+      {
+        "path": "qualification/specifications/UHI-SPEC-011-claim-taxonomy.md",
+        "authority": "NORMATIVE — materialized from qa-pilot",
+        "content_hash": "24b3ff8707a45c2fadc87287f554f446ac71aef417e031b03ec2522913c2fcf1",
+        "source_project": "qa-pilot",
+        "source_path": "active/qa-pilot/specifications/UHI-SPEC-011-claim-taxonomy.md"
+      },
+      {
+        "path": "qualification/specifications/UHI-SPEC-012-replay-package.md",
+        "authority": "NORMATIVE — materialized from qa-pilot",
+        "content_hash": "1f3f2eaf5c8a0c57726e80f836ba54a1847671ca691a34ca07f48604bd57e569",
+        "source_project": "qa-pilot",
+        "source_path": "active/qa-pilot/specifications/UHI-SPEC-012-replay-package.md"
       },
       {
         "path": "qualification/receipts/UHI-EXTERNAL-CAPABILITY-UPDATE-20260826.json",
@@ -104,7 +128,7 @@
         "authority": "CURRENT — Phase A authorization"
       },
       {
-        "path": "qualification/receipts/UHI-PRE-INSTANTIATION-STATE-001.json",
+        "path": "qualification/UHI-PRE-INSTANTIATION-STATE-001.json",
         "authority": "HISTORICAL — preserved immutable",
         "notes": "API key unavailable on Aug 21 (historically true, superseded by current state)"
       },

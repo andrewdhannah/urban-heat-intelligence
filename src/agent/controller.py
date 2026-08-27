@@ -235,6 +235,8 @@ class HeatAgent:
         fixture_path = Path("fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json")
         if not fixture_path.exists():
             return None
+        if not self._validate_fixture_integrity(fixture_path, "heatmap"):
+            return None
         with open(fixture_path) as f:
             raw = json.load(f)
         data = raw.get("data", {})
@@ -280,6 +282,8 @@ class HeatAgent:
         fixture_path = Path("fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json")
         if not fixture_path.exists():
             return None
+        if not self._validate_fixture_integrity(fixture_path, "env_params"):
+            return None
         with open(fixture_path) as f:
             raw = json.load(f)
         data = raw.get("data", {})
@@ -293,6 +297,29 @@ class HeatAgent:
             fixture_path=str(fixture_path),
             activity_id=data.get("activity_id")
         )
+
+    @staticmethod
+    def _validate_fixture_integrity(fixture_path, fixture_type):
+        """Validate fixture against integrity manifest (SPEC-012)."""
+        from pathlib import Path
+        import hashlib
+        manifest_path = Path("fixtures/fortyguard/integrity-manifest.json")
+        if not manifest_path.exists():
+            return True  # No manifest = skip validation (backward compatible)
+        try:
+            with open(manifest_path) as f:
+                manifest = json.load(f)
+            expected_hash = None
+            for fx in manifest.get("fixtures", []):
+                if fx.get("type") == fixture_type and fx.get("path") == str(fixture_path):
+                    expected_hash = fx.get("sha256")
+                    break
+            if expected_hash is None:
+                return True  # Fixture not in manifest = skip validation
+            actual_hash = hashlib.sha256(fixture_path.read_bytes()).hexdigest()
+            return actual_hash == expected_hash
+        except Exception:
+            return False  # Integrity check failure = do not use fixture
 
     def _compose_answer(self, heatmap, env_params, question, location, plan, ranked_candidates=None):
         hm = heatmap["result"] if heatmap else {}

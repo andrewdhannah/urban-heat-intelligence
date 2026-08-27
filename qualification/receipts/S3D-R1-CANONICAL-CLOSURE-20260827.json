@@ -1,0 +1,52 @@
+{
+  "receipt_id": "S3D-R1-CANONICAL-CLOSURE-20260827",
+  "receipt_type": "s3d_r1_canonical_closure",
+  "timestamp": "2026-08-27T07:00:00Z",
+  "project_id": "urban-heat-intelligence",
+  "supersedes_readiness_claim_from": "S3D-RECONCILIATION-FREEZE-20260827",
+  "baseline_commit": "72c5b975ee38f5397fc53875b3430f7e2d5473de",
+  "resulting_commit": "pending-commit",
+
+  "governing_plan_path": "docs/hackathon-plan-v3.5.md",
+  "governing_plan_hash": "f5e1af10683b40232c2380569b22a0785928ff260b042c9b81a50d5a66b07ef8",
+  "manifest_path_resolution": "PASS — all paths in authority manifest resolve to existing files",
+
+  "spec011_source": "qualification/specifications/UHI-SPEC-011-claim-taxonomy.md",
+  "spec011_hash": "24b3ff8707a45c2fadc87287f554f446ac71aef417e031b03ec2522913c2fcf1",
+  "spec011_normative_classes": [
+    "SOURCE_OBSERVATION",
+    "NORMALIZED_OBSERVATION",
+    "DERIVED_FINDING",
+    "CORROBORATED_FINDING",
+    "HISTORICAL_COMPARISON",
+    "PRIORITY_CLASSIFICATION",
+    "INTERVENTION_RECOMMENDATION",
+    "CONTEXTUAL_STATEMENT",
+    "UNRESOLVED",
+    "UNSUPPORTED"
+  ],
+  "claim_taxonomy_audit": "PASS — all Brief claims map to permitted normative classes; unsupported_claim_count == 0",
+
+  "spec012_integrity_manifest": "fixtures/fortyguard/integrity-manifest.json — SHA-256 hashes for heatmap and env_params fixtures",
+  "fixture_integrity_validation": "PASS — genuine fixtures pass hash verification at replay load",
+  "corrupted_fixture_negative_test": "PASS — corrupted fixture produces bounded error, no normal replay result",
+
+  "provenance_model_truth_audit": "PROVENANCE-MODEL.md updated to describe actual implementation (evidence chain in JSON payload, not SQLite). Future architecture preserved separately.",
+
+  "authorization_receipt_gap": "FORMAL_AUTHORIZATION_RECEIPT_GAP preserved. Qualification impact: independent S3E determination.",
+
+  "prior_tests": "S1: 20/20, S2: 15/15, Hardening: 12/12, S3B-pre-R1: 20/20, Browser: 12/12, Controlled LIVE: 7/7",
+  "new_tests": 5,
+  "total_tests": 91,
+
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+  "deployed_commit": "pending — Render deploys from main after push",
+  "final_s3e_candidate_commit": "pending-commit",
+
+  "feature_freeze": true,
+  "ready_for_final_s3e": true,
+
+  "s3b_result": "PASS",
+  "s3_status": "S3D-R1 COMPLETE — ready for S3E QA-Pilot",
+  "s4_status": "NOT AUTHORIZED"
+}

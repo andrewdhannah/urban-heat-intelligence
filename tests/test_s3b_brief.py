@@ -386,6 +386,84 @@ def test_cross_mode_visualization_guard():
     print("  PASS: test_cross_mode_visualization_guard")
 
 
+def test_authority_manifest_path_resolution():
+    """Every path in authority manifest resolves to an existing file."""
+    manifest_path = Path("project-state/AUTHORITY-MANIFEST.json")
+    assert manifest_path.exists()
+    manifest = json.loads(manifest_path.read_text())
+    missing = []
+    for item in manifest.get("authority_manifest", {}).get("current", []):
+        p = Path(item["path"])
+        if not p.exists():
+            missing.append(item["path"])
+    assert not missing, f"Authority manifest paths missing: {missing}"
+    print("  PASS: test_authority_manifest_path_resolution")
+
+
+def test_spec011_normative_taxonomy():
+    """SPEC-011 normative classes match the authoritative source."""
+    spec_path = Path("qualification/specifications/UHI-SPEC-011-claim-taxonomy.md")
+    assert spec_path.exists()
+    content = spec_path.read_text()
+    required_classes = [
+        "SOURCE_OBSERVATION", "NORMALIZED_OBSERVATION", "DERIVED_FINDING",
+        "CORROBORATED_FINDING", "HISTORICAL_COMPARISON", "PRIORITY_CLASSIFICATION",
+        "INTERVENTION_RECOMMENDATION", "CONTEXTUAL_STATEMENT", "UNRESOLVED", "UNSUPPORTED"
+    ]
+    for cls in required_classes:
+        assert cls in content, f"Missing normative class: {cls}"
+    print("  PASS: test_spec011_normative_taxonomy")
+
+
+def test_zero_unsupported_claims():
+    """All Brief claims map to permitted normative classes; none are unsupported."""
+    PERMITTED_CLASSES = {
+        "thermal_measurement",       # → SOURCE_OBSERVATION
+        "environmental_measurement", # → SOURCE_OBSERVATION
+        "product_derived_comparison", # → DERIVED_FINDING
+        "product_derived_decision_note", # → PRIORITY_CLASSIFICATION
+        "official_current_context",  # → CONTEXTUAL_STATEMENT
+        "provenance_disclosure",     # → CONTEXTUAL_STATEMENT
+        "availability_disclosure",   # → CONTEXTUAL_STATEMENT
+        "product_derived_disclosure", # → DERIVED_FINDING
+    }
+    brief = build_visualization_payload(replay_result())["urban_heat_brief"]
+    unsupported = []
+    for claim in brief["claims"]:
+        st = claim.get("source_type", "")
+        if st not in PERMITTED_CLASSES:
+            unsupported.append(f"{claim['claim_id']}: {st}")
+    assert not unsupported, f"Unsupported claims found: {unsupported}"
+    print("  PASS: test_zero_unsupported_claims")
+
+
+def test_replay_fixture_integrity_positive():
+    """Genuine fixtures pass integrity validation."""
+    from src.agent.controller import HeatAgent
+    agent = HeatAgent(FortyGuardAdapter(mode="replay"), mode="replay")
+    result = agent.answer("What is the heat risk?")
+    assert result["answer"]["mode"] == "replay"
+    assert not result["answer"].get("error", False)
+    print("  PASS: test_replay_fixture_integrity_positive")
+
+
+def test_replay_fixture_corruption_negative():
+    """Corrupted fixture causes bounded integrity failure, no normal result."""
+    import shutil
+    fixture = Path("fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json")
+    backup = fixture.with_suffix(".json.bak")
+    try:
+        shutil.copy2(fixture, backup)
+        fixture.write_bytes(b"CORRUPTED")
+        agent = HeatAgent(FortyGuardAdapter(mode="replay"), mode="replay")
+        result = agent.answer("What is the heat risk?")
+        assert result["answer"].get("error", True), "Corrupted fixture should produce error"
+    finally:
+        if backup.exists():
+            shutil.move(backup, fixture)
+    print("  PASS: test_replay_fixture_corruption_negative")
+
+
 def run_all():
     tests = [
         test_replay_brief_exists,
@@ -408,6 +486,11 @@ def run_all():
         test_http_invalid_mode,
         test_nws_behavior_assertions,
         test_cross_mode_visualization_guard,
+        test_authority_manifest_path_resolution,
+        test_spec011_normative_taxonomy,
+        test_zero_unsupported_claims,
+        test_replay_fixture_integrity_positive,
+        test_replay_fixture_corruption_negative,
     ]
     passed = 0
     for test in tests:

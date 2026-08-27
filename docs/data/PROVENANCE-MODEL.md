@@ -47,24 +47,25 @@ CREATE TABLE evidence_log (
 
 ## Claim Taxonomy (SPEC-011)
 
-Normative claim taxonomy from SPEC-011. The product uses these exact classes. Product-facing aliases in earlier teaching docs map to these normative classes.
+Normative claim taxonomy from UHI-SPEC-011 v1.0 (hash: 24b3ff87).
+Canonical source: `qualification/specifications/UHI-SPEC-011-claim-taxonomy.md`.
 
-| Normative Class | Source Required | Product Alias Used In Brief |
-|----------------|----------------|---------------------------|
-| SOURCE_OBSERVATION | Yes — tool, timestamp | thermal measurement |
-| DERIVED_CALCULATION | Yes — formula, inputs | environmental measurement |
-| COMPARATIVE_STATEMENT | Yes — both sources | product_derived_comparison |
-| RECOMMENDATION | Yes — decision logic | product_derived_decision_note |
-| CONTEXTUAL_NOTE | Yes — source, timestamp | official_current_context |
-| ATTRIBUTED_CLAIM | Yes — source, layer | — (not currently used) |
-| MODE_LABEL | Yes — mode determination | provenance_disclosure |
-| CONFIDENCE_DISCLOSURE | Yes — calculation | — (not currently used) |
-| TEMPORAL_DISCLOSURE | Yes — timestamp source | availability_disclosure |
-| UNSUPPORTED | [forbidden] | [must not appear] |
+| # | Normative Class | Source Required | Product Alias in Brief |
+|---|----------------|----------------|----------------------|
+| 1 | SOURCE_OBSERVATION | Yes — source, timestamp, spatial/temporal scope | thermal measurement |
+| 2 | NORMALIZED_OBSERVATION | Yes — source, original reference, schema version | — (mechanical normalization) |
+| 3 | DERIVED_FINDING | Yes — all inputs, derivation method | product_derived_comparison |
+| 4 | CORROBORATED_FINDING | Yes — 2+ independent sources | — (not currently produced) |
+| 5 | HISTORICAL_COMPARISON | Yes — current + historical observations | — (NOAA deferred) |
+| 6 | PRIORITY_CLASSIFICATION | Yes — calculation trace, factor values | product_derived_decision_note |
+| 7 | INTERVENTION_RECOMMENDATION | Yes — derivation rules, conditions | — (deferred, not produced) |
+| 8 | CONTEXTUAL_STATEMENT | Yes — source, publication date | official_current_context, provenance_disclosure |
+| 9 | UNRESOLVED | Yes — question definition | — (not currently produced) |
+| 10 | UNSUPPORTED | [forbidden] | [must not appear] |
 
-**Machine-readable mapping:** The `source_type` field in each `urban_heat_brief.claims[]` entry uses the Product Alias column. These map one-to-one to the Normative Class column. No ambiguity exists.
+**Product-alias mapping:** The `source_type` field in each `urban_heat_brief.claims[]` entry uses aliases that map one-to-one to normative classes above. No ambiguity exists. Every factual Brief sentence must belong to exactly one normative class.
 
-**Zero unsupported claims rule:** Every factual Brief sentence must belong to one normative class above. If it cannot be mapped, it must not appear.
+**Zero unsupported claims rule:** Every factual Brief sentence must belong to one normative class (1-8). Classes 9-10 are structural. If a sentence cannot be mapped, it must not appear.
 
 ## "Why?" Panel
 

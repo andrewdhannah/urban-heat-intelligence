@@ -1,0 +1,27 @@
+{
+  "spec_version": "1.0.0",
+  "project_id": "urban-heat-intelligence",
+  "fixture_set": "phoenix-2026-08-25-14h",
+  "provider": "FortyGuard",
+  "fixtures": [
+    {
+      "path": "fixtures/fortyguard/heatmap/phoenix-2026-08-25-14h.json",
+      "type": "heatmap",
+      "sha256": "f0c46b4ec6059cb1ee2f1926e1392ce09ffba7851cf070b9bd96b9a184214fbc",
+      "provider": "FortyGuard",
+      "endpoint": "/v1/heatmap",
+      "observation_time": "2026-08-25T14:00:00-07:00",
+      "expected_feature_count": 367,
+      "expected_observation_time": "2026-08-25T14:00:00-07:00"
+    },
+    {
+      "path": "fixtures/fortyguard/env_params/phoenix-33.4484--112.0740-2026-08-25-14h.json",
+      "type": "env_params",
+      "sha256": "fcbce6b18a1fcd8c5fe2cca548574e33f65173e9ffa295e8d209d73471e16183",
+      "provider": "FortyGuard",
+      "endpoint": "/v1/env_params",
+      "observation_time": "2026-08-25T14:00:00-07:00",
+      "expected_observation_time": "2026-08-25T14:00:00-07:00"
+    }
+  ]
+}
