@@ -41,24 +41,23 @@ because those sources are deferred.
 ## 3. Architecture (Three Layers)
 
 ```
-Layer 1: MCP Server + Data Layer
-├── FortyGuard API client (Python stdlib)
-├── SQLite + sqlite-vec (evidence, embeddings, cache)
-├── NWS API client
-└── Evidence log (append-only)
+Layer 1: Data Layer
+├── FortyGuard API client (Python stdlib, no external deps)
+├── NWS API client (Python stdlib)
+└── In-memory evidence chain (Python list, not persisted)
 
 Layer 2: Agent + Decision Engine
-├── Planning module (source selection, sequencing)
-├── Tool orchestration (6 MCP tools)
-├── Priority scoring (SPEC-009)
-├── Intervention logic (SPEC-010)
+├── Planning module (intent classification, tool selection)
+├── Tool orchestration (heatmap + env_params)
+├── Top-3 candidate ranking (observed temperature, descending)
+├── Near-tie semantics (0.1°C threshold)
 ├── Evidence chain assembly
-└── Urban Heat Brief composition
+└── Urban Heat Brief composition (claim-level provenance)
 
 Layer 3: Interface
-├── Chat interface (LINK pattern — message in, card out)
-├── Dashboard (Leaflet.js, heat overlay, click-to-query)
+├── Dashboard (Leaflet.js, CARTO dark basemap, heatmap polygons)
 ├── Why? panel (evidence chain display)
+├── Urban Heat Brief (narrative with claim provenance)
 └── Mode toggle (LIVE / REPLAY)
 ```
 
@@ -103,21 +102,9 @@ Layer 3: Interface
 
 Every tool response includes an evidence receipt:
 
-```json
-{
-  "tool": "get_heatmap",
-  "source": "fortyguard",
-  "query_time": "2026-08-26T14:15:00Z",
-  "cached": false,
-  "confidence": 0.95,
-  "mode": "live",
-  "receipt_id": "fg-heatmap-20260826-141500"
-}
-```
+Each evidence node is an in-memory dict with `step`, `data`, and `timestamp`. The "Why?" panel displays the evidence chain from the JSON API response.
 
-The evidence log (SQLite `evidence_log` table) stores all receipts. The "Why?" panel displays the evidence chain for any assertion.
-
-**Claim taxonomy (SPEC-011):** 10 claim classes from SOURCE_OBSERVATION to UNSUPPORTED. The product must maintain 0 unsupported claims.
+**Claim taxonomy (SPEC-011):** 10 normative classes from SOURCE_OBSERVATION to UNSUPPORTED. The product must maintain 0 unsupported claims.
 
 ---
 

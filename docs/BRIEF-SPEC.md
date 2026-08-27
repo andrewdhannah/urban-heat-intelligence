@@ -300,7 +300,7 @@ The agent must maintain this mapping internally. If a claim cannot be mapped, it
 | UHI-SPEC-011 (claim taxonomy) | Brief claims must satisfy SPEC-011 — 0 unsupported claims |
 | UHI-SPEC-009 (priority ranking) | Brief decision section uses SPEC-009 ranking |
 | UHI-SPEC-010 (intervention rules) | Brief decision section references SPEC-010 intervention categories |
-| Evidence log (evidence_log table) | Brief claims trace to evidence log entries |
+| Evidence chain (in-memory) | Brief claims trace to evidence chain nodes |
 
 ---
 

@@ -13,78 +13,52 @@ The product's key differentiator is that every assertion carries source attribut
 
 ---
 
-## 2. The Evidence Receipt
+## 2. The Evidence Chain (Implemented)
 
-Every tool response includes an evidence receipt:
+The application uses an in-memory evidence chain — not a database. Each `HeatAgent.answer()` call creates a fresh chain that is serialized into the JSON API response.
+
+### 2.1 Evidence Node Structure
 
 ```json
 {
-  "tool": "get_heatmap",
-  "source": "fortyguard",
-  "query_time": "2026-08-26T14:15:00Z",
-  "cached": false,
-  "confidence": 0.95,
-  "mode": "live",
-  "receipt_id": "fg-heatmap-20260826-141500",
-  "parameters": {
-    "area": "downtown_phoenix",
-    "resolution": "2m"
-  }
+  "step": "heatmap_result",
+  "data": { "tool": "get_heatmap", "feature_count": 367, ... },
+  "timestamp": "2026-08-26T14:15:00+00:00"
 }
 ```
 
-### 2.1 Required Fields
-
 | Field | Meaning | Example |
 |-------|---------|---------|
-| tool | Which MCP tool produced this | get_heatmap |
-| source | Which data provider | fortyguard |
-| query_time | When the query was made | 2026-08-26T14:15:00Z |
-| cached | Whether this was a cache hit | false |
-| confidence | Agent's confidence in this data | 0.95 |
-| mode | LIVE or REPLAY | live |
-| receipt_id | Unique identifier for this receipt | fg-heatmap-20260826-141500 |
+| step | Which pipeline stage produced this | heatmap_result |
+| data | Payload specific to that stage | tool call result |
+| timestamp | When the node was created | ISO-8601 |
 
-### 2.2 Optional Fields
+### 2.2 Standard 8-Node Chain
 
-| Field | When Present |
-|-------|-------------|
-| fixture_date | REPLAY mode — when the fixture was recorded |
-| parameters | The query parameters used |
-| parent_receipt_id | If this receipt is derived from another |
-| staleness_seconds | If data is from cache, age in seconds |
-
----
-
-## 3. The Evidence Log
-
-All receipts are stored in the SQLite `evidence_log` table. This is append-only — receipts are never modified or deleted.
-
-```sql
-CREATE TABLE evidence_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    receipt_id TEXT UNIQUE NOT NULL,
-    tool TEXT NOT NULL,
-    source TEXT NOT NULL,
-    query_time TEXT NOT NULL,
-    cached BOOLEAN NOT NULL,
-    confidence REAL,
-    mode TEXT NOT NULL,
-    receipt_json TEXT NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
+```
+user_request → plan → heatmap_request → heatmap_result
+→ coordinate_selection → env_params_request → env_params_result → answer
 ```
 
-### 3.1 Evidence Log Rules
+Additional nodes may appear:
+- `nws_request` / `nws_result` / `nws_exclusion` — NWS context (LIVE only)
+- `brief` — Urban Heat Brief composition metadata
 
-1. **Append-only** — receipts are never updated or deleted
-2. **Every tool call** creates a receipt
-3. **Every displayed assertion** must trace to a receipt
-4. **The "Why?" panel** queries the evidence log to display the chain
+### 2.3 Evidence Chain Lifecycle
+
+1. Created fresh on each `HeatAgent.answer()` call
+2. Stored in `self.evidence_chain` (Python list)
+3. Serialized into the JSON API response via `build_visualization_payload()`
+4. Displayed in the browser "Why This Answer?" panel
+5. **Not persisted** — no SQLite, no file storage, no database
+
+### 2.4 Future Target (Not Implemented)
+
+If persistent evidence storage were implemented, receipts would include `receipt_id`, `cached`, `confidence`, and `query_time` fields. These are NOT present in the current in-memory model.
 
 ---
 
-## 4. The "Why?" Panel
+## 3. The "Why?" Panel
 
 When a user clicks "Why This Answer?", the agent displays the evidence chain:
 
@@ -109,43 +83,36 @@ NWS (excluded in Replay):
   → "Current NWS context is not included in historical Replay."
 ```
 
-Every line traces to a specific receipt.
+Every line traces to a step in the evidence chain.
 
 ---
 
-## 5. Claim Taxonomy (SPEC-011)
+## 4. Claim Taxonomy (SPEC-011)
 
-The product uses 10 claim classes. Every displayed assertion must belong to one:
+The product uses 10 normative claim classes from UHI-SPEC-011. Every displayed assertion must belong to one:
 
-| Class | Example | Provenance Required |
-|-------|---------|-------------------|
-| SOURCE_OBSERVATION | "FortyGuard observed 42.05°C" | Source, tool, timestamp |
-| DERIVED_CALCULATION | "Apparent temperature is 46.4°C" | Source, formula, inputs |
-| COMPARATIVE_STATEMENT | "3 candidates within 0.1°C near-tie tolerance" | Candidate comparison, threshold |
-| RECOMMENDATION | "These locations warrant comparable attention" | Product-derived decision note |
-| CONTEXTUAL_NOTE | "NWS reports Partly Cloudy conditions" | Source, timestamp |
-| PROVENANCE_DISCLOSURE | "NWS current context not included in historical Replay" | Source, mode |
-| MODE_LABEL | "Live data" / "Replay data" | Mode determination |
-| CONFIDENCE_DISCLOSURE | — | Not currently used |
-| TEMPORAL_DISCLOSURE | "Data from 2:15 PM" | Timestamp source |
-| UNSUPPORTED | [forbidden] | [must not appear] |
+| # | Normative Class | Source Required |
+|---|----------------|----------------|
+| 1 | SOURCE_OBSERVATION | Yes — source, timestamp |
+| 2 | NORMALIZED_OBSERVATION | Yes — source, original reference |
+| 3 | DERIVED_FINDING | Yes — all inputs, derivation method |
+| 4 | CORROBORATED_FINDING | Yes — 2+ independent sources |
+| 5 | HISTORICAL_COMPARISON | Yes — current + historical |
+| 6 | PRIORITY_CLASSIFICATION | Yes — calculation trace |
+| 7 | INTERVENTION_RECOMMENDATION | Yes — derivation rules |
+| 8 | CONTEXTUAL_STATEMENT | Yes — source, publication date |
+| 9 | UNRESOLVED | Yes — question definition |
+| 10 | UNSUPPORTED | [forbidden] |
 
 **The product must maintain 0 unsupported claims.** This is machine-verifiable.
 
 ---
 
-## 6. Provenance for the Urban Heat Brief
+## 5. Provenance for the Urban Heat Brief
 
 The Heat Brief inherits the same provenance model. Every sentence in the brief traces to evidence:
 
-The implemented Brief is returned in the answer payload as
-`urban_heat_brief`. Each claim retains `claim_id`, `text`,
-`source_provider`, `source_type`, `evidence_nodes`, `mode`,
-`observation_time` and `used_in_decision`. FortyGuard claims support the
-thermal decision. NWS claims are LIVE-only supplemental context and carry
-`retrieved_at` plus an effective forecast period; they always have
-`used_in_decision: false`. Replay includes an explicit NWS exclusion claim
-and makes no NWS request.
+The Brief is returned in the answer payload as `urban_heat_brief`. Each claim retains `claim_id`, `text`, `source_provider`, `source_type`, `evidence_nodes`, `mode`, `observation_time` and `used_in_decision`. FortyGuard claims support the thermal decision. NWS claims are LIVE-only supplemental context and carry `retrieved_at` plus an effective forecast period; they always have `used_in_decision: false`. Replay includes an explicit NWS exclusion claim and makes no NWS request.
 
 | Brief Sentence | Evidence Trace |
 |----------------|---------------|
@@ -159,43 +126,44 @@ and makes no NWS request.
 
 ---
 
-## 7. Provenance Integrity Tests
+## 6. Provenance Integrity Tests
 
-### 7.1 Receipt Completeness
-
-| Test | Expected Result |
-|------|----------------|
-| Every tool call creates a receipt | PASS — evidence_log count matches tool call count |
-| Every displayed assertion has a receipt | PASS — no orphan assertions |
-| Receipt ID matches evidence_log entry | PASS — referential integrity |
-
-### 7.2 Mode Integrity
+### 6.1 Chain Completeness
 
 | Test | Expected Result |
 |------|----------------|
-| LIVE receipts have query_time, not fixture_date | PASS |
-| REPLAY receipts have fixture_date, not query_time | PASS |
+| Every evidence node has a step and data | PASS — structurally validated |
+| Chain length >= 8 for standard query | PASS — 8+ nodes |
+| Every displayed assertion has a chain trace | PASS — no orphan assertions |
+
+### 6.2 Mode Integrity
+
+| Test | Expected Result |
+|------|----------------|
+| LIVE chain includes NWS nodes | PASS |
+| REPLAY chain includes nws_exclusion node | PASS |
 | Mode label matches actual data source | PASS |
+| Visualization source matches mode | PASS |
 
-### 7.3 Claim Integrity
-
-| Test | Expected Result |
-|------|----------------|
-| 0 unsupported claims in any response | PASS — machine-verifiable |
-| Every claim class matches SPEC-011 taxonomy | PASS |
-| Brief sentences trace to receipts | PASS |
-
-### 7.4 "Why?" Panel Integrity
+### 6.3 Claim Integrity
 
 | Test | Expected Result |
 |------|----------------|
-| "Why?" panel shows all contributing receipts | PASS |
-| Receipts match evidence_log | PASS |
+| 0 unsupported claims in any Brief | PASS — machine-verifiable |
+| Every claim source_type maps to normative SPEC-011 class | PASS |
+| Brief sentences trace to evidence nodes | PASS |
+
+### 6.4 "Why?" Panel Integrity
+
+| Test | Expected Result |
+|------|----------------|
+| "Why?" panel shows all chain nodes | PASS |
+| Chain nodes match API response | PASS |
 | No fabricated evidence in chain | PASS |
 
 ---
 
-## 8. Relationship to Other Teaching Documents
+## 7. Relationship to Other Teaching Documents
 
 | Document | Relationship |
 |----------|-------------|
@@ -208,4 +176,4 @@ and makes no NWS request.
 
 ---
 
-*This document explains evidence provenance to a fresh agent. It implements the foundational invariant: every assertion carries source attribution.*
+*This document explains the evidence provenance model to a fresh agent. It matches the frozen implementation c13d8ea.*

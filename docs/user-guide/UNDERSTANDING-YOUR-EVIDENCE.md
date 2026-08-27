@@ -8,29 +8,24 @@
 
 Every time the product retrieves data, it produces an **evidence receipt** — a record that traces exactly where each data point came from. This is not optional; it is an architectural requirement. An assertion without provenance is treated as a bug.
 
-A receipt looks like this:
+An evidence node looks like this:
 
 ```json
 {
-  "tool": "get_heatmap",
-  "source": "fortyguard",
-  "query_time": "2026-08-26T14:15:00Z",
-  "cached": false,
-  "confidence": 0.95,
-  "mode": "live",
-  "receipt_id": "fg-heatmap-20260826-141500"
+  "step": "heatmap_result",
+  "data": { "tool": "get_heatmap", "feature_count": 367, "mode": "replay" },
+  "timestamp": "2026-08-26T14:15:00+00:00"
 }
 ```
 
-Every receipt contains:
-- **tool** — which tool produced this data
-- **source** — which data provider (FortyGuard, NWS)
-- **query_time** — when the query was made
-- **mode** — Live or Replay
-- **receipt_id** — unique identifier
-- **confidence** — the agent's confidence in this data
+Every evidence node contains:
+- **step** — which pipeline stage produced this (heatmap_result, env_params_result, etc.)
+- **data** — payload specific to that stage
+- **timestamp** — when the node was created
 
-In Replay mode, receipts include a `fixture_date` field showing when the data was originally captured (August 25, 2026).
+The evidence chain is stored in-memory and serialized into the JSON API response. It is not persisted to a database.
+
+In Replay mode, the chain includes an `nws_exclusion` node showing that current NWS context is not included.
 
 ---
 

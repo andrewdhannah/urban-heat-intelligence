@@ -1,0 +1,74 @@
+{
+  "receipt_id": "S3D-R2-DOCUMENTATION-TRUTH-CLOSURE-20260827",
+  "receipt_type": "s3d_r2_documentation_truth_closure",
+  "timestamp": "2026-08-27T08:00:00Z",
+  "project_id": "urban-heat-intelligence",
+
+  "defect_detected_by": "Owner review",
+  "affected_prior_claim": "S3D-R1 provenance_model_truth_audit",
+  "prior_claim_status": "NOT FULLY EVIDENCED / SUPERSEDED",
+
+  "frozen_implementation": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+
+  "files_audited": [
+    "docs/data/PROVENANCE-MODEL.md",
+    "docs/teaching/UHI-EVIDENCE-PROVENANCE-TEACHING-001.md",
+    "docs/teaching/UHI-PRODUCT-TEACHING-001.md",
+    "docs/teaching/UHI-DATA-SOURCES-TEACHING-001.md",
+    "docs/teaching/UHI-DECISION-FLOW-TEACHING-001.md",
+    "docs/teaching/UHI-FAILURE-STATES-TEACHING-001.md",
+    "docs/teaching/UHI-LIVE-REPLAY-TEACHING-001.md",
+    "docs/teaching/UHI-USER-JOURNEYS-TEACHING-001.md",
+    "docs/BRIEF-SPEC.md",
+    "docs/user-guide/UNDERSTANDING-YOUR-EVIDENCE.md",
+    "docs/user-guide/QUICKSTART.md"
+  ],
+
+  "false_or_stale_claims_found": [
+    "PROVENANCE-MODEL: 'append-only SQLite evidence_log table' — NOT IMPLEMENTED",
+    "PROVENANCE-MODEL: 'receipts stored in SQLite' — NOT IMPLEMENTED",
+    "PROVENANCE-MODEL: receipt schema with receipt_id, cached, confidence — NOT IMPLEMENTED",
+    "EVIDENCE-PROVENANCE-TEACHING: SQLite evidence_log references — NOT IMPLEMENTED",
+    "EVIDENCE-PROVENANCE-TEACHING: receipt_id, cached, confidence fields — NOT IMPLEMENTED",
+    "PRODUCT-TEACHING: 'SQLite + sqlite-vec (evidence, embeddings, cache)' — NOT IMPLEMENTED",
+    "PRODUCT-TEACHING: receipt schema example — NOT IMPLEMENTED",
+    "BRIEF-SPEC: 'Evidence log (evidence_log table)' — NOT IMPLEMENTED",
+    "UNDERSTANDING-YOUR-EVIDENCE: receipt schema example — NOT IMPLEMENTED"
+  ],
+
+  "corrected_claims": [
+    "PROVENANCE-MODEL: evidence chain is in-memory Python list, not SQLite",
+    "PROVENANCE-MODEL: future architecture section explicitly labeled as TARGET",
+    "EVIDENCE-PROVENANCE-TEACHING: rewritten to match in-memory evidence chain",
+    "PRODUCT-TEACHING: architecture diagram reflects actual implementation",
+    "BRIEF-SPEC: 'Evidence chain (in-memory)' replaces 'evidence_log table'",
+    "UNDERSTANDING-YOUR-EVIDENCE: evidence node example replaces receipt example"
+  ],
+
+  "product_files_changed": false,
+
+  "teaching_docs_truth_audit": {
+    "UHI-EVIDENCE-PROVENANCE-TEACHING-001": "CORRECTED — rewritten to match in-memory model",
+    "UHI-PRODUCT-TEACHING-001": "CORRECTED — architecture and evidence references fixed",
+    "UHI-DATA-SOURCES-TEACHING-001": "CLEAN — no stale claims",
+    "UHI-DECISION-FLOW-TEACHING-001": "CLEAN — no stale claims",
+    "UHI-FAILURE-STATES-TEACHING-001": "CLEAN — no stale claims",
+    "UHI-LIVE-REPLAY-TEACHING-001": "CLEAN — no stale claims",
+    "UHI-USER-JOURNEYS-TEACHING-001": "CLEAN — no stale claims"
+  },
+
+  "historical_docs_preserved": [
+    "docs/ARCHITECTURE.md — SUPERSEDED WHERE CONFLICTING (authority manifest)",
+    "docs/hackathon-plan-v3.4.md — HISTORICAL (authority manifest)",
+    "docs/PRE-HACKATHON-PREP.md — HISTORICAL (authority manifest)",
+    "docs/PITCH.md — HISTORICAL (authority manifest)",
+    "docs/TRUST-PACKAGE.md — HISTORICAL (authority manifest)",
+    "docs/COMPETITION-ANALYSIS.md — HISTORICAL (authority manifest)"
+  ],
+
+  "ready_for_s3e_documentation_revalidation": true,
+
+  "s3b_result": "PASS",
+  "s3_status": "HOLD — awaiting QA-Pilot documentation revalidation",
+  "s4_status": "NOT AUTHORIZED"
+}
