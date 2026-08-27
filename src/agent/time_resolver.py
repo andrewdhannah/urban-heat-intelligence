@@ -68,7 +68,7 @@ def resolve_latest_available_observation(adapter, timezone_name="America/Phoenix
 
     provider_metrics = {
         "heatmap_submissions": 0,
-        "status_requests": 0
+        "poll_operations": 0
     }
 
     for lookback in range(max_lookback):
@@ -113,7 +113,7 @@ def resolve_latest_available_observation(adapter, timezone_name="America/Phoenix
 
             # Poll for completion (with bounded polling)
             status_result = adapter.poll_status(activity_id, max_polls=15, interval=3)
-            provider_metrics["status_requests"] += 1
+            provider_metrics["poll_operations"] += 1
 
             status_data = status_result.get("data", {})
             if status_data.get("status") != "Completed":

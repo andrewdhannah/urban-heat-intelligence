@@ -25,12 +25,12 @@
     {
       "path": "fixtures/phoenix-gis/parks.json",
       "type": "parks",
-      "sha256": "5653b3cd1612aa87687524c2fba746b6c4fabf0f693947ef735a40a03a1e8282",
+      "sha256": "c5223f45142d51e9cd469c83551071af2197860173312372961182d64bba20e0",
       "provider": "City of Phoenix",
       "dataset": "City of Phoenix Mapped Parks",
       "source_query_proof": {
         "service_endpoint": "https://maps.phoenix.gov/pub/rest/services/Public/ParksOpenData/MapServer/10/query",
-        "method": "server_side_point_in_polygon",
+        "method": "authoritative_provider_query",
         "candidate_coordinates": [
           {"rank": 1, "lat": 33.4581, "lon": -112.0774},
           {"rank": 2, "lat": 33.459, "lon": -112.0774},

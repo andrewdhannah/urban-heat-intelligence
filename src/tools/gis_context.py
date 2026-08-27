@@ -348,14 +348,19 @@ def query_parks(
         
         inside_park = None
         
-        for park in fixture.get("parks", []):
-            polygon = park.get("geometry", {}).get("coordinates", [[]])[0]
-            if polygon and _point_in_polygon(latitude, longitude, polygon):
-                inside_park = {
-                    "park_name": park["properties"]["name"],
-                    "park_type": park["properties"].get("type", "unknown"),
-                    "park_acres": park["properties"].get("acres", 0)
-                }
+        # Look up authoritative per-candidate query results
+        for candidate in fixture.get("candidate_results", []):
+            coord = candidate.get("coordinate", {})
+            # Match within ~10m tolerance (0.0001 degrees)
+            if abs(coord.get("lat", 0) - latitude) < 0.0001 and abs(coord.get("lon", 0) - longitude) < 0.0001:
+                features = candidate.get("provider_response", {}).get("features", [])
+                if features:
+                    attrs = features[0].get("attributes", {})
+                    inside_park = {
+                        "park_name": attrs.get("PROPERTY_NAME"),
+                        "park_type": attrs.get("PARK_TYPE"),
+                        "park_acres": attrs.get("PARK_ACRES")
+                    }
                 break
         
         result = {
