@@ -1,0 +1,56 @@
+{
+  "receipt_id": "S3D-QUALIFICATION-RECONCILIATION-FREEZE-20260827",
+  "receipt_type": "s3d_qualification_reconciliation",
+  "timestamp": "2026-08-27T06:00:00Z",
+  "project_id": "urban-heat-intelligence",
+
+  "candidate_commit": "c5e0edba14b278d1b3d3493b3d5a2752d898d06f",
+  "deployed_commit": "c5e0edba14b278d1b3d3493b3d5a2752d898d06f",
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+  "repository_head_at_s3b_closeout": "585ef7e3530883257181084b7ad909699244f191",
+
+  "governing_plan": "docs/hackathon-plan-v3.5.md",
+  "authority_manifest_reconciled": true,
+
+  "spec009_scope": "Implemented subset: FortyGuard thermal ranking, top-3 comparison, near-tie semantics. Full intervention-opportunity model deferred (GIS/demographic evidence not integrated). Documented in docs/SPEC-009-010-SCOPE-AMENDMENT.md",
+  "spec010_scope": "Implemented subset: bounded decision-support language from measured evidence. Six-category intervention model deferred. Documented in docs/SPEC-009-010-SCOPE-AMENDMENT.md",
+  "spec011_taxonomy_status": "Reconciled — PROVENANCE-MODEL.md now uses normative SPEC-011 classes with product-alias mapping table",
+  "spec012_status": "Assessed — core obligations satisfied (genuine fixtures, deterministic, zero-network, provenance-visible). Integrity manifest optional. Documented in docs/SPEC-012-ASSESSMENT.md",
+
+  "authorization_receipt_gap": "FORMAL_AUTHORIZATION_RECEIPT_GAP — no standalone authorization receipts for S0-S3B stage-level authorization. Owner authorization present through conversation instructions. Documented in docs/AUTHORIZATION-EVIDENCE-RECONCILIATION.md",
+
+  "s3b_tests": "20/20 PASS (16 original + 4 additive: tie threshold single-source, HTTP invalid mode, NWS behavior, cross-mode visualization guard)",
+  "prior_regression_tests": "S1: 20/20, S2: 15/15, Hardening: 12/12, Browser: 12/12, Controlled LIVE: 7/7",
+  "additive_new_tests": 4,
+  "total_tests": 86,
+
+  "documentation_reconciled": [
+    "project-state/AUTHORITY-MANIFEST.json",
+    "docs/data/PROVENANCE-MODEL.md",
+    "docs/data/DATA-SOURCES.md",
+    "docs/demo/DEMO-SCENARIO.md",
+    "docs/demo/VIDEO-PRODUCTION-STORYBOARD.md",
+    "docs/SPEC-009-010-SCOPE-AMENDMENT.md (new)",
+    "docs/SPEC-012-ASSESSMENT.md (new)",
+    "docs/AUTHORIZATION-EVIDENCE-RECONCILIATION.md (new)",
+    "7 teaching docs (reconciled in S3B)"
+  ],
+
+  "product_feature_freeze": true,
+
+  "remaining_known_limitations": [
+    "SPEC-009 full intervention-opportunity model not implemented (GIS/demographic evidence deferred)",
+    "SPEC-010 six-category intervention model not implemented (context evidence deferred)",
+    "SPEC-012 integrity manifest not implemented (optional, hashes computable from git)",
+    "FORMAL_AUTHORIZATION_RECEIPT_GAP for stage-level authorization",
+    "Phoenix GIS, NOAA, local news not integrated",
+    "NWS not fetched in Replay (by design)",
+    "LIVE may fail when FortyGuard has no data for current hour (data availability lag)"
+  ],
+
+  "ready_for_final_s3e": true,
+
+  "s3b_result": "PASS",
+  "s3_status": "S3D COMPLETE — ready for S3E QA-Pilot",
+  "s4_status": "NOT AUTHORIZED"
+}

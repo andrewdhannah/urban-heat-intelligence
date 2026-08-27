@@ -13,6 +13,9 @@ from src.tools.heatmap import normalize_heatmap_result
 from src.tools.env_params import normalize_env_params_result
 from src.agent.time_resolver import resolve_latest_observation_time, format_observation_time
 
+# Canonical near-tie threshold — single source of truth for ranking and Brief
+TIE_THRESHOLD_CELSIUS = 0.1
+
 
 def plan_question(question, context=None):
     """Minimal question planner — produces tool plan based on intent."""
@@ -318,7 +321,6 @@ class HeatAgent:
         # Build ranked candidates with comparative analysis
         # Near-tie detection: if thermal differences are below threshold,
         # candidates are effectively tied on measured burden.
-        TIE_THRESHOLD_CELSIUS = 0.1  # Candidates within 0.1°C are near-tied
         ranking_status = "ranked"
         ranking_explanation = None
 

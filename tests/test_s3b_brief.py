@@ -328,6 +328,64 @@ def test_replay_live_separation():
     print("  PASS: test_replay_live_separation")
 
 
+def test_tie_threshold_single_source():
+    """Controller and Brief use the same canonical threshold constant."""
+    from src.agent.controller import TIE_THRESHOLD_CELSIUS as controller_threshold
+    from src.agent.brief import TIE_THRESHOLD_CELSIUS as brief_threshold
+    assert controller_threshold == 0.1
+    assert brief_threshold == 0.1
+    assert controller_threshold is brief_threshold, "Brief must import from controller, not define its own"
+    print("  PASS: test_tie_threshold_single_source")
+
+
+def test_http_invalid_mode():
+    """Server rejects invalid mode values with bounded response."""
+    proc = _start_server()
+    try:
+        import urllib.request
+        try:
+            urllib.request.urlopen(f"{SERVER_URL}/api/answer?mode=invalid", timeout=10)
+            assert False, "Should have raised"
+        except urllib.error.HTTPError as e:
+            assert e.code == 400
+        finally:
+            pass
+    finally:
+        _stop_server(proc)
+    print("  PASS: test_http_invalid_mode")
+
+
+def test_nws_behavior_assertions():
+    """NWS context structure is correct for both modes."""
+    # Replay
+    payload = build_visualization_payload(replay_result())
+    nws = payload["nws_context"]
+    assert nws["mode"] == "replay"
+    assert nws["used_in_decision"] is False
+    assert nws["evidence_status"] == "excluded_from_replay"
+    # Live
+    live = live_result_from_replay()
+    ctx = live_nws_context()
+    with patch("src.tools.nws.get_nws_context", return_value=ctx):
+        payload = build_visualization_payload(live)
+    nws = payload["nws_context"]
+    assert nws["mode"] == "live"
+    assert nws["used_in_decision"] is False
+    assert nws["evidence_status"] == "supplemental_context"
+    print("  PASS: test_nws_behavior_assertions")
+
+
+def test_cross_mode_visualization_guard():
+    """Visualization payload never mixes replay geometry into live."""
+    live = live_result_from_replay()
+    with patch("src.tools.nws.get_nws_context", return_value=live_nws_context()):
+        payload = build_visualization_payload(live)
+    assert payload["visualization_source"] == "live"
+    assert payload["heatmap"]["source"] == "live"
+    assert payload["priority_location"]["source"] == "live"
+    print("  PASS: test_cross_mode_visualization_guard")
+
+
 def run_all():
     tests = [
         test_replay_brief_exists,
@@ -346,6 +404,10 @@ def run_all():
         test_browser_brief_1440,
         test_browser_brief_1920,
         test_replay_live_separation,
+        test_tie_threshold_single_source,
+        test_http_invalid_mode,
+        test_nws_behavior_assertions,
+        test_cross_mode_visualization_guard,
     ]
     passed = 0
     for test in tests:

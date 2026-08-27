@@ -10,7 +10,7 @@ and evidence-node references.
 from datetime import datetime, timezone
 
 
-TIE_THRESHOLD_CELSIUS = 0.1
+from src.agent.controller import TIE_THRESHOLD_CELSIUS
 
 
 def _number(value, digits=2):

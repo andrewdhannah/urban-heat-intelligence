@@ -7,14 +7,32 @@
 
     "current": [
       {
+        "path": "docs/hackathon-plan-v3.5.md",
+        "authority": "CURRENT / GOVERNING EXECUTION PLAN",
+        "supersedes": ["hackathon-plan-v3.4.md", "hackathon-plan-v3.3.md"],
+        "authority_basis": "Owner-approved expansion and planning state"
+      },
+      {
+        "path": "docs/BRIEF-SPEC.md",
+        "authority": "CURRENT URBAN HEAT BRIEF CONTRACT",
+        "version": "1.1.0",
+        "authority_basis": "Owner-authorized S3B specification"
+      },
+      {
+        "path": "docs/demo/VIDEO-PRODUCTION-STORYBOARD.md",
+        "authority": "FROZEN STORY BASELINE",
+        "production_authority": "S4 only — not current product evidence",
+        "note": "Factual placeholders corrected in S3D reconciliation"
+      },
+      {
         "path": "docs/hackathon-plan-v3.3.md",
-        "authority": "CURRENT EXECUTION PLAN",
-        "source": "active/librarian/external-capabilities/fortyguard/documentation/hackathon-plan-v3.3.md",
-        "source_hash": "6d6edafc311b325d2c97d57400e55d4e7287a5f9bdb121e125bced54fe076468",
-        "project_hash": "6d6edafc311b325d2c97d57400e55d4e7287a5f9bdb121e125bced54fe076468",
-        "relationship": "byte-identical projection",
-        "authority_basis": "Owner acceptance of v3.3 (UHI-PHASE-A-AUTHORIZATION-20260826)",
-        "supersedes": "hackathon-plan-v3.2.md"
+        "authority": "HISTORICAL — superseded by v3.5",
+        "preservation": "Original bytes preserved, not rewritten"
+      },
+      {
+        "path": "docs/hackathon-plan-v3.4.md",
+        "authority": "HISTORICAL — superseded by v3.5",
+        "preservation": "Original bytes preserved, not rewritten"
       },
       {
         "path": "docs/ADR-HACK-001-submission-boundary.md",
