@@ -46,7 +46,7 @@
   "credential_present": true,
   "credential_exposed": false,
 
-  "public_git_head": "pending commit",
+  "public_git_head": "7a76340bc2ef0b34b6f5ea838b5605674939ea56",
   "final_s3_result": "PASS",
   "s4_status": "NOT AUTHORIZED"
 }
