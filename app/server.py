@@ -76,13 +76,30 @@ def build_visualization_payload(result):
     # Get ranked candidates from conditions
     ranked_candidates = answer.get("conditions", {}).get("ranked_candidates", [])
 
-    # Get NWS corroboration context
+    # Get NWS corroboration context — LIVE only, never in REPLAY
     nws_context = None
-    try:
-        from src.tools.nws import get_nws_context
-        nws_context = get_nws_context()
-    except Exception:
-        pass
+    if mode == "live":
+        try:
+            from src.tools.nws import get_nws_context
+            nws_context = get_nws_context()
+            if nws_context:
+                nws_context["mode"] = "live"
+                nws_context["used_in_decision"] = False  # Corroborating only, not ranking input
+                nws_context["evidence_status"] = "supplemental_context"
+        except Exception:
+            pass
+    else:
+        nws_context = {
+            "provider": "NWS",
+            "mode": "replay",
+            "conditions": None,
+            "alerts": [],
+            "alert_count": 0,
+            "has_extreme_heat_warning": False,
+            "used_in_decision": False,
+            "evidence_status": "excluded_from_replay",
+            "message": "NWS current context not included in historical Replay"
+        }
 
     return {
         "mode": mode,
@@ -131,6 +148,10 @@ class UHIHandler(SimpleHTTPRequestHandler):
             params = parse_qs(parsed.query)
             question = params.get("question", ["Where should Phoenix prioritize a cooling intervention this afternoon?"])[0]
             mode = params.get("mode", ["replay"])[0]
+            # Mode allowlist: only "replay" and "live" are valid
+            if mode not in ("replay", "live"):
+                self.send_error(400, "Invalid mode. Allowed: replay, live")
+                return
             self.serve_answer(question, mode)
         elif parsed.path == "/api/nws":
             self.serve_nws()
@@ -152,15 +173,18 @@ class UHIHandler(SimpleHTTPRequestHandler):
             response = json.dumps(payload)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(response.encode())
         except Exception as e:
-            error = json.dumps({"error": True, "message": str(e), "mode": mode})
+            # Bounded public error — no stack traces, no credential exposure
+            error = json.dumps({"error": True, "message": "Unable to complete query", "mode": mode})
             self.send_response(500)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(error.encode())
+            # Server-side diagnostic logging (no credentials)
+            import sys
+            print(f"[ERROR] {mode} query failed: {type(e).__name__}", file=sys.stderr)
 
     def serve_nws(self):
         try:
@@ -169,11 +193,10 @@ class UHIHandler(SimpleHTTPRequestHandler):
             response = json.dumps(nws_data)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(response.encode())
         except Exception as e:
-            error = json.dumps({"error": True, "message": str(e)})
+            error = json.dumps({"error": True, "message": "Unable to fetch weather context"})
             self.send_response(500)
             self.send_header("Content-Type", "application/json")
             self.end_headers()

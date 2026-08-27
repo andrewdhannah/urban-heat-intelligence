@@ -126,6 +126,9 @@
         .weather-advisory .conditions { font-size: 11px; color: #d6d3d1; margin-top: 6px; }
         .weather-advisory .conditions b { color: #fbbf24; }
         .weather-advisory .source-tag { font-size: 9px; color: #78716c; margin-top: 4px; }
+
+        /* === RANKING DISCLOSURE === */
+        .ranking-disclosure { background: #1e1b4b; border: 1px solid #4338ca; border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 11px; color: #a5b4fc; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -179,6 +182,7 @@
             <div class="ranked-candidates" id="ranked-candidates" style="display:none">
                 <h3>Candidate Comparison</h3>
                 <div id="ranked-list"></div>
+                <div class="ranking-disclosure" id="ranking-disclosure" style="display:none"></div>
             </div>
             <div class="weather-advisory" id="weather-advisory" style="display:none">
                 <h3>Weather Context — NWS</h3>
@@ -324,6 +328,15 @@
             // === RANKED CANDIDATES ===
             renderRankedCandidates(data.ranked_candidates || [], c.area_mean_temperature_celsius);
 
+            // === RANKING DISCLOSURE ===
+            var disclosure = document.getElementById('ranking-disclosure');
+            if (c.ranking_status === 'near_tie' && c.ranking_explanation) {
+                disclosure.style.display = 'block';
+                disclosure.textContent = c.ranking_explanation;
+            } else {
+                disclosure.style.display = 'none';
+            }
+
             // === NWS WEATHER CONTEXT ===
             renderNWSContext(data.nws_context);
 
@@ -340,23 +353,56 @@
                 return;
             }
             container.style.display = 'block';
-            alertsDiv.innerHTML = '';
+            alertsDiv.textContent = '';
+
+            // Handle replay mode — no live NWS
+            if (nws.mode === 'replay' || nws.evidence_status === 'excluded_from_replay') {
+                var msgDiv = document.createElement('div');
+                msgDiv.className = 'alert-item';
+                var span = document.createElement('span');
+                span.style.color = '#a8a29e';
+                span.style.fontSize = '11px';
+                span.textContent = nws.message || 'NWS current context not included in historical Replay';
+                msgDiv.appendChild(span);
+                alertsDiv.appendChild(msgDiv);
+                condDiv.textContent = '';
+                return;
+            }
+
+            // LIVE mode — show NWS alerts
             var alerts = nws.alerts || [];
             if (alerts.length > 0) {
                 alerts.forEach(function(a) {
                     var div = document.createElement('div');
                     div.className = 'alert-item';
-                    div.innerHTML = '<div class="alert-event">' + (a.event || 'Alert') + '</div>' +
-                        '<div class="alert-headline">' + (a.headline || '') + '</div>';
+                    var eventDiv = document.createElement('div');
+                    eventDiv.className = 'alert-event';
+                    eventDiv.textContent = a.event || 'Alert';
+                    var headlineDiv = document.createElement('div');
+                    headlineDiv.className = 'alert-headline';
+                    headlineDiv.textContent = a.headline || '';
+                    div.appendChild(eventDiv);
+                    div.appendChild(headlineDiv);
                     alertsDiv.appendChild(div);
                 });
             } else {
-                alertsDiv.innerHTML = '<div class="alert-item"><span style="color:#a8a29e;font-size:11px">No active alerts</span></div>';
+                var noAlerts = document.createElement('div');
+                noAlerts.className = 'alert-item';
+                var span = document.createElement('span');
+                span.style.color = '#a8a29e';
+                span.style.fontSize = '11px';
+                span.textContent = 'No active alerts';
+                noAlerts.appendChild(span);
+                alertsDiv.appendChild(noAlerts);
             }
             var cond = nws.conditions;
             if (cond) {
-                condDiv.innerHTML = 'Current: <b>' + (cond.temperature_f || '—') + '°' + (cond.temperature_unit || 'F') + '</b> · ' +
-                    (cond.short_forecast || '—') + ' · Wind: ' + (cond.wind_speed || '—') + ' ' + (cond.wind_direction || '');
+                condDiv.textContent = '';
+                condDiv.appendChild(document.createTextNode('Current: '));
+                var b = document.createElement('b');
+                b.textContent = (cond.temperature_f || '—') + '°' + (cond.temperature_unit || 'F');
+                condDiv.appendChild(b);
+                condDiv.appendChild(document.createTextNode(' · ' + (cond.short_forecast || '—') + ' · Wind: ' + (cond.wind_speed || '—') + ' ' + (cond.wind_direction || '')));
             }
         }
 
@@ -368,22 +414,35 @@
                 return;
             }
             container.style.display = 'block';
-            list.innerHTML = '';
+            list.textContent = '';
             candidates.forEach(function(c, idx) {
                 var div = document.createElement('div');
                 div.className = 'rank-item' + (idx === 0 ? ' top' : '');
                 var delta = c.delta_from_area_mean != null ? (c.delta_from_area_mean >= 0 ? '+' : '') + c.delta_from_area_mean + '°C vs mean' : '';
                 var compare = idx > 0 && candidates[0] ?
                     '−' + (candidates[0].observed_temp - c.observed_temp).toFixed(2) + '°C vs #1' : '';
-                div.innerHTML =
-                    '<span class="rank-badge">#' + c.rank + '</span>' +
-                    '<div class="rank-temp">' + c.observed_temp + '°C <span class="rank-delta">' + delta + '</span></div>' +
-                    '<div class="rank-details">' +
-                    'Heat Index: <b>' + (c.heat_index || '—') + '°C</b> · ' +
-                    'Apparent: <b>' + (c.apparent_temp || '—') + '°C</b> · ' +
-                    'Humidity: <b>' + (c.humidity || '—') + '%</b>' +
-                    '</div>' +
-                    (compare ? '<div class="rank-compare">' + compare + '</div>' : '');
+                var badge = document.createElement('span');
+                badge.className = 'rank-badge';
+                badge.textContent = '#' + c.rank;
+                var tempDiv = document.createElement('div');
+                tempDiv.className = 'rank-temp';
+                tempDiv.textContent = c.observed_temp + '°C ';
+                var deltaSpan = document.createElement('span');
+                deltaSpan.className = 'rank-delta';
+                deltaSpan.textContent = delta;
+                tempDiv.appendChild(deltaSpan);
+                var detailsDiv = document.createElement('div');
+                detailsDiv.className = 'rank-details';
+                detailsDiv.textContent = 'Heat Index: ' + (c.heat_index || '—') + '°C · Apparent: ' + (c.apparent_temp || '—') + '°C · Humidity: ' + (c.humidity || '—') + '%';
+                div.appendChild(badge);
+                div.appendChild(tempDiv);
+                div.appendChild(detailsDiv);
+                if (compare) {
+                    var compDiv = document.createElement('div');
+                    compDiv.className = 'rank-compare';
+                    compDiv.textContent = compare;
+                    div.appendChild(compDiv);
+                }
                 list.appendChild(div);
             });
         }
@@ -488,21 +547,26 @@
 
         function renderEvidenceChain(chain) {
             var container = document.getElementById('evidence-chain');
-            container.innerHTML = '';
+            container.textContent = '';
             chain.forEach(function(node) {
                 var div = document.createElement('div');
                 div.className = 'chain-node';
                 var d = node.data || {};
-                var detail = '';
-                if (node.step === 'plan') detail = 'Intent: <b>' + d.interpreted_intent + '</b> → Tools: <b>' + (d.selected_tools||[]).join(', ') + '</b>';
-                else if (node.step === 'heatmap_result') detail = 'Features: <b>' + d.feature_count + '</b> · Mean: <b>' + d.mean_temp + '°C</b> · Activity: <b>' + (d.activity_id||'—') + '</b>';
-                else if (node.step === 'env_params_result') detail = 'Heat Index: <b>' + d.heat_index + '°C</b> · Apparent: <b>' + d.apparent_temp + '°C</b> · Humidity: <b>' + d.humidity + '%</b>';
-                else if (node.step === 'coordinate_selection') detail = 'Selected: <b>' + (d.selected_coordinate ? d.selected_coordinate.temperature_celsius : '—') + '°C</b> via <b>' + (d.selection_method || '—') + '</b>';
-                else if (node.step === 'answer') detail = 'Mode: <b>' + d.mode + '</b> · Obs: <b>' + d.observation_time + '</b>';
-                else if (node.step === 'heatmap_request') detail = 'Endpoint: <b>' + d.endpoint + '</b> · Time: <b>' + (d.requested_observation_time || '—') + '</b>';
-                else if (node.step === 'env_params_request') detail = 'Endpoint: <b>' + d.endpoint + '</b> · Coord: <b>' + (d.coordinate ? '(' + d.coordinate.latitude + ', ' + d.coordinate.longitude + ')' : '—') + '</b>';
-                else detail = JSON.stringify(d).substring(0, 120);
-                div.innerHTML = '<div class="step">' + node.step.replace(/_/g, ' ') + '</div><div class="detail">' + detail + '</div>';
+                var stepDiv = document.createElement('div');
+                stepDiv.className = 'step';
+                stepDiv.textContent = node.step.replace(/_/g, ' ');
+                var detailDiv = document.createElement('div');
+                detailDiv.className = 'detail';
+                if (node.step === 'plan') detailDiv.textContent = 'Intent: ' + (d.interpreted_intent || '—') + ' → Tools: ' + (d.selected_tools || []).join(', ');
+                else if (node.step === 'heatmap_result') detailDiv.textContent = 'Features: ' + (d.feature_count || '—') + ' · Mean: ' + (d.mean_temp || '—') + '°C · Activity: ' + (d.activity_id || '—');
+                else if (node.step === 'env_params_result') detailDiv.textContent = 'Heat Index: ' + (d.heat_index || '—') + '°C · Apparent: ' + (d.apparent_temp || '—') + '°C · Humidity: ' + (d.humidity || '—') + '%';
+                else if (node.step === 'coordinate_selection') detailDiv.textContent = 'Selected: ' + (d.selected_coordinate ? d.selected_coordinate.temperature_celsius : '—') + '°C via ' + (d.selection_method || '—');
+                else if (node.step === 'answer') detailDiv.textContent = 'Mode: ' + (d.mode || '—') + ' · Obs: ' + (d.observation_time || '—');
+                else if (node.step === 'heatmap_request') detailDiv.textContent = 'Endpoint: ' + (d.endpoint || '—') + ' · Time: ' + (d.requested_observation_time || '—');
+                else if (node.step === 'env_params_request') detailDiv.textContent = 'Endpoint: ' + (d.endpoint || '—') + ' · Coord: ' + (d.coordinate ? '(' + d.coordinate.latitude + ', ' + d.coordinate.longitude + ')' : '—');
+                else detailDiv.textContent = JSON.stringify(d).substring(0, 120);
+                div.appendChild(stepDiv);
+                div.appendChild(detailDiv);
                 container.appendChild(div);
             });
         }

@@ -316,9 +316,27 @@ class HeatAgent:
             summary = f"The queried area in {location} is experiencing very high thermal conditions."
 
         # Build ranked candidates with comparative analysis
+        # Near-tie detection: if thermal differences are below threshold,
+        # candidates are effectively tied on measured burden.
+        TIE_THRESHOLD_CELSIUS = 0.1  # Candidates within 0.1°C are near-tied
+        ranking_status = "ranked"
+        ranking_explanation = None
+
         candidates_for_response = []
         if ranked_candidates:
             area_mean = hm.get("mean_temperature_celsius", 0)
+            temps = [c["observed_temp"] for c in ranked_candidates]
+            max_spread = max(temps) - min(temps) if len(temps) > 1 else 0
+
+            if max_spread < TIE_THRESHOLD_CELSIUS:
+                ranking_status = "near_tie"
+                ranking_explanation = (
+                    f"These candidate locations are effectively tied on measured thermal burden "
+                    f"(spread: {round(max_spread, 3)}°C, threshold: {TIE_THRESHOLD_CELSIUS}°C). "
+                    f"Additional local context (GIS, land cover, population density) would be needed "
+                    f"to distinguish intervention priority."
+                )
+
             for cand in ranked_candidates:
                 delta_from_mean = round(cand["observed_temp"] - area_mean, 2) if area_mean else None
                 candidates_for_response.append({
@@ -352,7 +370,10 @@ class HeatAgent:
                         "apparent_vs_measured_delta_celsius": apparent_delta,
                         "interpretation": "Apparent temperature exceeds measured temperature due to solar and environmental factors"
                     },
-                    "ranked_candidates": candidates_for_response
+                    "ranked_candidates": candidates_for_response,
+                    "ranking_status": ranking_status,
+                    "ranking_explanation": ranking_explanation,
+                    "tie_threshold_celsius": TIE_THRESHOLD_CELSIUS
                 },
                 "why_this_answer": plan.get("rationale", ""),
                 "sources": sources,
