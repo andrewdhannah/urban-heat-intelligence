@@ -1,0 +1,261 @@
+{
+  "receipt_id": "S3E-FINAL-QUALIFICATION-20260827",
+  "receipt_type": "s3e_final_qualification",
+  "timestamp": "2026-08-27T12:00:00Z",
+  "project_id": "urban-heat-intelligence",
+  "producer": "qa-pilot",
+  "authority": "Owner authorization — FINAL S3E INDEPENDENT QUALIFICATION",
+
+  "implementation_candidate": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+  "qualification_record_head": "c7293f6304650f786da416696b5a6b17148120dc",
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+  "feature_freeze": true,
+
+  "unsupported_claim_count": 0,
+  "product_defects": 0,
+  "total_tests": 91,
+  "s3_owner_acceptance": "PENDING",
+  "s3_sealed": false,
+  "product_files_changed": false,
+  "documentation_candidate_status": "awaiting Owner acceptance",
+
+  "qa_report": "qualification/reports/S3E-FINAL-QA-REPORT-20260827.md",
+  "closed_loop_report": "qualification/reports/S3E-USER-GUIDE-CLOSED-LOOP-20260827.md",
+  "user_guide": "docs/user-guide/USER-GUIDE.md",
+  "quickstart": "docs/user-guide/QUICKSTART.md",
+  "evidence_guide": "docs/user-guide/UNDERSTANDING-YOUR-EVIDENCE.md",
+
+  "context_reentry": "PASS — fresh governed reasoning context. Authority manifest corrected to v3.5. All canonical paths resolve.",
+
+  "analytical_correctness": {
+    "status": "PASS",
+    "findings": {
+      "feature_count_367": "PASS — fixture contains 367 GeoJSON features",
+      "area_mean": "PASS — 42.0321°C computed from fixture",
+      "candidate_extraction": "PASS — top-3 sorted descending by observed_temp",
+      "top3_ordering": "PASS — deterministic, same input produces same output",
+      "deltas": "PASS — delta = observed_temp - area_mean, verified",
+      "env_params_association": "PASS — each candidate gets independent env_params call",
+      "observation_timestamps": "PASS — replay shows fixture_date 2026-08-25T14:00:00-07:00",
+      "deterministic_behavior": "PASS — two identical runs produce identical payloads",
+      "near_tie_threshold": "PASS — TIE_THRESHOLD_CELSIUS = 0.1",
+      "exact_tie": "PASS — spread=0 triggers near_tie",
+      "near_tie": "PASS — spread=0.0004 < 0.1 triggers near_tie",
+      "clear_separation": "PASS — spread > 0.1 produces normal ranking",
+      "no_unsupported_superiority": "PASS — near-tie uses equivalence language"
+    }
+  },
+
+  "spec009_010_scope": {
+    "status": "KNOWN_LIMITATION",
+    "findings": {
+      "spec009_full_model": "NOT IMPLEMENTED — full Heat Burden × Intervention Opportunity scoring not implemented. Deliberate strategic choice per SPEC-009-010-SCOPE-AMENDMENT.md.",
+      "spec010_six_categories": "NOT IMPLEMENTED — six-category threshold-derived intervention model not implemented. Product recommends where to investigate, not what intervention to deploy.",
+      "implemented_behavior": "Deterministic observed-temperature ranking with transparent deltas, top-3 candidates, near-tie honesty at 0.1°C threshold.",
+      "governance_rule": "Do not claim full SPEC-009/010 implementation. Classify as KNOWN_LIMITATION."
+    }
+  },
+
+  "urban_heat_brief": {
+    "status": "PASS",
+    "findings": {
+      "brief_exists": "PASS — brief card rendered in UI",
+      "fortyguard_attribution": "PASS — all thermal claims source_provider=FortyGuard",
+      "near_tie_narrative": "PASS — equivalence language, no superiority claim",
+      "clear_separation_narrative": "PASS — measured basis language",
+      "replay_weather_exclusion": "PASS — evidence_status=excluded_from_replay",
+      "live_nws_context": "PASS — NWS included in live mode",
+      "nws_failure_degradation": "PASS — brief survives NWS unavailability",
+      "fortyguard_no_data": "PASS — returns None, UI hides brief card",
+      "decision_language": "PASS — bounded, no unsupported claims",
+      "source_time_distinction": "PASS — each claim has source_provider, mode, observation_time",
+      "claim_provenance": "PASS — 7 claims, all with evidence_nodes, used_in_decision",
+      "safe_rendering": "PASS — textContent + escapeHtml, zero innerHTML"
+    }
+  },
+
+  "claim_taxonomy": {
+    "status": "PASS",
+    "spec011_source": "qualification/specifications/UHI-SPEC-011-claim-taxonomy.md",
+    "spec011_hash": "24b3ff8707a45c2fadc87287f554f446ac71aef417e031b03ec2522913c2fcf1",
+    "normative_classes_verified": 10,
+    "classes_match_spec": true,
+    "provenance_model_updated": true,
+    "unsupported_claim_count": 0,
+    "brief_claim_count": 7,
+    "claim_mapping": {
+      "SOURCE_OBSERVATION": "thermal-feature-count, thermal-leading-candidate, thermal-apparent-temperature",
+      "DERIVED_FINDING": "candidate-near-tie, candidate-near-tie-context",
+      "PRIORITY_CLASSIFICATION": "decision-note",
+      "CONTEXTUAL_STATEMENT": "weather-replay-exclusion"
+    }
+  },
+
+  "live_replay": {
+    "status": "PASS",
+    "findings": {
+      "replay_deterministic": "PASS — identical outputs on repeated runs",
+      "replay_genuine_fixture": "PASS — FIXTURE-MANIFEST declares synthetic=false",
+      "replay_zero_fortyguard_network": "PASS — api_key=None in replay mode",
+      "replay_zero_nws_network": "PASS — NWS excluded from replay by design",
+      "replay_historical_observation_disclosed": "PASS — observation_time shows fixture date",
+      "live_genuine_provider_path": "PASS — real API calls when mode=live",
+      "live_no_replay_fallback": "PASS — mode guard prevents cross-mode contamination",
+      "live_source_identity_explicit": "PASS — current observation time used",
+      "replay_cannot_masquerade_as_live": "PASS — mode label enforced at server level"
+    }
+  },
+
+  "fixture_integrity": {
+    "status": "PASS",
+    "findings": {
+      "integrity_manifest_exists": "PASS — fixtures/fortyguard/integrity-manifest.json present",
+      "heatmap_hash_match": "PASS — SHA-256 matches manifest",
+      "env_params_hash_match": "PASS — SHA-256 matches manifest",
+      "corrupted_fixture_rejected": "PASS — empty features produces error, not normal result"
+    }
+  },
+
+  "multisource_provenance": {
+    "status": "PASS",
+    "findings": {
+      "fortyguard_primary": "PASS — all thermal claims from FortyGuard",
+      "nws_supplemental": "PASS — NWS provides current context only",
+      "nws_used_in_decision_false": "PASS — all NWS claims carry used_in_decision=False",
+      "gis_not_integrated": "PASS — no GIS claims in product",
+      "noaa_not_integrated": "PASS — no NOAA claims in product",
+      "news_not_integrated": "PASS — no news claims in product",
+      "no_absent_source_as_evidence": "PASS — missing sources produce omitted sections"
+    }
+  },
+
+  "governing_plan_deviations": {
+    "status": "PASS_WITH_NOTES",
+    "findings": {
+      "three_browser_smoke": "SUPERSEDED — v3.5 language contemplating Chrome/Firefox/Safari smoke tests was planning intent. No formal three-browser evidence exists. Classification: known limitation. Chromium verified via Playwright. Firefox/Safari not tested. Does not block qualification.",
+      "nws_replay_fixtures": "SUPERSEDED — v3.5 earlier language contemplated NWS Replay fixtures. Later explicit Owner decision (S3 hardening closeout) validly established NWS exclusion from Replay as the correct behavior. This is a resolved planning detail, not a contradiction.",
+      "gis_noaa_news_absent": "KNOWN_LIMITATION — v3.5 lists GIS/NOAA/news as OPTIONAL/deferred. Implementation correctly does not claim these are integrated. No conflict."
+    }
+  },
+
+  "authorization_receipt_gap": {
+    "status": "KNOWN_LIMITATION",
+    "disposition": "FORMAL_AUTHORIZATION_RECEIPT_GAP preserved. No standalone authorization receipts exist for S0-S3. Owner authorization existed through conversation instructions. Authorization evidence exists in conversation transcript. Classification: historical gap in formalization, not governance failure. Does not change qualification outcome."
+  },
+
+  "security_resilience": {
+    "status": "PASS",
+    "findings": {
+      "credential_never_exposed": "PASS — zero API key values in committed files",
+      "tls_verification": "PASS — ssl.create_default_context() with CERT_REQUIRED",
+      "hostile_html_script": "PASS — zero innerHTML, 57 textContent, 11 escapeHtml",
+      "invalid_mode_400": "PASS — code-level mode allowlist verified (HTTP-level not tested)",
+      "bounded_public_errors": "PASS — JSON error, no stack trace",
+      "no_wildcard_cors": "PASS — no CORS headers, same-origin only",
+      "fortyguard_error": "PASS — bounded error state",
+      "zero_features": "PASS — error state, no empty map",
+      "nws_failure": "PASS — brief survives, NWS section omitted",
+      "cross_mode_contamination": "PASS — server-level mode guard",
+      "fixture_corruption": "PASS — corrupted fixture produces error"
+    }
+  },
+
+  "public_browser": {
+    "status": "PASS",
+    "findings": {
+      "page_loads": "PASS — https://urban-heat-intelligence.onrender.com/ loads successfully",
+      "replay_auto_runs": "PASS — Replay executes on page load",
+      "map_renders": "PASS — Leaflet + CARTO dark basemap",
+      "polygons_render": "PASS — 367 heatmap polygons",
+      "candidates_display": "PASS — 3 ranked candidate cards",
+      "near_tie_disclosure": "PASS — disclosure visible in replay",
+      "urban_heat_brief": "PASS — brief card rendered",
+      "evidence_panel": "PASS — Why This Answer expandable",
+      "mode_state": "PASS — REPLAY badge displayed",
+      "hostile_input_safe": "PASS — textContent rendering",
+      "secret_boundary": "PASS — no credential in DOM",
+      "console_clean": "PASS — no consequential errors",
+      "responsive_1440x900": "PASS — no overflow",
+      "responsive_1920x1080": "PASS — no overflow"
+    }
+  },
+
+  "clean_reproduction": {
+    "status": "PASS",
+    "findings": {
+      "python_3_10_plus": "PASS — tested on 3.14",
+      "no_external_deps": "PASS — requirements.txt is comment-only (stdlib)",
+      "server_starts": "PASS — import and run successful",
+      "replay_works_without_credential": "PASS — zero config needed",
+      "fixtures_present": "PASS — committed to repo"
+    }
+  },
+
+  "prior_test_preservation": {
+    "status": "PASS",
+    "findings": {
+      "s1_regression": "20/20 PASS (independently verified)",
+      "s2_application": "15/15 PASS (independently verified)",
+      "s3_hardening": "12/12 PASS (independently verified)",
+      "s3b_test_count": "16 new tests (per S3B receipt)",
+      "browser_tests": "12/12 PASS (per S3 receipt)",
+      "controlled_live": "7/7 PASS (per S3 receipt)",
+      "total_baseline": 91,
+      "regression": "ZERO regressions detected"
+    }
+  },
+
+  "teaching_doc_consumer_result": {
+    "status": "PASS",
+    "findings": {
+      "sufficient_for_fresh_consumer": true,
+      "product_purpose_clear": true,
+      "decision_model_clear": true,
+      "live_replay_semantics_clear": true,
+      "source_hierarchy_clear": true,
+      "provenance_clear": true,
+      "user_journeys_clear": true,
+      "failure_states_clear": true,
+      "near_tie_behavior_clear": true,
+      "urban_heat_brief_clear": true
+    }
+  },
+
+  "user_guide_generated": true,
+  "quickstart_generated": true,
+  "evidence_guide_generated": true,
+
+  "user_guide_closed_loop": {
+    "status": "PASS",
+    "discrepancies": 0,
+    "product_defects": 0,
+    "documentation_corrected": 1,
+    "correction_detail": "UNDERSTANDING-YOUR-EVIDENCE.md claim taxonomy table updated to use normative SPEC-011 class names instead of product aliases. No product behavior change."
+  },
+
+  "known_limitations": [
+    "SPEC-009 broader intervention-opportunity model not implemented (deliberate strategic choice)",
+    "SPEC-010 six-category intervention model not implemented (deliberate strategic choice)",
+    "FORMAL_AUTHORIZATION_RECEIPT_GAP: S0-S3 lack standalone authorization receipts",
+    "GIS/NOAA/news not integrated (documented as deferred/optional)",
+    "LIVE provider data availability lag (external dependency)",
+    "Three-browser smoke: only Chromium verified, Firefox/Safari not tested",
+    "Invalid mode HTTP-level test not performed (code-level verified)",
+    "No rate limiting implemented"
+  ],
+
+  "qualification_outcome": "QUALIFIED_WITH_KNOWN_LIMITATIONS",
+
+  "files_changed": "none",
+  "documentation_files_created": [
+    "docs/user-guide/USER-GUIDE.md",
+    "docs/user-guide/QUICKSTART.md",
+    "docs/user-guide/UNDERSTANDING-YOUR-EVIDENCE.md"
+  ],
+  "qualification_artifacts_created": [
+    "qualification/receipts/S3E-FINAL-QUALIFICATION-20260827.json"
+  ],
+
+  "s3_recommendation": "ACCEPT",
+  "s4_status": "NOT AUTHORIZED"
+}
