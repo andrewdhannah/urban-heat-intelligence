@@ -13,7 +13,7 @@
 
   "basemap_style": "dark_all raster",
   "attribution_preserved": true,
-  "watermark_result": "PASS — authenticated tiles via CARTO_BASEMAP_KEY env var",
+  "watermark_result": "PASS — CARTO_BASEMAP_KEY configured in Render, authenticated tiles rendering, watermark removed",
 
   "replay_smoke": "PASS",
   "polygon_count": 367,
