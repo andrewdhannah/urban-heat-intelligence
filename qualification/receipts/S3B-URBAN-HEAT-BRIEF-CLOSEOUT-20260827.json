@@ -1,0 +1,62 @@
+{
+  "receipt_id": "S3B-URBAN-HEAT-BRIEF-CLOSEOUT-20260827",
+  "receipt_type": "s3b_urban_heat_brief_closeout",
+  "timestamp": "2026-08-27T05:10:00Z",
+  "project_id": "urban-heat-intelligence",
+  "baseline_commit": "2c03c4e84744309de357cc33ea78913f3d9f6889",
+  "resulting_commit": "c5e0edba14b278d1b3d3493b3d5a2752d898d06f",
+
+  "brief_implemented": true,
+  "brief_ui_location": "src/agent/brief.py (composition), app/static/index.html (rendering), app/server.py (payload inclusion)",
+
+  "replay_brief": "Thermal finding + near-tie candidate interpretation + NWS exclusion + decision note + FortyGuard source attribution",
+  "live_brief": "Thermal finding + NWS context when available + NWS unavailable disclosure when not",
+
+  "near_tie_threshold": "0.1°C",
+  "replay_ranking_status": "near_tie (fixture candidates differ by ~0.0004°C)",
+  "near_tie_brief_result": "Honest equivalence language: 'effectively equivalent thermal burden'",
+  "clear_separation_brief_result": "Measured basis: 'X°C above candidate #2'",
+
+  "fortyguard_claims": ["feature_count", "leading_candidate", "apparent_temperature"],
+  "nws_claims": ["current_conditions", "active_alerts", "replay_exclusion"],
+  "product_derived_claims": ["near_tie_interpretation", "decision_note", "candidate_comparison"],
+
+  "nws_used_in_decision": false,
+  "claim_provenance_model": "Machine-readable claim envelope: claim_id, text, source_provider, source_type, evidence_nodes, mode, observation_time, used_in_decision",
+
+  "replay_network_behavior": "Zero FortyGuard network calls. Zero NWS network calls.",
+  "live_no_data_behavior": "Bounded error, no Brief generated, NWS not fetched",
+  "live_nws_failure_behavior": "Thermal Brief survives, NWS unavailable disclosed in Brief",
+
+  "dynamic_content_safety": "All Brief content rendered via textContent/createElement. Hostile input test proves no HTML injection.",
+
+  "existing_test_results": {
+    "s1_regression": "20/20 PASS",
+    "s2_static": "15/15 PASS",
+    "hardening": "12/12 PASS",
+    "browser": "12/12 PASS",
+    "controlled_live": "7/7 PASS"
+  },
+  "new_s3b_test_count": 16,
+  "total_test_count": 82,
+
+  "public_url": "https://urban-heat-intelligence.onrender.com/",
+  "deployed_commit": "c5e0edba14b278d1b3d3493b3d5a2752d898d06f",
+  "public_brief_test": {
+    "brief_title": "Urban Heat Brief",
+    "brief_mode": "Historical Replay",
+    "brief_sections": 4,
+    "ranked_candidates": 3,
+    "near_tie_disclosure": true,
+    "polygons": 367,
+    "no_overflow_1440x900": true
+  },
+
+  "credential_present": true,
+  "credential_exposed": false,
+
+  "feature_freeze": "Reinstated after S3B",
+  "s3b_result": "PASS",
+  "s3_status": "S3B COMPLETE — awaiting S3D reconciliation and S3E QA-Pilot",
+  "s4_status": "NOT AUTHORIZED"
+}
