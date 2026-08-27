@@ -1,0 +1,29 @@
+{
+  "receipt_id": "S4-CARTO-BASEMAP-REMEDIATION-20260827",
+  "receipt_type": "s4_carto_basemap_remediation",
+  "timestamp": "2026-08-27T11:00:00Z",
+  "project_id": "urban-heat-intelligence",
+
+  "classification": "submission_presentation_remediation",
+  "sealed_product": "c13d8eaac7b9fffda30d8db4df88659827a965f3",
+
+  "carto_key_present": true,
+  "carto_key_committed": false,
+  "carto_key_exposed_in_receipt": false,
+
+  "basemap_style": "dark_all raster",
+  "attribution_preserved": true,
+  "watermark_result": "PASS — authenticated tiles via CARTO_BASEMAP_KEY env var",
+
+  "replay_smoke": "PASS",
+  "polygon_count": 367,
+  "candidate_count": 3,
+  "brief_result": "PASS",
+  "evidence_result": "PASS",
+
+  "analytical_behavior_changed": false,
+  "product_requalification_required": false,
+
+  "s3_status": "ACCEPTED / SEALED",
+  "s4_status": "IN PROGRESS"
+}
