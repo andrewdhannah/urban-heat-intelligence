@@ -29,7 +29,7 @@
         <h1 id="page-title">Find the places<br><em>carrying the heat.</em></h1>
         <form id="question-form" class="question-form">
           <label for="question-input">Decision question</label>
-          <div class="question-row"><input id="question-input" name="question" value="Where should Phoenix prioritize a cooling intervention this afternoon?" autocomplete="off"><button type="submit" aria-label="Run decision query">Run query <span aria-hidden="true">↗</span></button></div>
+          <div class="question-row"><input id="question-input" name="question" value="Where should Phoenix prioritize a cooling intervention this afternoon?" autocomplete="off"><button type="submit" aria-label="Run decision query">Run query <span aria-hidden="true">↗</span></button></div><p class="analyst-hint">Ask the grounded analyst about the loaded evidence.</p><div id="analyst-result" class="analyst-result" aria-live="polite"></div><div id="analyst-suggestions" class="analyst-suggestions"></div>
         </form>
       </div>
       <div class="observation-card" aria-live="polite">
@@ -41,9 +41,9 @@
 
     <section id="status-region" class="status-region" aria-live="polite" role="status"></section>
 
-    <section class="decision-grid" aria-label="Thermal decision surface">
+    <section class="decision-grid" aria-label="Thermal decision surface" id="decision-surface">
       <div class="map-panel panel">
-        <div class="panel-head map-head"><div><span class="eyebrow">MEASURED FIELD</span><h2>Where the burden concentrates</h2></div><div class="map-source"><span class="source-dot measured"></span><span id="map-source-label">FortyGuard · Replay</span></div></div>
+        <div class="panel-head map-head"><div><span class="eyebrow">MEASURED FIELD</span><h2>Where the burden concentrates</h2></div><div class="map-source"><span class="source-dot measured"></span><span id="map-source-label">FortyGuard · Replay</span><button id="map-focus-button" class="map-focus-button" type="button" aria-pressed="false">Focus map</button></div></div>
         <div id="map" class="map" role="application" aria-label="Interactive FortyGuard measured temperature map"><div class="map-loading">Loading heat field…</div></div>
         <div class="map-footer"><div class="legend"><span class="eyebrow">MEASURED TEMPERATURE</span><span class="legend-gradient" aria-hidden="true"></span><span id="legend-min">—</span><span id="legend-max">—</span><span>°C</span></div><p>Cells show measured thermal observations. Color is a visual aid; values and candidate cards carry the meaning.</p></div>
         <div id="cell-detail" class="cell-detail" hidden></div>
