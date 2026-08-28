@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FortyGuard urban heat intelligence challenger dashboard for Phoenix.">
+  <title>Luna / Urban Heat Intelligence</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3k1vKfQKj4v9p2d9Y4J7gJ6Z5Jk6E=" crossorigin="">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Urban Heat Intelligence home"><span class="brand-mark">UHI</span><span>Urban Heat<br><strong>Intelligence</strong></span></a>
+    <div class="topbar-meta"><span class="eyebrow">DECISION DESK</span><span class="slash">/</span><span>Phoenix, Arizona</span></div>
+    <div class="mode-switch" role="group" aria-label="Data mode">
+      <span class="switch-label">DATA MODE</span>
+      <button id="btn-replay" class="mode-button active" type="button" aria-pressed="true">Replay <small>captured</small></button>
+      <button id="btn-live" class="mode-button" type="button" aria-pressed="false">Live <small>latest available</small></button>
+    </div>
+  </header>
+
+  <main id="top" class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow accent">AFTERNOON COOLING PRIORITY</p>
+        <h1 id="page-title">Find the places<br><em>carrying the heat.</em></h1>
+        <form id="question-form" class="question-form">
+          <label for="question-input">Decision question</label>
+          <div class="question-row"><input id="question-input" name="question" value="Where should Phoenix prioritize a cooling intervention this afternoon?" autocomplete="off"><button type="submit" aria-label="Run decision query">Run query <span aria-hidden="true">↗</span></button></div>
+        </form>
+      </div>
+      <div class="observation-card" aria-live="polite">
+        <span class="eyebrow">OBSERVATION</span>
+        <strong id="stat-obs-time">Loading…</strong>
+        <span id="observation-note">Preparing deterministic provider capture</span>
+      </div>
+    </section>
+
+    <section id="status-region" class="status-region" aria-live="polite" role="status"></section>
+
+    <section class="decision-grid" aria-label="Thermal decision surface">
+      <div class="map-panel panel">
+        <div class="panel-head map-head"><div><span class="eyebrow">MEASURED FIELD</span><h2>Where the burden concentrates</h2></div><div class="map-source"><span class="source-dot measured"></span><span id="map-source-label">FortyGuard · Replay</span></div></div>
+        <div id="map" class="map" role="application" aria-label="Interactive FortyGuard measured temperature map"><div class="map-loading">Loading heat field…</div></div>
+        <div class="map-footer"><div class="legend"><span class="eyebrow">MEASURED TEMPERATURE</span><span class="legend-gradient" aria-hidden="true"></span><span id="legend-min">—</span><span id="legend-max">—</span><span>°C</span></div><p>Cells show measured thermal observations. Color is a visual aid; values and candidate cards carry the meaning.</p></div>
+        <div id="cell-detail" class="cell-detail" hidden></div>
+      </div>
+
+      <aside class="answer-rail" aria-labelledby="answer-hero">
+        <div class="answer-label"><span class="eyebrow">CURRENT READ</span><span id="mode-badge" class="mode-badge replay">REPLAY</span></div>
+        <h2 id="answer-hero">Loading the decision…</h2>
+        <p id="answer-summary" class="answer-summary">The answer will appear when the measured field is ready.</p>
+        <div class="stat-strip"><div><span class="eyebrow">AREA MEAN</span><strong id="stat-mean">—</strong></div><div><span class="eyebrow">AREA RANGE</span><strong id="stat-range">—</strong></div><div><span class="eyebrow">CELLS</span><strong id="stat-cells">—</strong></div></div>
+        <div id="ranking-callout" class="ranking-callout" hidden></div>
+        <div class="source-key"><div><span class="source-mark primary">01</span><div><strong>Decision evidence</strong><small>FortyGuard measured field determines ordering</small></div></div><div><span class="source-mark context">02</span><div><strong>Context only</strong><small>NWS and Phoenix GIS do not re-rank</small></div></div></div>
+        <button class="text-button evidence-toggle" type="button" aria-expanded="false" aria-controls="evidence-drawer">Inspect evidence <span aria-hidden="true">＋</span></button>
+      </aside>
+    </section>
+
+    <section class="candidates-section" aria-labelledby="candidates-title">
+      <div class="section-heading"><div><span class="eyebrow accent">THERMAL COMPARISON</span><h2 id="candidates-title">The top candidate cluster</h2></div><p id="candidate-explainer">Deterministic rank from the measured field. Context below is descriptive, not a score.</p></div>
+      <div id="candidate-list" class="candidate-list"><div class="empty-state">Candidate locations will appear here.</div></div>
+    </section>
+
+    <section class="lower-grid">
+      <article class="brief-panel panel" aria-labelledby="brief-title"><div class="panel-head"><div><span class="eyebrow accent">EVIDENCE-BACKED NARRATIVE</span><h2 id="brief-title">Urban Heat Brief</h2></div><span class="brief-status">CLAIMS + SOURCES</span></div><div id="brief-content" class="brief-content"><p class="muted">Brief loading…</p></div></article>
+      <article class="context-panel panel" aria-labelledby="context-title"><div class="panel-head"><div><span class="eyebrow">LOCAL CONTEXT</span><h2 id="context-title">What surrounds the candidates</h2></div><span class="context-badge">NOT USED TO RANK</span></div><div id="context-content" class="context-content"><p class="muted">Context loading…</p></div></article>
+    </section>
+
+    <section id="evidence-drawer" class="evidence-drawer panel" hidden aria-labelledby="evidence-title"><div class="panel-head"><div><span class="eyebrow accent">AUDIT LAYER</span><h2 id="evidence-title">How this answer was assembled</h2></div><button id="evidence-close" class="icon-button" type="button" aria-label="Close evidence">×</button></div><div id="evidence-content" class="evidence-chain"></div></section>
+  </main>
+  <footer class="footer"><span>FORTYGUARD / URBAN HEAT INTELLIGENCE</span><span>Investigation priority, not intervention efficacy.</span></footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
