@@ -6,11 +6,34 @@ for the HeatAgent in both LIVE and REPLAY modes.
 """
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+
+ALLOWED_VARIANTS = ("incumbent", "luna")
+DEFAULT_VARIANT = "incumbent"
+
+
+def get_dashboard_variant():
+    """Read the controlled dashboard variant from the environment.
+
+    UHI_DASHBOARD_VARIANT controls which presentation layer is served.
+    Allowed values: incumbent, luna.  Invalid values fall back to incumbent.
+    The API backend is shared regardless of variant.
+    """
+    variant = os.environ.get("UHI_DASHBOARD_VARIANT", DEFAULT_VARIANT).lower().strip()
+    return variant if variant in ALLOWED_VARIANTS else DEFAULT_VARIANT
+
+
+def get_dashboard_dir():
+    """Return the Path to the static directory for the active variant."""
+    variant = get_dashboard_variant()
+    if variant == "luna":
+        return Path(__file__).parent / "dashboard-luna"
+    return Path(__file__).parent / "static"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -261,7 +284,7 @@ class UHIHandler(SimpleHTTPRequestHandler):
     """Serve static files and API endpoints."""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(Path(__file__).parent / "static"), **kwargs)
+        super().__init__(*args, directory=str(get_dashboard_dir()), **kwargs)
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -281,11 +304,13 @@ class UHIHandler(SimpleHTTPRequestHandler):
             self.serve_nws()
         elif parsed.path == "/api/config":
             self.serve_config()
+        elif parsed.path == "/api/variant":
+            self.serve_variant()
         else:
             super().do_GET()
 
     def serve_index(self):
-        index_path = Path(__file__).parent / "static" / "index.html"
+        index_path = get_dashboard_dir() / "index.html"
         content = index_path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
@@ -330,12 +355,19 @@ class UHIHandler(SimpleHTTPRequestHandler):
 
     def serve_config(self):
         """Return non-sensitive client configuration."""
-        import os
         carto_key = os.environ.get("CARTO_BASEMAP_KEY", "")
         config = {
             "carto_basemap_key": carto_key
         }
         response = json.dumps(config)
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(response.encode())
+
+    def serve_variant(self):
+        """Return the selected dashboard variant. No secrets exposed."""
+        response = json.dumps({"variant": get_dashboard_variant()})
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
