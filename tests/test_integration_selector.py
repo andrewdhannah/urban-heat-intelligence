@@ -20,10 +20,10 @@ from app.server import get_dashboard_variant, get_dashboard_dir, ALLOWED_VARIANT
 # ── Selector unit tests ──────────────────────────────────────────────
 
 class TestDashboardVariant:
-    def test_default_variant_is_incumbent(self):
+    def test_default_variant_is_luna(self):
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("UHI_DASHBOARD_VARIANT", None)
-            assert get_dashboard_variant() == "incumbent"
+            assert get_dashboard_variant() == "luna"
 
     def test_luna_variant_accepted(self):
         with patch.dict(os.environ, {"UHI_DASHBOARD_VARIANT": "luna"}):
@@ -33,9 +33,9 @@ class TestDashboardVariant:
         with patch.dict(os.environ, {"UHI_DASHBOARD_VARIANT": "incumbent"}):
             assert get_dashboard_variant() == "incumbent"
 
-    def test_invalid_variant_falls_back_to_incumbent(self):
+    def test_invalid_variant_falls_back_to_luna(self):
         with patch.dict(os.environ, {"UHI_DASHBOARD_VARIANT": "bogus"}):
-            assert get_dashboard_variant() == "incumbent"
+            assert get_dashboard_variant() == "luna"
 
     def test_case_insensitive(self):
         with patch.dict(os.environ, {"UHI_DASHBOARD_VARIANT": "LUNA"}):
@@ -64,10 +64,10 @@ class TestDashboardDir:
             assert d.name == "dashboard-luna"
             assert (d / "index.html").exists()
 
-    def test_invalid_falls_back_to_static(self):
+    def test_invalid_falls_back_to_dashboard_luna(self):
         with patch.dict(os.environ, {"UHI_DASHBOARD_VARIANT": "invalid"}):
             d = get_dashboard_dir()
-            assert d.name == "static"
+            assert d.name == "dashboard-luna"
 
 
 # ── File existence proof ────────────────────────────────────────────

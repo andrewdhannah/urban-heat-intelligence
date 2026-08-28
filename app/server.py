@@ -14,7 +14,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
 ALLOWED_VARIANTS = ("incumbent", "luna")
-DEFAULT_VARIANT = "incumbent"
+DEFAULT_VARIANT = "luna"
 
 
 def get_dashboard_variant():
