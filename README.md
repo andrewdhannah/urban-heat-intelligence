@@ -10,10 +10,11 @@ Ask "Where should Phoenix prioritize a cooling intervention this afternoon?" and
 
 1. Calls FortyGuard's Temperature API for live heatmap observations (2m resolution, ~367 features)
 2. Ranks top-3 candidate hotspot locations by measured thermal burden
-3. Calls FortyGuard Environmental Parameters for each candidate (heat index, apparent temperature, humidity)
-4. Corroborates with NWS current conditions and active weather alerts
-5. Composes an Urban Heat Brief from the same evidence with claim-level provenance
-6. Returns a ranked recommendation with full evidence chain
+3. Retrieves environmental parameters (heat index, apparent temperature, humidity) as representative historical context at the priority location
+4. Corroborates with NWS current conditions and active weather alerts (Live mode only)
+5. Enriches candidates with Phoenix GIS local context (canopy, parks) — context only, not used for ranking
+6. Composes an Urban Heat Brief from the same evidence with claim-level provenance
+7. Returns a ranked recommendation with full evidence chain
 
 Every answer carries provenance — data source, observation time, visualization source, and mode.
 
@@ -29,6 +30,12 @@ python3 app/server.py
 
 # Open in browser
 open http://localhost:8080
+```
+
+The Luna dashboard is served by default. To use the preserved incumbent dashboard:
+
+```bash
+UHI_DASHBOARD_VARIANT=incumbent python3 app/server.py
 ```
 
 ## LIVE Mode (Optional)
@@ -74,7 +81,7 @@ The server binds to `0.0.0.0` by default (configurable via `HOST` env var).
 | Temperature API | FortyGuard Temperature API (heatmap + env_params) |
 | Weather Context | National Weather Service API (corroboration) |
 | Frontend | HTML + CSS + JavaScript + Leaflet.js |
-| Map | CARTO dark basemap, FortyGuard heatmap polygons |
+| Map | OpenStreetMap basemap, FortyGuard heatmap GeoJSON cells |
 
 ## Test Suites
 
@@ -89,12 +96,15 @@ All suites must pass before any release.
 
 ## How to Demo
 
-1. Open the application (REPLAY auto-runs by default)
-2. Observe: the Urban Heat Brief, top-3 ranked candidate locations, and near-tie disclosure
-3. Click "Why This Answer?" to expand the evidence chain and supplemental provenance nodes
-4. Observe: Replay explicitly excludes current NWS context
-5. Switch to LIVE mode (requires API key) for real-time observations and NWS corroboration
-6. Observe: mode labels, observation times, and source attribution remain distinct
+1. Open the application (REPLAY auto-runs by default in Luna dashboard)
+2. Observe: the observation time, measured field map, and top-3 ranked candidate locations
+3. Read the near-tie disclosure if candidates are within 0.1°C of each other
+4. Note the representative Replay environmental context (shared historical context, not per-candidate)
+5. Click "Inspect evidence +" to expand the evidence chain
+6. Observe: Replay explicitly excludes current NWS context
+7. Use source disclosures (hover/click info icons) to understand each data source's role
+8. Switch to LIVE mode (requires API key) for real-time observations and NWS corroboration
+9. Observe: mode labels, observation times, and source attribution remain distinct
 
 ## Security
 

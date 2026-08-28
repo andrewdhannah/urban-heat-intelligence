@@ -16,13 +16,13 @@ Unlike typical heat dashboards that show temperature numbers, UHI explains how t
 
 ### Default: Replay Mode
 
-When you open the product, you start in **Replay mode**. This uses pre-recorded data from FortyGuard's thermal mapping of Phoenix, captured on August 25, 2026. No credentials or setup is required — it works immediately.
+When you open the product, you start in **Replay mode** with the **Luna dashboard**. This uses pre-recorded data from FortyGuard's thermal mapping of Phoenix, captured on August 25, 2026. No credentials or setup is required — it works immediately.
 
 Replay mode lets you explore the product's full functionality with genuine data, including:
-- Ranked priority locations by thermal burden
-- Environmental parameters (humidity, apparent temperature, heat index)
+- Ranked priority locations by measured thermal burden
+- Representative environmental context (humidity, apparent temperature, heat index) — shared historical context, not independent per-candidate measurements
 - The Urban Heat Brief (a human-readable narrative)
-- The evidence chain ("Why?" panel)
+- The evidence chain ("Inspect evidence +" panel)
 
 ### Optional: Live Mode
 
@@ -63,7 +63,7 @@ Lists every data source that contributed to the Brief, with mode labels.
 
 ## Reading the Evidence Chain
 
-Every assertion in the product traces to a specific data source. You can view this by clicking **"Why This Answer?"** in the interface.
+Every assertion in the product traces to a specific data source. You can view this by clicking **"Inspect evidence +"** in the interface.
 
 The evidence chain shows:
 - Which tool produced each data point (e.g., FortyGuard heatmap, env_params)
@@ -118,7 +118,6 @@ A mixed-provenance display (combining Live and Replay data) is always explicitly
 - **Does not select specific interventions.** It recommends where to investigate, not what action to take.
 - **Does not produce opaque scores.** Rankings are based on observed temperature, not hidden algorithms.
 - **Does not fabricate data.** When a source is unavailable, the product discloses the absence and continues with available data.
-- **Does not integrate GIS, NOAA, or local news** in the current version. These are deferred for future development.
 
 ---
 
@@ -127,12 +126,10 @@ A mixed-provenance display (combining Live and Replay data) is always explicitly
 | Source | Role | Availability |
 |--------|------|-------------|
 | FortyGuard | Primary thermal intelligence (required) | Always — product cannot function without it |
-| NWS | Supplemental weather context | Optional, Live mode only |
-| Phoenix GIS | Physical context | Deferred (not integrated) |
-| NOAA | Historical context | Deferred (not integrated) |
-| Local news | Human-interest context | Deferred (not integrated) |
+| Phoenix GIS | Local context (canopy, parks) | Always — context only, not used for ranking |
+| NWS | Supplemental weather context | Live mode only, optional |
 
-FortyGuard is the only required source. The product degrades gracefully when optional sources are unavailable — you will always see an honest disclosure of what is and is not included.
+FortyGuard is the only required source. Phoenix GIS provides local context (canopy coverage, mapped parks) that does not influence the thermal ranking. The product degrades gracefully when optional sources are unavailable — you will always see an honest disclosure of what is and is not included.
 
 ---
 

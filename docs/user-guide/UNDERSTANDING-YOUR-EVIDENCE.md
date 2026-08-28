@@ -65,7 +65,7 @@ When you see the evidence chain, every line traces to a specific evidence chain 
 FortyGuard is the only **required** source. The product cannot function without it. FortyGuard provides:
 - 2m-resolution thermal mapping
 - Temperature measurements and hotspot rankings
-- Environmental parameters (humidity, wind, apparent temperature)
+- Environmental parameters as representative historical context (humidity, wind, apparent temperature)
 - Heat index calculations
 
 Every thermal assertion in the product traces to FortyGuard data.
@@ -79,9 +79,13 @@ NWS is **optional** and available only in Live mode. It provides:
 
 NWS data is always marked as **supplemental** and **`used_in_decision: false`**. It enriches context but never influences the thermal ranking.
 
-### Deferred Sources
+### Local Context: Phoenix GIS
 
-Phoenix GIS, NOAA, and local news are **not currently integrated**. The product does not consult these sources. If you see them mentioned in documentation, they represent future capabilities, not current functionality.
+Phoenix GIS is **integrated** and provides local context for each candidate:
+- Tree canopy coverage percentage
+- Mapped park locations
+
+GIS data is always marked as **context only** and **`used_in_decision: false`**. It helps explain how candidate environments differ after thermal candidates are identified, but does not influence the thermal ranking.
 
 ---
 
@@ -104,9 +108,9 @@ The mode label appears:
 
 ---
 
-## What the "Why?" Panel Shows
+## What the "Inspect Evidence" Panel Shows
 
-When you click **"Why This Answer?"**, the product displays the complete evidence chain for every assertion. This panel shows:
+When you click **"Inspect evidence +"**, the product displays the complete evidence chain for every assertion. This panel shows:
 
 1. **Which data sources contributed** — e.g., FortyGuard heatmap, FortyGuard env_params
 2. **The timestamp of each observation** — when the data was captured

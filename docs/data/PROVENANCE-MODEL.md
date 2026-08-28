@@ -43,12 +43,12 @@ Additional nodes may appear:
 - Created fresh on each `HeatAgent.answer()` call
 - Stored in `self.evidence_chain` (Python list)
 - Serialized into the JSON API response via `build_visualization_payload()`
-- Displayed in the browser "Why This Answer?" panel
+- Displayed in the browser "Inspect evidence +" panel
 - **Not persisted** — no SQLite, no file storage, no database
 
-### Why Panel Data Source
+### Evidence Panel Data Source
 
-The "Why This Answer?" panel renders the `evidence_chain` array from the JSON API response. Each chain node is displayed as a step name and detail text. The chain is the authoritative provenance record for the session.
+The "Inspect evidence +" panel renders the `evidence_chain` array from the JSON API response. Each chain node is displayed as a step name and detail text. The chain is the authoritative provenance record for the session.
 
 ## Claim Provenance (Urban Heat Brief)
 
