@@ -1,0 +1,104 @@
+{
+  "receipt_id": "DASH-V2-G-OWNER-PROMOTION-RECEIPT",
+  "receipt_type": "owner_promotion_decision",
+  "timestamp": "2026-08-28T04:30:00Z",
+  "project_id": "urban-heat-intelligence",
+
+  "owner_decision": "PROMOTE_LUNA",
+  "decision_authority": "Owner",
+  "decision_date": "2026-08-28",
+
+  "promoted_product": {
+    "dashboard": "Luna V2",
+    "qualified_sha": "3c5b8a862c4cf3c9f2ad4c47aab0cc51f1d85fa3",
+    "backend_ancestry": "89b7216f3b1f681e2c8660eded9c1d40fbbc7982",
+    "lineage": [
+      {"sha": "89b7216", "description": "accepted backend"},
+      {"sha": "7dd0a22", "description": "Dashboard integration"},
+      {"sha": "512fcb4", "description": "environmental provenance correction"},
+      {"sha": "bcfe295", "description": "measured-field resolve / zoom"},
+      {"sha": "3c5b8a8", "description": "evidence-toggle initialization correction"}
+    ]
+  },
+
+  "earned_basis": {
+    "completed_gates": [
+      "DASH-V2-B",
+      "DASH-V2-D",
+      "DASH-V2-D-R1",
+      "DASH-V2-D-R2",
+      "DASH-V2-D-R3",
+      "DASH-V2-E",
+      "DASH-V2-E-E1",
+      "DASH-V2-F"
+    ],
+    "semantic_equivalence": "PASS",
+    "independent_qa_recommendation": "PROMOTE_LUNA",
+    "no_blockers_or_major_findings_open": true
+  },
+
+  "gate_dispositions": {
+    "DASH-V2-E": "PASS_WITH_KNOWN_LIMITATIONS",
+    "DASH-V2-F": "PASS_WITH_KNOWN_LIMITATIONS_LUNA_CLEARLY_BETTER"
+  },
+
+  "incumbent_disposition": {
+    "status": "SUPERSEDED FOR ACTIVE DASHBOARD PRESENTATION",
+    "preserved_as": [
+      "historical implementation",
+      "comparison control",
+      "rollback/reference evidence"
+    ],
+    "deleted": false,
+    "evidence_erased": false
+  },
+
+  "active_dashboard": {
+    "before": "incumbent",
+    "after": "luna",
+    "mechanism": "UHI_DASHBOARD_VARIANT environment variable",
+    "code_change_required": true
+  },
+
+  "promotion_child": {
+    "created": true,
+    "sha": "a5e7039f5ffbe7d1acf34f7f8b2c304ae65b5a54",
+    "parent": "3c5b8a862c4cf3c9f2ad4c47aab0cc51f1d85fa3",
+    "branch": "dash-v2-g-promotion-luna",
+    "scope": "DEFAULT_VARIANT flip only",
+    "mutation": "app/server.py: DEFAULT_VARIANT changed from incumbent to luna",
+    "tests_updated": "tests/test_integration_selector.py: 3 tests updated to reflect new default",
+    "tests_pass": true,
+    "test_count": 18,
+    "commit_message": "DASH-V2-G: promote Luna as active dashboard"
+  },
+
+  "known_limitations": [
+    "Live provider unavailable during qualification — application handled truthfully",
+    "axe not run",
+    "bounded NWS visibility observation",
+    "evidence drawer timestamps unavailable — minor / low impact"
+  ],
+
+  "next_gate": "DASH-V2-H — production / Live integration of promoted Dashboard",
+
+  "post_promotion_state": {
+    "DASH_V2_G": "COMPLETE",
+    "LUNA": "OWNER_PROMOTED",
+    "ACTIVE_DASHBOARD_SHAPE": "LUNA",
+    "INCUMBENT": "SUPERSEDED / PRESERVED",
+    "QUALIFIED_PRODUCT": "preserve exact earned qualification state",
+    "CANONICAL_FINAL_SUBMISSION": "NOT_YET_CLAIMED",
+    "SEALED_FINAL_SUBMISSION": "NOT_YET_CLAIMED"
+  },
+
+  "authorization_scope": "Dashboard presentation / interaction Shape only",
+  "explicitly_excluded": [
+    "analytical changes",
+    "feature expansion",
+    "reverse geocoding",
+    "new LINK capabilities",
+    "submission hardening",
+    "final sealing"
+  ]
+}
