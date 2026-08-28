@@ -22,19 +22,19 @@ Unlike typical heat dashboards that show numbers, UHI explains how the answer wa
 1. **Thermal intelligence from real data:** FortyGuard provides 2m-resolution thermal mapping (367+ features in a typical Phoenix query).
 2. **Decision support, not just display:** The agent ranks up to three candidate locations deterministically by observed temperature; it does not use an opaque AI score.
 3. **Evidence-backed:** Every displayed assertion traces to a specific data source, tool call, and timestamp.
-4. **Multi-source corroboration:** FortyGuard is primary thermal evidence. NWS is optional live-only weather context; Phoenix GIS, NOAA, and local news are deferred and are not currently integrated.
+4. **Multi-source corroboration:** FortyGuard is primary thermal evidence. Phoenix GIS provides local context (canopy, parks) that does not influence ranking. NWS is optional live-only weather context.
 5. **Provenance integrity:** Live and Replay data cannot contaminate each other. Every data point carries its mode label.
 6. **Human-readable output:** The Urban Heat Brief translates technical analysis into a format planners, journalists, and residents can consume.
 
-### 2.1 Current S3B implementation boundary
+### 2.1 Current implementation boundary
 
 The Urban Heat Brief is a first-class dashboard output generated from the
 current answer evidence. It contains Thermal Finding, Candidate
-Interpretation, Weather Context, Decision Note, and Sources sections.
+Interpretation, Weather Context, Local Context, Decision Note, and Sources sections.
 Replay uses genuine FortyGuard fixtures and explicitly excludes current NWS
 context. Live may include NWS context when available, marked as supplemental
-and `used_in_decision: false`. GIS, NOAA, and local news sections are absent
-because those sources are deferred.
+and `used_in_decision: false`. Phoenix GIS provides local context (canopy,
+parks) marked as `used_in_decision: false`.
 
 ---
 
@@ -55,9 +55,10 @@ Layer 2: Agent + Decision Engine
 └── Urban Heat Brief composition (claim-level provenance)
 
 Layer 3: Interface
-├── Dashboard (Leaflet.js, CARTO dark basemap, heatmap polygons)
-├── Why? panel (evidence chain display)
+├── Dashboard (Leaflet.js, OpenStreetMap basemap, GeoJSON heatmap cells)
+├── Inspect Evidence panel (evidence chain display)
 ├── Urban Heat Brief (narrative with claim provenance)
+├── Source disclosures (provenance popovers)
 └── Mode toggle (LIVE / REPLAY)
 ```
 
@@ -68,10 +69,8 @@ Layer 3: Interface
 | Source | Role | Availability | Narrative Role |
 |--------|------|-------------|----------------|
 | FortyGuard | Primary thermal intelligence | Required — product cannot function without it | Temperature measurements, hotspot rankings |
+| Phoenix GIS | Local physical context | Always — context only, not used for ranking | Canopy coverage, mapped parks |
 | NWS | Current weather/advisory | Optional, LIVE only — enriches context | Official conditions, advisories |
-| Phoenix GIS | Local physical context | Deferred — not integrated | Not currently present |
-| NOAA | Historical context | Deferred — not integrated | Not currently present |
-| Local news | Human-interest context | Not authorized — not integrated | Not currently present |
 
 **Key rule:** FortyGuard is the only required source. All others are optional enrichments. The product degrades gracefully when optional sources are unavailable.
 
@@ -127,7 +126,7 @@ Agent composes response:
   └── Urban Heat Brief (narrative, human-readable)
 ```
 
-GIS, NOAA, and local news are not currently integrated. The product
+GIS provides local context that does not influence thermal ranking. The product
 recommends where to prioritize investigation based on observed evidence; it
 does not claim intervention effectiveness or produce an opaque priority score.
 

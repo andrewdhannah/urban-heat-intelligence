@@ -24,7 +24,7 @@ cd urban-heat-intelligence
 python3 app/server.py
 ```
 
-Open your browser to the URL displayed by the server (typically `http://localhost:8000`).
+Open your browser to the URL displayed by the server (typically `http://localhost:8080`).
 
 ---
 
@@ -82,7 +82,8 @@ The deployment uses the same `python3 app/server.py` entry point.
 ```
 app/
   server.py          # Entry point — run this
-  ...                # Application modules
+  static/            # Incumbent dashboard (preserved, superseded)
+  dashboard-luna/    # Luna dashboard (active default)
 fixtures/
   ...                # Pre-recorded FortyGuard responses (Replay mode)
 .secrets/

@@ -64,8 +64,8 @@ or
 
 | Mode | Display Label | Colour | Timestamp Shown |
 |------|--------------|--------|----------------|
-| LIVE | "Live data" | Green | Current query time |
-| REPLAY | "Replay data — Aug 25, 2026" | Amber/grey | Fixture date |
+| LIVE | "Live" | Teal | Current query time |
+| REPLAY | "Replay captured" | Teal (selected) | Fixture date |
 
 ### 3.3 What the User Sees
 

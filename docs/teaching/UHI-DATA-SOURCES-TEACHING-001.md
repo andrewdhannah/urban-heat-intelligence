@@ -10,17 +10,16 @@
 ## 1. Source Hierarchy
 
 The current product is implemented around FortyGuard thermal evidence with
-optional LIVE NWS corroboration. Phoenix/Maricopa GIS, NOAA, and local news
-remain deferred and are not consulted by the current product.
+Phoenix GIS local context and optional LIVE NWS corroboration.
 
 ```
 FortyGuard (PRIMARY — required)
        ↓
+Phoenix GIS (LOCAL CONTEXT — always available, used_in_decision=false)
+       ↓
 NWS (CURRENT CONTEXT — LIVE-only optional)
        ↓
 Urban Heat Brief composition
-
-Deferred: Phoenix/Maricopa GIS, NOAA, Local News
 ```
 
 ---
@@ -76,22 +75,21 @@ that current NWS context is not included in historical Replay.
 | Property | Value |
 |----------|-------|
 | **Role** | Local physical and cooling context |
-| **Status** | DEFERRED — not integrated in the current product |
-| **API** | Open data portal (GIS layers) |
-| **Data** | Vegetation, parks, canopy coverage, cooling infrastructure |
-| **Narrative Role** | Physical context for intervention decisions |
+| **Status** | INTEGRATED — context only, not used for ranking |
+| **Data** | Tree canopy coverage, mapped park locations |
+| **Narrative Role** | Physical context for candidate locations |
 
 **What GIS provides:**
-- Park and vegetation locations
-- Canopy coverage percentage
-- Cooling centre locations
-- Impervious surface mapping
-- Demographic overlays
+- Park locations and names
+- Canopy coverage percentage at candidate locations
+- Census tract identification
 
 **Why GIS matters:**
-- Determines intervention opportunity (can you build a park here?)
-- Cooling deficit calculation (how much canopy is missing?)
-- Social equity assessment (vulnerable communities)
+- Helps explain how candidate environments differ
+- Provides local situational awareness after thermal candidates are identified
+
+**Ranking rule:** GIS context is never used for thermal ranking. It is
+always marked `used_in_decision: false`.
 
 ### 2.4 NOAA
 
@@ -138,7 +136,7 @@ that current NWS context is not included in historical Replay.
 
 **Forbidden pattern:** "The temperature is 44.2°C" (sourced from a news article).
 
-**The distinction:** News provides context about what the heat means for people. FortyGuard and NWS provide measurements and official context. GIS, NOAA, and local news are deferred.
+**The distinction:** News provides context about what the heat means for people. FortyGuard and NWS provide measurements and official context. GIS provides local context (canopy, parks) that does not influence ranking. NOAA and local news are not integrated.
 
 ---
 
@@ -154,7 +152,23 @@ FortyGuard env_params: apparent temperature 46.4°C, humidity 11.3%
 → Urban Heat Brief composes these into attributed narrative
 ```
 
-### 3.2 Live NWS Enrichment (LIVE only)
+### 3.2 Phoenix GIS Context Enrichment
+
+After thermal candidates are identified, Phoenix GIS provides local context for each candidate.
+
+```
+Candidate 1: 42.05°C (ranked by FortyGuard)
+  GIS: Canopy 0.9%, Inside Roosevelt Park
+  → Context only, used_in_decision=false
+
+Candidate 2: 42.05°C (ranked by FortyGuard)
+  GIS: Canopy 2.6%, No mapped park
+  → Context only, used_in_decision=false
+```
+
+GIS context helps explain how candidate environments differ. It does not alter the thermal ranking.
+
+### 3.3 Live NWS Enrichment (LIVE only)
 
 When FortyGuard succeeds in LIVE mode, NWS may add official weather context.
 
@@ -164,7 +178,7 @@ NWS: Partly Cloudy, Extreme Heat Warning active (LIVE context)
 → Brief includes NWS as supplemental context, not ranking input
 ```
 
-### 3.3 Replay Exclusion
+### 3.4 Replay Exclusion
 
 In Replay, no current NWS data is fetched.
 

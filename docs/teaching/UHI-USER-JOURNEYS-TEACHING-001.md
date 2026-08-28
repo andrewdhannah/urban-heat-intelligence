@@ -59,7 +59,7 @@ Agent ranks top-3 priority locations
     ↓
 Agent presents the Urban Heat Brief and near-tie interpretation
     ↓
-Planner clicks "Why This Answer?"
+Planner clicks "Inspect evidence +"
     ↓
 Planner reviews the evidence chain (FortyGuard; NWS only in LIVE)
     ↓

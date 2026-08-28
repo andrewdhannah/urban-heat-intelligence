@@ -101,8 +101,9 @@ one intervention location over another.
 
 The current product does not select a specific intervention category. It
 answers where to prioritize investigation based on measured thermal evidence.
-Specific intervention logic requires the deferred GIS, demographic, and
-policy context and is outside the frozen implementation.
+Specific intervention logic requires additional demographic and policy context
+beyond the current local context (canopy, parks) and is outside the current
+implementation.
 
 ### 4.3 Intervention Never Fabricates
 
@@ -118,10 +119,8 @@ particular location has a proven policy outcome.
 | Source | Decision Contribution |
 |--------|----------------------|
 | FortyGuard | Observed thermal measurements, candidate ranking, environmental parameters |
+| Phoenix GIS | Local context (canopy, parks); context only, not used for ranking |
 | NWS | LIVE-only supplemental weather context; never ranking input |
-| Phoenix GIS | Deferred, not integrated |
-| NOAA | Deferred, not integrated |
-| Local news | Not authorized, not integrated |
 
 ### 5.2 Source Absence Handling
 

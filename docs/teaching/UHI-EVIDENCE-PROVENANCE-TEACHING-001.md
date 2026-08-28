@@ -49,7 +49,7 @@ Additional nodes may appear:
 1. Created fresh on each `HeatAgent.answer()` call
 2. Stored in `self.evidence_chain` (Python list)
 3. Serialized into the JSON API response via `build_visualization_payload()`
-4. Displayed in the browser "Why This Answer?" panel
+4. Displayed in the browser "Inspect evidence +" panel
 5. **Not persisted** — no SQLite, no file storage, no database
 
 ### 2.4 Future Target (Not Implemented)
@@ -60,7 +60,7 @@ If persistent evidence storage were implemented, receipts would include `receipt
 
 ## 3. The "Why?" Panel
 
-When a user clicks "Why This Answer?", the agent displays the evidence chain:
+When a user clicks "Inspect evidence +", the agent displays the evidence chain:
 
 ```text
 Why is Candidate #1 the first to investigate?
