@@ -24,6 +24,9 @@ async def main():
         assert "USED TO RANK" in await page.locator("[data-popover='fortyguard']").inner_text()
         await page.locator(".source-control[data-source='fortyguard']").hover()
         assert await page.locator("[data-popover='fortyguard']").is_visible()
+        # Pointer can move into the disclosure without collapsing it.
+        await page.locator("[data-popover='fortyguard']").hover()
+        assert await page.locator("[data-popover='fortyguard']").is_visible()
         await page.locator(".source-control[data-source='fortyguard']").press("Escape")
         assert not await page.locator("[data-popover='fortyguard']").is_visible()
         assert await page.locator(".leaflet-interactive").count() > 0
@@ -69,17 +72,24 @@ async def main():
         assert await page.locator(".candidates-section").is_visible()
         assert await page.locator(".brief-panel").is_visible()
         await page.locator("#map-focus-button").click()
+        await page.locator(".source-control[data-source='fortyguard']").focus()
+        assert await page.locator("[data-popover='fortyguard']").is_visible()
+        await page.keyboard.press("Escape")
+        assert not await page.locator("[data-popover='fortyguard']").is_visible()
+        assert await page.locator("body.map-focus").count() == 1
         await page.keyboard.press("Escape")
         assert await page.locator("body.map-focus").count() == 0
         await page.locator("#question-input").fill("Which trees would cool this area most?")
         await page.locator("#question-form button").click()
         assert "does not estimate the cooling effect" in await page.locator("#analyst-result").inner_text()
         assert "Why it matters:" in await page.locator("#analyst-result").inner_text()
-        assert "thermal observations are the evidence" in await page.locator("#analyst-result").inner_text()
+        assert "does not estimate intervention effectiveness" in await page.locator("#analyst-result").inner_text()
         await page.locator("#question-input").fill("show live data")
         await page.locator("#question-form button").click()
+        assert "Switching to Live mode." in await page.locator("#analyst-result").inner_text()
         await page.wait_for_timeout(300)
         assert await page.locator("#btn-live").get_attribute("aria-pressed") == "true"
+        assert await page.locator("#replay-env-context").count() == 0
         await page.keyboard.press("Tab")
         await page.keyboard.press("Enter")
         assert await page.locator(".candidate-card.focused").count() >= 1
