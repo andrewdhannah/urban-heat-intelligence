@@ -22,6 +22,10 @@ async def main():
         await page.locator(".source-control[data-source='fortyguard']").focus()
         assert await page.locator("[data-popover='fortyguard']").is_visible()
         assert "USED TO RANK" in await page.locator("[data-popover='fortyguard']").inner_text()
+        await page.locator(".source-control[data-source='fortyguard']").hover()
+        assert await page.locator("[data-popover='fortyguard']").is_visible()
+        await page.locator(".source-control[data-source='fortyguard']").press("Escape")
+        assert not await page.locator("[data-popover='fortyguard']").is_visible()
         assert await page.locator(".leaflet-interactive").count() > 0
         assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
         assert await page.locator("#legend-min").inner_text() != "—"
@@ -70,7 +74,8 @@ async def main():
         await page.locator("#question-input").fill("Which trees would cool this area most?")
         await page.locator("#question-form button").click()
         assert "does not estimate the cooling effect" in await page.locator("#analyst-result").inner_text()
-        assert "Why it matters" in await page.locator("#analyst-result").inner_text()
+        assert "Why it matters:" in await page.locator("#analyst-result").inner_text()
+        assert "thermal observations are the evidence" in await page.locator("#analyst-result").inner_text()
         await page.locator("#question-input").fill("show live data")
         await page.locator("#question-form button").click()
         await page.wait_for_timeout(300)

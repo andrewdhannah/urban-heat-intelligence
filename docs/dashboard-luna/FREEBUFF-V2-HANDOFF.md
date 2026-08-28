@@ -10,6 +10,7 @@
 - External runtime: Leaflet CDN and OpenStreetMap tiles; no key required
 - Excluded: `app/static/`, `hackathon-expansion`, credentials, generated caches, browser environments
 - Closeout refinements: intervention-effect guardrail now takes precedence over canopy/parks intents; explicit show-live/show-replay mode intents are supported; comparison answers disclose FortyGuard only; unavailable canopy is stated textually.
-- Limitations: Live credential and automated axe audit remain unavailable; backend lineage remains 3134f28 until independent reconciliation.
+- Source-disclosure remediation: source controls now support hover, focus, click/tap pinning, outside click, and Escape; FortyGuard copy is mode-aware; active NWS disclosure is rendered only for usable Live context; analyst WHY text is intent-specific.
+- Limitations: Live credential and automated axe audit remain unavailable; browser verification is deferred to Librarian when the preview process is unavailable; backend lineage remains 3134f28 until independent reconciliation.
 
 - Micro-remediation parent: `557f2e3a7851da139d0c723260310065737cea62`. This child adds the missing explicit mode registry entry and replaces unavailable canopy `—` output with truthful text. Playwright execution is deferred to Librarian verification if unavailable here.
