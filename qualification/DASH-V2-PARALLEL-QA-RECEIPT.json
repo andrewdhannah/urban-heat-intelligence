@@ -1,0 +1,68 @@
+{
+  "receipt_id": "DASH-V2-PARALLEL-QA-RECEIPT-2026-08-28",
+  "receipt_type": "documentation_truth_refresh_and_prequalification",
+  "project_id": "urban-heat-intelligence",
+  "role": "qa-pilot",
+  "parallel_to": "DASH-V2-H",
+  "not_authorizing": "DASH-V2-I",
+  "execution": {
+    "worktree": "/Users/andrew/Desktop/Freebuff/uhi-qa-pilot",
+    "branch": "qa-pilot/dash-v2-prequal-docs-tests",
+    "base_sha": "7dabd3805cc461a9fa7fd6db998c1081fbbae07d",
+    "isolated_from_h": true,
+    "clean_worktree": true,
+    "product_branch_mutated": false
+  },
+  "documentation_audit": {
+    "documents_reviewed": 18,
+    "stale_claims_found": 16,
+    "documents_updated": 0,
+    "historical_docs_modified": 0,
+    "future_capabilities_incorrectly_documented": 0,
+    "result": "STALE"
+  },
+  "test_inventory": {
+    "total_suites": 6,
+    "total_tests": 141,
+    "passed": 138,
+    "failed": 3,
+    "failure_classification": "stale_incumbent_selectors",
+    "covered_obligations": 12,
+    "partial_obligations": 5,
+    "uncovered_obligations": 3,
+    "production_only_obligations": 8
+  },
+  "regression": {
+    "suites": ["test_s1", "test_s2", "test_integration_selector", "test_level_a_gis", "test_s3b_brief", "test_s3_hardening"],
+    "passed": 138,
+    "failed": 3
+  },
+  "promotion_wiring": {
+    "default_luna": true,
+    "explicit_incumbent": true,
+    "explicit_luna": true,
+    "backend_unchanged": true,
+    "all_14_tests_pass": true
+  },
+  "d_r1_protection": {
+    "per_candidate_env_claims_absent": "COVERED",
+    "representative_context_truthful": "COVERED",
+    "regression_test_present": true,
+    "assertion_count": 5
+  },
+  "accessibility": {
+    "axe_run": false,
+    "manual_assessment": "PASS",
+    "blocking": false
+  },
+  "findings": {
+    "blockers": 0,
+    "majors": 0,
+    "minors": 3,
+    "observations": 4
+  },
+  "prequalification_state": "READY",
+  "generated_at": "2026-08-28T16:00:00Z",
+  "report_path": "qualification/DASH-V2-PARALLEL-QA-REPORT.md",
+  "receipt_path": "qualification/DASH-V2-PARALLEL-QA-RECEIPT.json"
+}
