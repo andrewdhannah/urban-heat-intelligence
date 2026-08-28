@@ -2,7 +2,7 @@
 
 ## Status
 
-Not captured in this environment: browser automation/Playwright is unavailable. Static HTTP smoke check passed for the Luna root (HTTP 200, HTML served).
+Captured with isolated Playwright Chromium against the same-origin canonical Replay preview. All requested viewport captures completed without horizontal overflow or console/page errors.
 
 ## Required captures
 

@@ -19,4 +19,4 @@ Repository README lists `python3 tests/test_s1.py`, `test_s2.py`, `test_s2_brows
 
 ## Current status
 
-Implementation-level checks completed by source review. Browser execution, screenshot capture, axe audit, and repository test execution require a running backend/browser harness and remain pending independent QA. This challenger must not be described as qualified.
+Implementation-level checks completed by source review. Browser execution and screenshot capture completed with isolated Playwright Chromium against the same-origin preview. The additive Luna browser suite passes. Existing S2 browser and controlled-Live tests skip because their interpreter cannot import Playwright; S3B browser checks likewise skip under the repository interpreter. Automated axe audit remains pending. This challenger must not be described as qualified.

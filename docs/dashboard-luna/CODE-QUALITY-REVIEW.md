@@ -22,4 +22,4 @@
 - CSS token usage: core colors/spacing/type/elevation are tokenized; external Leaflet styles remain library-owned.
 - Hard-coded data scan: no candidate values, dates, feature counts, park names, or credentials. The default question and canonical threshold are intentional contract constants.
 
-Known engineering follow-up: split `dashboard.js` into api/state/map/candidates/brief/evidence modules before production promotion if the challenger is selected.
+Bounded remediation fixed candidate DOM insertion, canonical `average_temperature` extraction, near-tie hero wording, Replay environmental-context placement, and GIS no-park display. The implementation remains one bounded module; split before production promotion if selected.
