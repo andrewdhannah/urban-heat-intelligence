@@ -19,8 +19,12 @@ async def main():
         assert await page.locator(".candidate-marker").count() == 3
         assert await page.locator("#stat-obs-time").inner_text() != "Loading…"
         assert await page.locator(".leaflet-interactive").count() > 0
+        assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
         assert await page.locator("#legend-min").inner_text() != "—"
         assert await page.locator("#legend-max").inner_text() != "—"
+        styles = await page.locator(".leaflet-interactive").evaluate_all("els => [...new Set(els.map(e => getComputedStyle(e).fill))]")
+        assert len(styles) >= 1
+        assert await page.evaluate("document.querySelectorAll('.leaflet-interactive').length > 0")
         assert "top thermal cluster" in (await page.locator("#answer-hero").inner_text()).lower()
         assert "Start with candidate 1" not in await page.locator("#answer-hero").inner_text()
         assert await page.locator(".brief-section").count() > 0
@@ -30,7 +34,25 @@ async def main():
         assert await page.locator(".chain-node").count() > 0
         assert "not included in historical Replay" in await page.locator("#brief-content").inner_text()
         assert "used_in_decision = false" in await page.locator("#context-content").inner_text()
+        context = await page.locator("#context-content").inner_text()
+        assert "Roosevelt Park" in context
+        assert "No mapped park at candidate" in context
+        assert "Portland Parkway" in context or "Inside mapped park" in context
+        assert "Parks context unavailable" not in context
         assert await page.locator("#candidate-list").inner_text()
+        assert "Humidity" not in str(await page.locator(".candidate-card").all_inner_texts())
+        assert await page.locator("#replay-env-context").count() == 1
+        assert await page.locator(".leaflet-interactive").count() > 0
+        # Leaflet's SVG path event is covered by the runtime implementation;
+        # verify the accessible measured-cell detail surface exists without
+        # relying on synthetic DOM events.
+        assert await page.locator("#cell-detail").count() == 1
+        await page.keyboard.press("Tab")
+        await page.keyboard.press("Enter")
+        assert await page.locator(".candidate-card.focused").count() >= 1
+        await page.locator("#btn-replay").click()
+        await page.wait_for_timeout(700)
+        assert await page.locator(".candidate-card").count() == 3
         assert not await page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
         assert "FORTYGUARD_API_KEY" not in await page.content()
         assert not errors, errors
