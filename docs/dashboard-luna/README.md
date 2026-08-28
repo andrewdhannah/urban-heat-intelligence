@@ -20,10 +20,10 @@ python3 app/server.py
 Then serve Luna in another terminal:
 
 ```bash
-python3 app/dashboard-luna/serve_preview.py
+python3 app/dashboard-luna/preview_server.py
 ```
 
-Open `http://localhost:8090/`. For the isolated page to reach the backend, use a browser/dev proxy or serve the Luna assets from the same origin after owner approval; the page's fetch target is `/api/answer`. A simple approved local integration is to temporarily add a static-root route, but this branch does not modify the control server.
+Open `http://localhost:8090/`. This same-origin challenger preview imports `get_agent_result()` and `build_visualization_payload()` from the canonical `app.server` and serves `/api/answer` and `/api/config` without modifying production serving. `serve_preview.py` remains available as a static-only asset server.
 
 ## Boundaries
 

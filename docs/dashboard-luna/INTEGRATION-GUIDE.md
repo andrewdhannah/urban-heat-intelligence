@@ -38,4 +38,4 @@ NWS arrives through server-side composition in `nws_context`; GIS arrives throug
 
 ## Preview
 
-The included `serve_preview.py` serves Luna at `http://localhost:8090/`. Because static preview is intentionally isolated from the backend origin, use a same-origin approved integration or local proxy when exercising live API calls. No duplicate analytical backend is included.
+The included `preview_server.py` serves Luna and the canonical `/api/answer` and `/api/config` endpoints at `http://localhost:8090/` using imports from `app.server`; no analytical backend is duplicated. `serve_preview.py` is static-only and is useful when testing assets without API calls.
