@@ -1,0 +1,36 @@
+{
+  "receipt_id": "DASH-V2-H-E1-EVIDENCE-MATERIALIZATION-CLOSURE",
+  "timestamp": "2026-08-28T12:30:00-04:00",
+  "authorization": "DASH-V2-H-E1",
+  "agent": "OpenWork-Claude",
+  "project": "urban-heat-intelligence",
+  "correction_type": "evidence_materialization_only",
+  "production_branch": {
+    "branch": "integration/luna-v2-reconciled",
+    "remote_tip": "7dabd3805cc461a9fa7fd6db998c1081fbbae07d",
+    "unchanged": true
+  },
+  "deployed_product_revision": {
+    "sha": "7dabd3805cc461a9fa7fd6db998c1081fbbae07d"
+  },
+  "h_evidence": {
+    "local_sha": "85621b2",
+    "full_sha": "85621b225539ddfa5713809cdadb2a9cfea524b8",
+    "evidence_only": true,
+    "report_path": "qualification/DASH-V2-H-PRODUCTION-INTEGRATION-REPORT.md",
+    "receipt_path": "qualification/DASH-V2-H-PRODUCTION-INTEGRATION-RECEIPT.json"
+  },
+  "remote_evidence": {
+    "branch": "evidence/dash-v2-h-production-integration",
+    "pushed": true,
+    "remote_tip": "85621b225539ddfa5713809cdadb2a9cfea524b8",
+    "report_resolves": true,
+    "receipt_resolves": true
+  },
+  "production_redeploy_triggered": false,
+  "product_source_changed": false,
+  "deployment_config_changed": false,
+  "final_disposition": "PASS_WITH_KNOWN_LIMITATIONS",
+  "dash_v2_h": "COMPLETE",
+  "dash_v2_i": "UNBLOCKED"
+}
