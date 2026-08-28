@@ -90,6 +90,12 @@ async def main():
         await page.wait_for_timeout(300)
         assert await page.locator("#btn-live").get_attribute("aria-pressed") == "true"
         assert await page.locator("#replay-env-context").count() == 0
+        # Environmental provenance: candidate cards must not imply per-candidate env_params
+        all_card_text = str(await page.locator(".candidate-card").all_inner_texts())
+        assert "Environmental parameters retrieved for this candidate" not in all_card_text
+        assert "Humidity" not in all_card_text
+        assert "Heat index" not in all_card_text
+        assert "Apparent temp" not in all_card_text
         await page.keyboard.press("Tab")
         await page.keyboard.press("Enter")
         assert await page.locator(".candidate-card.focused").count() >= 1
