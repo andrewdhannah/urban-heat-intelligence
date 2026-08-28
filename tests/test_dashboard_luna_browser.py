@@ -49,8 +49,17 @@ async def main():
         assert await page.locator("#cell-detail").count() == 1
         await page.locator("#map-focus-button").click()
         assert await page.locator("body.map-focus").count() == 1
+        exit_button = page.locator("#focus-exit-button")
+        assert await exit_button.is_visible()
+        assert await exit_button.is_enabled()
+        assert await exit_button.bounding_box()
         assert await page.locator(".candidate-marker").count() == 3
+        await exit_button.click()
+        assert await page.locator("body.map-focus").count() == 0
+        assert await page.locator(".candidates-section").is_visible()
+        assert await page.locator(".brief-panel").is_visible()
         await page.locator("#map-focus-button").click()
+        await page.keyboard.press("Escape")
         assert await page.locator("body.map-focus").count() == 0
         await page.locator("#question-input").fill("Which trees would cool this area most?")
         await page.locator("#question-form button").click()
