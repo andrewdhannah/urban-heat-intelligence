@@ -35,8 +35,23 @@ async def main():
         assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
         assert await page.locator("#legend-min").inner_text() != "—"
         assert await page.locator("#legend-max").inner_text() != "—"
-        styles = await page.locator(".leaflet-interactive").evaluate_all("els => [...new Set(els.map(e => getComputedStyle(e).fill))]")
-        assert len(styles) > 1
+        # Heat field renders with multiple distinct colors. The promoted dashboard
+        # renders the measured field on a canvas (preferCanvas), so sample rendered
+        # pixels instead of SVG path fill styles.
+        canvas_colors = await page.evaluate("""() => {
+            const canvas = document.querySelector('.leaflet-overlay-pane canvas');
+            if (!canvas) return [];
+            const ctx = canvas.getContext('2d');
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const colors = new Set();
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i + 3] === 0) continue;
+                colors.add(`${data[i]},${data[i+1]},${data[i+2]}`);
+                if (colors.size > 3) break;
+            }
+            return [...colors];
+        }""")
+        assert len(canvas_colors) > 1, f"heat canvas should show multiple colors, got {canvas_colors}"
         assert await page.evaluate("document.querySelectorAll('.leaflet-interactive').length > 0")
         assert "top thermal cluster" in (await page.locator("#answer-hero").inner_text()).lower()
         assert "Start with candidate 1" not in await page.locator("#answer-hero").inner_text()
@@ -82,12 +97,12 @@ async def main():
         await page.keyboard.press("Escape")
         assert await page.locator("body.map-focus").count() == 0
         await page.locator("#question-input").fill("Which trees would cool this area most?")
-        await page.locator("#question-form button").click()
+        await page.locator("#question-form button[type='submit']").click()
         assert "does not estimate the cooling effect" in await page.locator("#analyst-result").inner_text()
         assert "Why it matters:" in await page.locator("#analyst-result").inner_text()
         assert "does not estimate intervention effectiveness" in await page.locator("#analyst-result").inner_text()
         await page.locator("#question-input").fill("show live data")
-        await page.locator("#question-form button").click()
+        await page.locator("#question-form button[type='submit']").click()
         assert "Switching to Live mode." in await page.locator("#analyst-result").inner_text()
         await page.wait_for_timeout(300)
         assert await page.locator("#btn-live").get_attribute("aria-pressed") == "true"
@@ -98,17 +113,101 @@ async def main():
         assert "Humidity" not in all_card_text
         assert "Heat index" not in all_card_text
         assert "Apparent temp" not in all_card_text
-        await page.keyboard.press("Tab")
-        await page.keyboard.press("Enter")
-        assert await page.locator(".candidate-card.focused").count() >= 1
         await page.locator("#btn-replay").click()
         await page.wait_for_timeout(700)
         assert await page.locator(".candidate-card").count() == 3
+        # Keyboard accessibility: candidate cards are focusable and Enter activates them
+        card2 = page.locator(".candidate-card[data-rank='2']")
+        await card2.focus()
+        await page.keyboard.press("Enter")
+        assert await page.locator(".candidate-card.focused").count() == 1
+        assert await page.locator(".candidate-card.focused").get_attribute("data-rank") == "2"
         assert not await page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
         assert "FORTYGUARD_API_KEY" not in await page.content()
+        # === P1: candidate markers — prominent, numbered, synchronized ===
+        marker_boxes = await page.locator(".candidate-marker").evaluate_all(
+            "els => els.map(e => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height, text: e.textContent.trim() }; })")
+        assert len(marker_boxes) == 3
+        assert [m["text"] for m in marker_boxes] == ["1", "2", "3"], f"marker labels: {[m['text'] for m in marker_boxes]}"
+        assert all(m["w"] >= 40 and m["h"] >= 40 for m in marker_boxes), f"markers must be >= 40px, got {marker_boxes}"
+        # markers fully opaque regardless of heat overlay opacity
+        marker_opacities = await page.locator(".candidate-marker").evaluate_all("els => els.map(e => getComputedStyle(e).opacity)")
+        assert all(o == "1" for o in marker_opacities), f"marker opacity: {marker_opacities}"
+        # marker/card synchronization: hovering card 2 highlights marker 2
+        await page.locator(".candidate-card[data-rank='2']").hover()
+        assert await page.locator(".candidate-marker.marker-focused").count() == 1
+        assert await page.locator(".candidate-marker.marker-focused").inner_text() == "2"
+        await page.locator(".candidate-card[data-rank='2']").dispatch_event("mouseleave")
+        assert await page.locator(".candidate-marker.marker-focused").count() == 0
+        # === P1: heat overlay opacity control ===
+        opacity_input = page.locator("#heat-opacity")
+        assert await opacity_input.count() == 1
+        assert await opacity_input.get_attribute("type") == "range"
+        assert await opacity_input.get_attribute("min") == "20"
+        assert await opacity_input.get_attribute("max") == "90"
+        default_opacity = float(await opacity_input.input_value())
+        assert 65 <= default_opacity <= 70, f"default opacity {default_opacity}"
+        assert await page.locator("#heat-opacity-value").inner_text() == f"{int(default_opacity)}%"
+        # keyboard operable
+        await opacity_input.focus()
+        await page.keyboard.press("ArrowLeft")
+        assert float(await opacity_input.input_value()) < default_opacity
+        # changing opacity changes the visual layer only
+        assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
+        await opacity_input.fill("30")
+        assert await page.locator("#heat-opacity-value").inner_text() == "30%"
+        assert await page.evaluate("window.__lunaHeatOpacity") == 0.3
+        assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
+        assert await page.locator(".candidate-marker").count() == 3
+        assert await page.locator(".candidate-card").count() == 3
+        card_order = await page.locator(".candidate-card h3").all_inner_texts()
+        assert card_order == ["Candidate 1", "Candidate 2", "Candidate 3"]
+        await opacity_input.fill(str(int(default_opacity)))
+        # === P1: monochrome basemap ===
+        assert await page.locator("#basemap-standard").get_attribute("aria-pressed") == "true"
+        await page.locator("#basemap-monochrome-btn").click()
+        assert await page.locator("#basemap-monochrome-btn").get_attribute("aria-pressed") == "true"
+        assert await page.locator("#basemap-standard").get_attribute("aria-pressed") == "false"
+        assert await page.locator("#map.basemap-monochrome").count() == 1
+        # thermal layer and markers unaffected
+        assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
+        assert await page.locator(".candidate-marker").count() == 3
+        # basemap tiles grayscaled; heat canvas not
+        tile_filters = await page.evaluate("() => [...document.querySelectorAll('.leaflet-tile-pane img')].map(i => getComputedStyle(i).filter)")
+        assert tile_filters and all("grayscale" in f for f in tile_filters), f"tile filters: {tile_filters}"
+        heat_canvas_filter = await page.evaluate("() => { const c = document.querySelector('.leaflet-overlay-pane canvas'); return c ? getComputedStyle(c).filter : null; }")
+        assert heat_canvas_filter == "none", f"heat canvas filter: {heat_canvas_filter}"
+        await page.locator("#basemap-standard").click()
+        assert await page.locator("#map.basemap-monochrome").count() == 0
+        # === P1: audience language ===
+        context_text = await page.locator("#context-content").inner_text()
+        assert "does not affect the thermal ranking" in context_text
+        replay_env_text = await page.locator("#replay-env-context").inner_text()
+        assert "Shared historical context" in replay_env_text
+        assert "not a separate measurement for each candidate" in replay_env_text
+        card_text = str(await page.locator(".candidate-card").all_inner_texts())
+        assert "nearly tied" in card_text
+        assert "intervention" not in card_text.lower()
         assert not errors, errors
         await page.set_viewport_size({"width": 390, "height": 844})
         assert not await page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+        # P1: mobile marker visibility
+        assert await page.locator(".candidate-marker").count() == 3
+        mobile_marker_boxes = await page.locator(".candidate-marker").evaluate_all(
+            "els => els.map(e => { const r = e.getBoundingClientRect(); return { w: r.width, h: r.height }; })")
+        assert all(m["w"] >= 40 and m["h"] >= 40 for m in mobile_marker_boxes), f"mobile markers: {mobile_marker_boxes}"
+        # P1: reduced motion — same evidence, no animation errors
+        rm_errors = []
+        page.on("pageerror", lambda e: rm_errors.append(str(e)))
+        await page.emulate_media(reduced_motion="reduce")
+        await page.reload(wait_until="networkidle", timeout=120000)
+        await page.wait_for_timeout(1500)
+        assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
+        assert await page.locator(".candidate-marker").count() == 3
+        assert await page.locator("#heat-opacity").count() == 1
+        assert await page.locator("#basemap-monochrome-btn").count() == 1
+        assert not await page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+        assert not rm_errors, rm_errors
         print("LUNA_BROWSER: PASS")
         await browser.close()
 
