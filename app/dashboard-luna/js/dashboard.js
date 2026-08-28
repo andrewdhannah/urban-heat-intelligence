@@ -1,6 +1,6 @@
 const DEFAULT_QUESTION = 'Where should Phoenix prioritize a cooling intervention this afternoon?';
 const TIE_THRESHOLD = 0.1;
-const state = { mode: 'replay', requestId: 0, controller: null, map: null, heatLayer: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false };
+const state = { mode: 'replay', requestId: 0, controller: null, map: null, heatLayer: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, evidenceAnimating: null };
 const $ = (id) => document.getElementById(id);
 const text = (el, value) => { if (el) el.textContent = value ?? '—'; };
 const num = (value, digits = 1, suffix = '') => value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? '—' : `${Number(value).toFixed(digits)}${suffix}`;
@@ -20,6 +20,8 @@ function initMap() {
 }
 function clearMap() {
   if (!state.map) return;
+  if (state.evidenceAnimating) { clearTimeout(state.evidenceAnimating); state.evidenceAnimating = null; }
+  window.__lunaState_evidenceAnimating = state.evidenceAnimating;
   if (state.heatLayer) { state.map.removeLayer(state.heatLayer); state.heatLayer = null; }
   state.markers.forEach((m) => state.map.removeLayer(m));
   state.markers.clear();
@@ -33,8 +35,33 @@ function renderMap(payload) {
   initMap(); clearMap(); const features = Array.isArray(payload?.heatmap?.features) ? payload.heatmap.features : []; window.__lunaHeatmapFeatureCount = features.length;
   const values = features.map(featureTemp).filter(Number.isFinite); const min = values.length ? Math.min(...values) : null; const max = values.length ? Math.max(...values) : null;
   text($('legend-min'), num(min, 1)); text($('legend-max'), num(max, 1)); if (!features.length) { text($('map-loading'), 'No usable measured field for this mode.'); return; }
-  state.heatLayer = L.geoJSON({ type: 'FeatureCollection', features }, { style: (f) => ({ color: 'rgba(255,255,255,.42)', weight: .35, fillColor: colorFor(featureTemp(f), min, max), fillOpacity: .78 }), onEachFeature: (f, layer) => layer.on('click', () => { const d = $('cell-detail'); d.hidden = false; d.replaceChildren(); const label = document.createElement('span'); label.textContent = 'Measured cell'; const strong = document.createElement('strong'); strong.textContent = num(featureTemp(f), 1, '°C'); d.append(label, strong); }) }).addTo(state.map);
-  const bounds = state.heatLayer.getBounds(); if (bounds.isValid()) state.map.fitBounds(bounds.pad(.08)); (payload.ranked_candidates || []).forEach(addMarker);
+  const cellWeight = 0.5;
+  const cellColor = 'rgba(255,255,255,.50)';
+  const cellFillOpacity = 0.78;
+  state.heatLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+    style: (f) => ({ color: cellColor, weight: cellWeight, fillColor: colorFor(featureTemp(f), min, max), fillOpacity: reducedMotion() ? cellFillOpacity : 0 }),
+    onEachFeature: (f, layer) => layer.on('click', () => { const d = $('cell-detail'); d.hidden = false; d.replaceChildren(); const label = document.createElement('span'); label.textContent = 'Measured cell'; const strong = document.createElement('strong'); strong.textContent = num(featureTemp(f), 1, '°C'); d.append(label, strong); })
+  }).addTo(state.map);
+  (payload.ranked_candidates || []).forEach(addMarker);
+  const bounds = state.heatLayer.getBounds();
+  if (!bounds.isValid()) return;
+  const mapId = state.requestId;
+  if (reducedMotion()) {
+    state.heatLayer.setStyle({ fillOpacity: cellFillOpacity });
+    state.map.fitBounds(bounds.pad(.08));
+    text($('map-loading'), '');
+    return;
+  }
+    state.evidenceAnimating = setTimeout(() => {
+      if (state.requestId !== mapId) return;
+      state.heatLayer.setStyle({ fillOpacity: cellFillOpacity });
+      state.evidenceAnimating = setTimeout(() => {
+        if (state.requestId !== mapId) return;
+        state.evidenceAnimating = null;
+        window.__lunaState_evidenceAnimating = null;
+        state.map.flyToBounds(bounds.pad(.10), { animate: true, duration: 0.9, maxZoom: 15 });
+      }, 320);
+    }, 180);
 }
 function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const node = document.createElement('span'); node.textContent = candidate.rank; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: node.outerHTML, iconSize: [30, 30], iconAnchor: [15, 15] }), title: `Candidate ${candidate.rank}` }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
 function focusCandidate(rank, pan = false) { state.focused = Number(rank) > 0 ? Number(rank) : null; document.querySelectorAll('.candidate-card').forEach((card) => card.classList.toggle('focused', Number(card.dataset.rank) === state.focused)); const marker = state.markers.get(state.focused); if (marker && pan && state.map) state.map.panTo(marker.getLatLng()); }

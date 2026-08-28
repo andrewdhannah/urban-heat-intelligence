@@ -14,10 +14,12 @@ async def main():
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
         await page.goto(URL, wait_until="networkidle", timeout=120000)
-        await page.wait_for_timeout(1000)
+        await page.wait_for_timeout(2000)
         assert await page.locator(".candidate-card").count() == 3
         assert await page.locator(".candidate-marker").count() == 3
         assert await page.locator("#stat-obs-time").inner_text() != "Loading…"
+        # Animation settled: evidenceAnimating should be null
+        assert await page.evaluate("window.__lunaState_evidenceAnimating") is None
         assert "Source: FortyGuard" in await page.locator(".map-panel").inner_text()
         await page.locator(".source-control[data-source='fortyguard']").focus()
         assert await page.locator("[data-popover='fortyguard']").is_visible()
