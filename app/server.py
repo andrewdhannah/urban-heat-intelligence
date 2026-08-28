@@ -257,11 +257,39 @@ def build_visualization_payload(result):
     }
 
 
+_DASHBOARD_VARIANT = None  # Resolved once at module load
+
+
+def _resolve_dashboard_dir():
+    """Resolve dashboard directory from UHI_DASHBOARD_VARIANT env var.
+
+    Variants:
+        current  -> app/static/       (incumbent dashboard, default)
+        luna     -> app/dashboard-luna/ (clean-sheet Luna V2)
+
+    Rollback: set UHI_DASHBOARD_VARIANT=current (or unset).
+    """
+    import os
+    global _DASHBOARD_VARIANT
+    if _DASHBOARD_VARIANT is not None:
+        return _DASHBOARD_VARIANT
+    variant = os.environ.get("UHI_DASHBOARD_VARIANT", "current").strip().lower()
+    base = Path(__file__).parent
+    if variant == "luna":
+        _DASHBOARD_VARIANT = base / "dashboard-luna"
+    else:
+        _DASHBOARD_VARIANT = base / "static"
+        variant = "current"
+    print(f"[VARIANT] Dashboard variant: {variant} -> {_DASHBOARD_VARIANT}")
+    return _DASHBOARD_VARIANT
+
+
 class UHIHandler(SimpleHTTPRequestHandler):
     """Serve static files and API endpoints."""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(Path(__file__).parent / "static"), **kwargs)
+        dashboard_dir = _resolve_dashboard_dir()
+        super().__init__(*args, directory=str(dashboard_dir), **kwargs)
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -281,11 +309,14 @@ class UHIHandler(SimpleHTTPRequestHandler):
             self.serve_nws()
         elif parsed.path == "/api/config":
             self.serve_config()
+        elif parsed.path == "/api/variant":
+            self.serve_variant()
         else:
             super().do_GET()
 
     def serve_index(self):
-        index_path = Path(__file__).parent / "static" / "index.html"
+        dashboard_dir = _resolve_dashboard_dir()
+        index_path = dashboard_dir / "index.html"
         content = index_path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
@@ -341,13 +372,29 @@ class UHIHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response.encode())
 
+    def serve_variant(self):
+        """Return the active dashboard variant."""
+        import os
+        variant = os.environ.get("UHI_DASHBOARD_VARIANT", "current").strip().lower()
+        if variant not in ("current", "luna"):
+            variant = "current"
+        payload = {"variant": variant, "directory": str(_resolve_dashboard_dir())}
+        response = json.dumps(payload)
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(response.encode())
+
 
 def main():
     import os
     port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
+    dashboard_dir = _resolve_dashboard_dir()
     server = HTTPServer((host, port), UHIHandler)
     print(f"Urban Heat Intelligence — Decision Experience")
+    print(f"Dashboard variant: {os.environ.get('UHI_DASHBOARD_VARIANT', 'current')}")
+    print(f"Dashboard directory: {dashboard_dir}")
     print(f"Running at http://localhost:{port}")
     print(f"Open in browser to use the application")
     server.serve_forever()
