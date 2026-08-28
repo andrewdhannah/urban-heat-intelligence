@@ -203,7 +203,7 @@ function runAnalyst(question) {
   intent.action?.();
   if (intent.id === 'mode') request(targetMode);
 }
-function openEvidence() { const drawer = $('evidence-drawer'); drawer.hidden = false; $('.evidence-toggle').setAttribute('aria-expanded', 'true'); drawer.scrollIntoView({ behavior: scrollBehavior(), block: 'start' }); }
+function openEvidence() { const drawer = $('evidence-drawer'); drawer.hidden = false; $('evidence-toggle').setAttribute('aria-expanded', 'true'); drawer.scrollIntoView({ behavior: scrollBehavior(), block: 'start' }); }
 function setFocusMode(enabled) { state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); $('focus-exit-layer').hidden = !enabled; $('focus-exit-button').setAttribute('aria-pressed', String(enabled)); if (enabled) $('focus-exit-button').focus(); setTimeout(() => state.map?.invalidateSize(), 20); }
 async function request(mode = state.mode) {
   const id = ++state.requestId;
@@ -295,5 +295,5 @@ function handleEscape(event) {
     $('map-focus-button').focus();
   }
 }
-function init() { $('question-input').value = DEFAULT_QUESTION; initSourceControls(); initMap(); $('question-form').addEventListener('submit', (e) => { e.preventDefault(); const q = $('question-input').value.trim(); if (q && q !== DEFAULT_QUESTION) runAnalyst(q); else request(state.mode); }); $('btn-replay').addEventListener('click', () => request('replay')); $('btn-live').addEventListener('click', () => request('live')); $('map-focus-button').addEventListener('click', () => setFocusMode(!state.focusMode)); $('focus-exit-button').addEventListener('click', () => setFocusMode(false)); document.addEventListener('keydown', handleEscape); $('evidence-close').addEventListener('click', () => { $('evidence-drawer').hidden = true; $('.evidence-toggle').setAttribute('aria-expanded', 'false'); }); $('.evidence-toggle').addEventListener('click', openEvidence); request('replay'); }
+function init() { $('question-input').value = DEFAULT_QUESTION; initSourceControls(); initMap(); $('question-form').addEventListener('submit', (e) => { e.preventDefault(); const q = $('question-input').value.trim(); if (q && q !== DEFAULT_QUESTION) runAnalyst(q); else request(state.mode); }); $('btn-replay').addEventListener('click', () => request('replay')); $('btn-live').addEventListener('click', () => request('live')); $('map-focus-button').addEventListener('click', () => setFocusMode(!state.focusMode)); $('focus-exit-button').addEventListener('click', () => setFocusMode(false)); document.addEventListener('keydown', handleEscape); $('evidence-close').addEventListener('click', () => { $('evidence-drawer').hidden = true; $('evidence-toggle').setAttribute('aria-expanded', 'false'); }); $('evidence-toggle').addEventListener('click', openEvidence); request('replay'); }
 window.addEventListener('DOMContentLoaded', init);
