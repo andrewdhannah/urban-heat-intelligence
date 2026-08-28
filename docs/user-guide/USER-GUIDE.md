@@ -126,7 +126,7 @@ A mixed-provenance display (combining Live and Replay data) is always explicitly
 | Source | Role | Availability |
 |--------|------|-------------|
 | FortyGuard | Primary thermal intelligence (required) | Always — product cannot function without it |
-| Phoenix GIS | Local context (canopy, parks) | Always — context only, not used for ranking |
+| Phoenix GIS | Local context (canopy, parks) | Integrated — context only, may be unavailable |
 | NWS | Supplemental weather context | Live mode only, optional |
 
 FortyGuard is the only required source. Phoenix GIS provides local context (canopy coverage, mapped parks) that does not influence the thermal ranking. The product degrades gracefully when optional sources are unavailable — you will always see an honest disclosure of what is and is not included.

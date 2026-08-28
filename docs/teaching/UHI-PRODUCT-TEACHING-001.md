@@ -69,7 +69,7 @@ Layer 3: Interface
 | Source | Role | Availability | Narrative Role |
 |--------|------|-------------|----------------|
 | FortyGuard | Primary thermal intelligence | Required — product cannot function without it | Temperature measurements, hotspot rankings |
-| Phoenix GIS | Local physical context | Always — context only, not used for ranking | Canopy coverage, mapped parks |
+| Phoenix GIS | Local physical context | Integrated — context only, may be unavailable | Canopy coverage, mapped parks |
 | NWS | Current weather/advisory | Optional, LIVE only — enriches context | Official conditions, advisories |
 
 **Key rule:** FortyGuard is the only required source. All others are optional enrichments. The product degrades gracefully when optional sources are unavailable.
