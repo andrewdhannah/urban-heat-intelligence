@@ -79,4 +79,37 @@ Key constraints:
 
 ---
 
-*Session handoff established through governed Phase A instantiation.*
+## DASH-V2-G — Luna Promotion (2026-08-28)
+
+**Decision:** PROMOTE_LUNA
+**Receipt:** `qualification/receipts/DASH-V2-G-OWNER-PROMOTION-RECEIPT.json`
+
+| Field | Value |
+|-------|-------|
+| Promoted Dashboard | Luna V2 |
+| Qualified SHA | `3c5b8a862c4cf3c9f2ad4c47aab0cc51f1d85fa3` |
+| Backend Ancestry | `89b7216f3b1f681e2c8660eded9c1d40fbbc7982` |
+| Promotion Child SHA | `a5e7039f5ffbe7d1acf34f7f8b2c304ae65b5a54` |
+| Branch | `dash-v2-g-promotion-luna` |
+| Mutation | `DEFAULT_VARIANT` flip only (1 line + 3 tests) |
+| Incumbent | SUPERSEDED / PRESERVED (`app/static/`) |
+| Active Dashboard | Luna |
+| Tests | 18/18 pass |
+
+### Incumbent Disposition
+
+| Rule | Status |
+|------|--------|
+| Deleted | No |
+| Preserved as historical implementation | Yes |
+| Preserved as comparison control | Yes |
+| Preserved as rollback/reference | Yes |
+| Evidence erased | No |
+
+### Next Gate
+
+DASH-V2-H — production / Live integration of promoted Dashboard
+
+---
+
+*Session handoff established through governed Phase A instantiation. DASH-V2-G promotion materialized 2026-08-28.*
