@@ -9,4 +9,5 @@
 - Backend: canonical `app.server` reused by preview; no analytical changes
 - External runtime: Leaflet CDN and OpenStreetMap tiles; no key required
 - Excluded: `app/static/`, `hackathon-expansion`, credentials, generated caches, browser environments
+- Closeout refinements: intervention-effect guardrail now takes precedence over canopy/parks intents; explicit show-live/show-replay mode intents are supported; comparison answers disclose FortyGuard only; unavailable canopy is stated textually.
 - Limitations: Live credential and automated axe audit remain unavailable; backend lineage remains 3134f28 until independent reconciliation.

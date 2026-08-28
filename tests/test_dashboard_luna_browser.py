@@ -23,7 +23,7 @@ async def main():
         assert await page.locator("#legend-min").inner_text() != "—"
         assert await page.locator("#legend-max").inner_text() != "—"
         styles = await page.locator(".leaflet-interactive").evaluate_all("els => [...new Set(els.map(e => getComputedStyle(e).fill))]")
-        assert len(styles) >= 1
+        assert len(styles) > 1
         assert await page.evaluate("document.querySelectorAll('.leaflet-interactive').length > 0")
         assert "top thermal cluster" in (await page.locator("#answer-hero").inner_text()).lower()
         assert "Start with candidate 1" not in await page.locator("#answer-hero").inner_text()
@@ -37,7 +37,7 @@ async def main():
         context = await page.locator("#context-content").inner_text()
         assert "Roosevelt Park" in context
         assert "No mapped park at candidate" in context
-        assert "Portland Parkway" in context or "Inside mapped park" in context
+        assert "Portland Parkway" in context
         assert "Parks context unavailable" not in context
         assert await page.locator("#candidate-list").inner_text()
         assert "Humidity" not in str(await page.locator(".candidate-card").all_inner_texts())
@@ -47,6 +47,18 @@ async def main():
         # verify the accessible measured-cell detail surface exists without
         # relying on synthetic DOM events.
         assert await page.locator("#cell-detail").count() == 1
+        await page.locator("#map-focus-button").click()
+        assert await page.locator("body.map-focus").count() == 1
+        assert await page.locator(".candidate-marker").count() == 3
+        await page.locator("#map-focus-button").click()
+        assert await page.locator("body.map-focus").count() == 0
+        await page.locator("#question-input").fill("Which trees would cool this area most?")
+        await page.locator("#question-form button").click()
+        assert "does not estimate the cooling effect" in await page.locator("#analyst-result").inner_text()
+        await page.locator("#question-input").fill("show live data")
+        await page.locator("#question-form button").click()
+        await page.wait_for_timeout(300)
+        assert await page.locator("#btn-live").get_attribute("aria-pressed") == "true"
         await page.keyboard.press("Tab")
         await page.keyboard.press("Enter")
         assert await page.locator(".candidate-card.focused").count() >= 1
