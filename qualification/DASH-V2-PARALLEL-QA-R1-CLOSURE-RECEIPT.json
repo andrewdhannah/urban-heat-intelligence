@@ -1,0 +1,80 @@
+{
+  "receipt_id": "DASH-V2-PARALLEL-QA-R1-CLOSURE-2026-08-28",
+  "receipt_type": "r1_closure_evidence",
+  "project_id": "urban-heat-intelligence",
+  "role": "qa-pilot",
+  "r1_initial_audit": {
+    "report_path": "qualification/DASH-V2-PARALLEL-QA-REPORT.md",
+    "receipt_path": "qualification/DASH-V2-PARALLEL-QA-RECEIPT.json",
+    "preserved_unchanged": true
+  },
+  "r1_implementation": {
+    "documentation_commits": ["bb09981"],
+    "test_commits": ["8413ae5"],
+    "evidence_commits": ["3253a11"],
+    "files_changed": 12,
+    "stale_claims_corrected": 16,
+    "stale_occurrences": 18,
+    "test_failures_remediated": 3
+  },
+  "r2_findings": {
+    "r2_01_gis_availability": {
+      "finding": "Teaching doc said 'always available' — too strong",
+      "corrected_to": "integrated, may be unavailable, used_in_decision=false",
+      "files_corrected": [
+        "docs/teaching/UHI-DATA-SOURCES-TEACHING-001.md",
+        "docs/teaching/UHI-PRODUCT-TEACHING-001.md",
+        "docs/user-guide/USER-GUIDE.md"
+      ],
+      "unconditional_availability_claims_remaining": 0
+    },
+    "r2_02_xss_semantics": {
+      "finding": "Test claimed 'rendered as text' but analyst doesn't echo hostile input",
+      "corrected_obligation": "UNTRUSTED_INPUT_NON_EXECUTION",
+      "existing_test_preserved": true,
+      "additive_test_added": "test_untrusted_input_non_execution",
+      "execution_sentinel_used": true,
+      "attacker_dom_absent": true,
+      "unexpected_dialog_absent": true,
+      "result": "PASS",
+      "product_defect_found": false
+    },
+    "r2_03_closure_evidence": {
+      "initial_report_preserved": true,
+      "initial_receipt_preserved": true,
+      "closure_report": "qualification/DASH-V2-PARALLEL-QA-R1-CLOSURE-REPORT.md",
+      "closure_receipt": "qualification/DASH-V2-PARALLEL-QA-R1-CLOSURE-RECEIPT.json"
+    }
+  },
+  "stale_claim_count": {
+    "semantic_claim_groups": 16,
+    "occurrences": 18,
+    "reconciliation": "16 distinct truth corrections; some claims appeared in multiple documents (GIS deferred in 4+ docs, Why This Answer in 3+ docs)"
+  },
+  "regression": {
+    "suites": 6,
+    "total": 142,
+    "passed": 142,
+    "failed": 0
+  },
+  "d_r1_protection": {
+    "preserved": true,
+    "assertions": 5
+  },
+  "product_source_changed": false,
+  "commits": {
+    "remediation": ["bb09981", "8413ae5", "3253a11"],
+    "r2_changes": "PENDING",
+    "closure_evidence": "PENDING"
+  },
+  "remote": {
+    "pushed": true,
+    "branch": "qa-pilot/dash-v2-prequal-docs-tests",
+    "r1_remote_tip": "3253a111f7d1ac2c3bd576b0832cc05c8873e105"
+  },
+  "dash_v2_h": "untouched",
+  "dash_v2_i": "not_started",
+  "prequalification_state": "READY",
+  "owner_acceptance_recommendation": "HOLD pending R2 commit/push",
+  "generated_at": "2026-08-28T17:00:00Z"
+}
