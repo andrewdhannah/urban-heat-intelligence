@@ -18,6 +18,10 @@ async def main():
         assert await page.locator(".candidate-card").count() == 3
         assert await page.locator(".candidate-marker").count() == 3
         assert await page.locator("#stat-obs-time").inner_text() != "Loading…"
+        assert "Source: FortyGuard" in await page.locator(".map-panel").inner_text()
+        await page.locator(".source-control[data-source='fortyguard']").focus()
+        assert await page.locator("[data-popover='fortyguard']").is_visible()
+        assert "USED TO RANK" in await page.locator("[data-popover='fortyguard']").inner_text()
         assert await page.locator(".leaflet-interactive").count() > 0
         assert await page.evaluate("window.__lunaHeatmapFeatureCount") == 367
         assert await page.locator("#legend-min").inner_text() != "—"
@@ -34,6 +38,8 @@ async def main():
         assert await page.locator(".chain-node").count() > 0
         assert "not included in historical Replay" in await page.locator("#brief-content").inner_text()
         assert "used_in_decision = false" in await page.locator("#context-content").inner_text()
+        assert "Source: City of Phoenix GIS" in await page.locator(".context-panel").inner_text()
+        assert "Source: Derived interpretation" in await page.locator(".brief-panel").inner_text()
         context = await page.locator("#context-content").inner_text()
         assert "Roosevelt Park" in context
         assert "No mapped park at candidate" in context
@@ -64,6 +70,7 @@ async def main():
         await page.locator("#question-input").fill("Which trees would cool this area most?")
         await page.locator("#question-form button").click()
         assert "does not estimate the cooling effect" in await page.locator("#analyst-result").inner_text()
+        assert "Why it matters" in await page.locator("#analyst-result").inner_text()
         await page.locator("#question-input").fill("show live data")
         await page.locator("#question-form button").click()
         await page.wait_for_timeout(300)
