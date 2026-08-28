@@ -1,0 +1,130 @@
+{
+  "receipt_id": "DASH-V2-H-PRODUCTION-INTEGRATION-RECEIPT",
+  "timestamp": "2026-08-28T12:15:00-04:00",
+  "authorization": "DASH-V2-H",
+  "agent": "OpenWork-Claude",
+  "project": "urban-heat-intelligence",
+  "governed_state": {
+    "qualified_product_sha": "3c5b8a862c4cf3c9f2ad4c47aab0cc51f1d85fa3",
+    "promotion_wiring_sha": "a5e7039f5ffbe7d1acf34f7f8b2c304ae65b5a54",
+    "owner_receipt_sha": "efad8e707e10bcc9ababf105b12b48c3cc595d59",
+    "handoff_state_sha": "7dabd3805cc461a9fa7fd6db998c1081fbbae07d",
+    "branch": "integration/luna-v2-reconciled",
+    "remote_tip": "7dabd3805cc461a9fa7fd6db998c1081fbbae07d"
+  },
+  "production": {
+    "provider": "Render",
+    "service": "urban-heat-intelligence",
+    "service_id": "srv-da7puf67bikc73b0v2bg",
+    "url": "https://urban-heat-intelligence.onrender.com/",
+    "source_repository": "andrewdhannah/urban-heat-intelligence",
+    "source_branch": "integration/luna-v2-reconciled",
+    "deployed_revision": "7dabd3805cc461a9fa7fd6db998c1081fbbae07d",
+    "deployment_revision_proven": true,
+    "deployment_status": "succeeded",
+    "build": "pip install -r requirements.txt",
+    "start": "python3 app/server.py",
+    "https": true,
+    "health": "healthy"
+  },
+  "default_variant": {
+    "expected": "luna",
+    "actual": "luna",
+    "public_variant_endpoint": "/api/variant",
+    "luna_root_verified": true,
+    "incumbent_preserved": true
+  },
+  "replay": {
+    "public_url_exercised": true,
+    "result": "PASS",
+    "heatmap_cells": 367,
+    "candidates": 3,
+    "ranking": "near_tie",
+    "near_tie": true,
+    "historical_labeling": true,
+    "representative_env_truthful": true,
+    "gis_role": "LOCAL_CONTEXT_NOT_USED_TO_RANK",
+    "nws_role": "SUPPLEMENTAL_CONTEXT_NOT_USED_TO_RANK",
+    "brief_role": "DERIVED_INTERPRETATION",
+    "evidence_drawer": true,
+    "provenance": "correct",
+    "map_resolve": true,
+    "map_zoom": true,
+    "map_focus": true,
+    "pageerrors": "none",
+    "console_errors": "none"
+  },
+  "live": {
+    "public_url_exercised": true,
+    "genuine_live_request": true,
+    "provider_result": "FortyGuard returned live data",
+    "mode_truthful": true,
+    "replay_fallback_absent": true,
+    "stale_heatmap_absent": true,
+    "stale_candidates_absent": true,
+    "stale_context_absent": true,
+    "stale_brief_absent": true,
+    "current_observation_available": true,
+    "external_limitation": "Free instance cold start 502 on first call, recovered on retry"
+  },
+  "mode_transition": {
+    "replay_loaded_first": true,
+    "live_requested_after": true,
+    "stale_state_cleared": true,
+    "result": "PASS"
+  },
+  "reduced_motion": {
+    "production_exercised": true,
+    "same_evidence": true,
+    "animation_reduced": true,
+    "errors": "none",
+    "result": "PASS"
+  },
+  "user_control": {
+    "production_exercised": true,
+    "user_interaction_wins": true,
+    "snapback": "none",
+    "result": "PASS"
+  },
+  "responsive": {
+    "desktop": "PASS",
+    "mobile": "PASS",
+    "horizontal_overflow": "none"
+  },
+  "security": {
+    "fortyguard_key_present_server_side": true,
+    "fortyguard_key_exposed_browser": false,
+    "secret_in_html": false,
+    "secret_in_javascript": false,
+    "secret_in_api_payload": false,
+    "secret_in_console": false,
+    "result": "PASS"
+  },
+  "network": {
+    "api_answer": "200",
+    "variant_endpoint": "200",
+    "cors": "same-origin",
+    "content_type": "correct",
+    "redirects": "none",
+    "result": "PASS"
+  },
+  "findings": {
+    "blockers": [],
+    "majors": [],
+    "minors": ["Free instance cold start 502 on first Live request"],
+    "observations": ["/api/variant 404 on old deployment, fixed by branch change"],
+    "external_limitations": ["Free Render instance cold start delay", "First Live API call 502, recovered on retry"]
+  },
+  "known_limitations": [
+    "Live provider unavailable during prior qualification — handled truthfully",
+    "axe not run",
+    "Bounded NWS visibility observation",
+    "Evidence drawer timestamps unavailable"
+  ],
+  "product_source_changed": false,
+  "deployment_config_changed": true,
+  "deployment_config_description": "Changed Render deployment branch from main to integration/luna-v2-reconciled",
+  "final_disposition": "PASS_WITH_KNOWN_LIMITATIONS",
+  "dash_v2_h": "COMPLETE",
+  "dash_v2_i": "UNBLOCKED"
+}
