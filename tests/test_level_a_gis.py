@@ -257,7 +257,8 @@ def test_parks_nearby_bounded_query():
 
 def test_parks_evidence_nodes():
     """Parks query produces proper evidence nodes."""
-    result = query_parks(33.4445, -112.0705, mode="replay")
+    # Use actual candidate #1 coordinate that's in the fixture
+    result = query_parks(33.4581, -112.0774, mode="replay")
     assert "evidence_node" in result
     assert result["evidence_node"]["step"] == "parks_request"
     assert "result_evidence_node" in result
@@ -681,6 +682,47 @@ def test_gis_failure_does_not_suppress_results():
     print("  PASS: test_gis_failure_does_not_suppress_results")
 
 
+# === GIS FAILURE DISTINCTION TESTS ===
+
+def test_live_parks_success_zero_features():
+    """Live parks query success with zero features returns available=true, inside_park=None."""
+    with patch("src.tools.gis_context._query_arcgis_point") as mock_query:
+        mock_query.return_value = {"success": True, "features": [], "error": None}
+        result = query_parks(33.459, -112.0774, mode="live")
+        assert result["result"]["available"] is True
+        assert result["result"]["inside_park"] is None
+    print("  PASS: test_live_parks_success_zero_features")
+
+
+def test_live_parks_query_failure():
+    """Live parks query failure returns available=false with explicit error."""
+    with patch("src.tools.gis_context._query_arcgis_point") as mock_query:
+        mock_query.return_value = {"success": False, "features": [], "error": "Connection timeout"}
+        result = query_parks(33.459, -112.0774, mode="live")
+        assert result.get("available") is False
+        assert "arcgis_query_failed" in result.get("error", "")
+    print("  PASS: test_live_parks_query_failure")
+
+
+def test_replay_parks_coordinate_not_in_fixture():
+    """Replay parks query with unknown coordinate returns available=false."""
+    # Use a coordinate that's not in the fixture (far from Phoenix)
+    result = query_parks(40.0, -74.0, mode="replay")
+    assert result.get("available") is False
+    assert result.get("error") == "candidate_not_in_fixture"
+    print("  PASS: test_replay_parks_coordinate_not_in_fixture")
+
+
+def test_live_canopy_query_failure():
+    """Live canopy query failure returns available=false with explicit error."""
+    with patch("src.tools.gis_context._query_arcgis_point") as mock_query:
+        mock_query.return_value = {"success": False, "features": [], "error": "TLS error"}
+        result = query_tree_canopy(33.4581, -112.0774, mode="live")
+        assert result.get("available") is False
+        assert "arcgis_query_failed" in result.get("error", "")
+    print("  PASS: test_live_canopy_query_failure")
+
+
 def run_all():
     tests = [
         # Fixture integrity
@@ -739,6 +781,11 @@ def run_all():
         # Failure behavior
         test_gis_failure_does_not_alter_ranking,
         test_gis_failure_does_not_suppress_results,
+        # GIS failure distinction
+        test_live_parks_success_zero_features,
+        test_live_parks_query_failure,
+        test_replay_parks_coordinate_not_in_fixture,
+        test_live_canopy_query_failure,
     ]
     passed = 0
     for test in tests:

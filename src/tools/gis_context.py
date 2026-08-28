@@ -140,7 +140,7 @@ def _point_in_polygon(lat: float, lon: float, polygon_coords: List[List[float]])
     return inside
 
 
-def _query_arcgis_point(url: str, lon: float, lat: float, out_fields: str = "*") -> List[Dict]:
+def _query_arcgis_point(url: str, lon: float, lat: float, out_fields: str = "*") -> Dict[str, Any]:
     """
     Query an ArcGIS service with a point geometry.
     
@@ -151,16 +151,24 @@ def _query_arcgis_point(url: str, lon: float, lat: float, out_fields: str = "*")
         out_fields: Comma-separated field names
     
     Returns:
-        List of feature attributes
+        Dict with:
+            - success: bool indicating if query completed without error
+            - features: list of feature attributes (empty if no features or on error)
+            - error: error message if query failed, None otherwise
+    
+    This distinguishes between:
+        1. Successful query with zero features (success=True, features=[])
+        2. Query failure (success=False, features=[], error="...")
     """
     params = f"?geometry={lon},{lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields={out_fields}&returnGeometry=false&f=json"
     ctx = _get_ssl_context()
     try:
         req = urllib.request.urlopen(url + params, timeout=15, context=ctx)
         data = json.loads(req.read())
-        return [f['attributes'] for f in data.get('features', [])]
-    except Exception:
-        return []
+        features = [f['attributes'] for f in data.get('features', [])]
+        return {"success": True, "features": features, "error": None}
+    except Exception as e:
+        return {"success": False, "features": [], "error": str(e)}
 
 
 def query_tree_canopy(
@@ -251,13 +259,22 @@ def query_tree_canopy(
         }
     
     # Live mode - query actual ArcGIS service
-    features = _query_arcgis_point(
+    query_result = _query_arcgis_point(
         CANOPY_ENDPOINT,
         longitude,
         latitude,
         "GEOID,mean_tree_canopy_pct"
     )
     
+    if not query_result["success"]:
+        # Query failed - GIS failure must not kill thermal result
+        return {
+            "available": False,
+            "error": f"arcgis_query_failed: {query_result['error']}",
+            "evidence_node": evidence_node
+        }
+    
+    features = query_result["features"]
     if features:
         attrs = features[0]
         result = {
@@ -347,12 +364,14 @@ def query_parks(
             }
         
         inside_park = None
+        coordinate_found = False
         
         # Look up authoritative per-candidate query results
         for candidate in fixture.get("candidate_results", []):
             coord = candidate.get("coordinate", {})
             # Match within ~10m tolerance (0.0001 degrees)
             if abs(coord.get("lat", 0) - latitude) < 0.0001 and abs(coord.get("lon", 0) - longitude) < 0.0001:
+                coordinate_found = True
                 features = candidate.get("provider_response", {}).get("features", [])
                 if features:
                     attrs = features[0].get("attributes", {})
@@ -362,6 +381,14 @@ def query_parks(
                         "park_acres": attrs.get("PARK_ACRES")
                     }
                 break
+        
+        # If coordinate not found in fixture, report unavailable
+        if not coordinate_found:
+            return {
+                "available": False,
+                "error": "candidate_not_in_fixture",
+                "evidence_node": evidence_node
+            }
         
         result = {
             "available": True,
@@ -390,13 +417,22 @@ def query_parks(
         }
     
     # Live mode - query actual ArcGIS service
-    features = _query_arcgis_point(
+    query_result = _query_arcgis_point(
         PARKS_ENDPOINT,
         longitude,
         latitude,
         "PROPERTY_NAME,PARK_TYPE,PARK_ACRES"
     )
     
+    if not query_result["success"]:
+        # Query failed - GIS failure must not kill thermal result
+        return {
+            "available": False,
+            "error": f"arcgis_query_failed: {query_result['error']}",
+            "evidence_node": evidence_node
+        }
+    
+    features = query_result["features"]
     inside_park = None
     nearby_parks = []
     
