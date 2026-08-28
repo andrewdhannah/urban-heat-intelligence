@@ -15,7 +15,7 @@ Phoenix GIS local context and optional LIVE NWS corroboration.
 ```
 FortyGuard (PRIMARY — required)
        ↓
-Phoenix GIS (LOCAL CONTEXT — always available, used_in_decision=false)
+Phoenix GIS (LOCAL CONTEXT — integrated, may be unavailable, used_in_decision=false)
        ↓
 NWS (CURRENT CONTEXT — LIVE-only optional)
        ↓

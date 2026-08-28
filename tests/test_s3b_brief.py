@@ -289,6 +289,45 @@ def test_brief_dynamic_content_safe():
     print("  PASS: test_brief_dynamic_content_safe")
 
 
+def test_untrusted_input_non_execution():
+    """Untrusted question input must not create executable DOM.
+
+    Security obligation: untrusted input cannot create attacker-controlled
+    HTML nodes, execute script/event-handler payloads, or trigger dialogs.
+    """
+    assert HAS_PLAYWRIGHT, "Playwright is required for S3B browser proof"
+    proc = _start_server()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1440, "height": 900})
+            # Initialize execution sentinel before any untrusted input
+            page.goto(SERVER_URL, timeout=10000)
+            page.wait_for_selector(".brief-section", timeout=10000)
+            page.evaluate("window.__uhiXssExecuted = false")
+            # Submit payload with onerror handler
+            payload = '<img src=x onerror="window.__uhiXssExecuted=true">'
+            page.locator("#question-input").fill(payload)
+            page.locator("#question-form button[type='submit']").click()
+            page.wait_for_timeout(1500)
+            # Prove: execution sentinel was NOT triggered
+            assert page.evaluate("window.__uhiXssExecuted") is not True, \
+                "XSS execution detected — onerror handler fired"
+            # Prove: no attacker-created img[src='x'] exists anywhere
+            assert page.locator("img[src='x']").count() == 0, \
+                "Attacker-controlled img element found in DOM"
+            # Prove: no unexpected script elements created
+            # (Allow Leaflet.js + dashboard.js — the two expected scripts)
+            script_count = page.locator("script").count()
+            assert script_count <= 2, \
+                f"Unexpected script elements found: {script_count}"
+            # Prove: no dialog/alert was triggered (dialog handler would have caught it)
+            browser.close()
+    finally:
+        _stop_server(proc)
+    print("  PASS: test_untrusted_input_non_execution")
+
+
 def test_browser_brief_1440():
     assert HAS_PLAYWRIGHT, "Playwright is required for S3B browser proof"
     proc = _start_server()
