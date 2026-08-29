@@ -303,8 +303,8 @@ const INTENTS = [
         const obs = state.payload?.historical_nws_obs;
         const ha = state.payload?.historical_alerts;
         let parts = [];
-        if (obs && obs.temperature_celsius != null) {
-          parts.push(`NWS station KPHX observed ${tempD(obs.temperature_celsius)} and ${obs.text_description || 'conditions'} at ${obs.observation_timestamp || 'the Replay time'}.`);
+        if (obs && obs.temperature?.value != null) {
+          parts.push(`NWS station ${obs.station_identifier || 'KPHX'} observed ${tempD(obs.temperature.value)} and ${obs.text_description || 'conditions'} at ${obs.observation_timestamp || 'the Replay time'}.`);
         }
         const cp = ha?.consumer_projection;
         if (cp && cp.active_hazards && cp.active_hazards.length > 0) {
@@ -392,7 +392,7 @@ async function request(mode = state.mode) {
 }
 const SOURCE_COPY = { fortyguard: { source: 'FortyGuard', what: 'Real provider thermal observations across the loaded measured field.', why: 'This measured field identifies and orders candidate locations.', role: 'USED TO RANK', time: () => state.mode === 'live' ? 'FortyGuard Live workflow; latest usable observation returned by the governed request. Observation/effective time is surfaced above.' : 'Genuine FortyGuard provider response captured for reproducibility. Historical Replay — not current Live data.' }, gis: { source: 'City of Phoenix GIS', what: 'Tree-canopy and mapped-park context around candidate locations.', why: 'It helps explain how candidate environments differ after thermal candidates are identified.', role: 'CONTEXT ONLY · NOT USED TO RANK', time: 'Reference periods and availability come from the loaded payload.' }, nws: { source: 'National Weather Service', what: 'Current or forecast atmospheric context.', why: 'It helps interpret broader heat conditions without changing thermal ordering.', role: 'SUPPLEMENTAL · NOT USED TO RANK', time: () => state.mode === 'live'
       ? 'Shown only when usable Live NWS context is present in the loaded result.'
-      : 'Current NWS context is excluded from historical Replay.' }, brief: { source: 'Urban Heat Brief', what: 'Derived interpretation composed from normalized application evidence.', why: 'It summarizes the loaded evidence in bounded language for decision support.', role: 'DERIVED INTERPRETATION', time: 'Claim lineage is available in Inspect Evidence.' } };
+      : 'Current NWS forecast excluded; frozen contemporaneous historical station observation and alert context included. Supplemental — not used to rank.' }, brief: { source: 'Urban Heat Brief', what: 'Derived interpretation composed from normalized application evidence.', why: 'It summarizes the loaded evidence in bounded language for decision support.', role: 'DERIVED INTERPRETATION', time: 'Claim lineage is available in Inspect Evidence.' } };
 function showSourcePopover(key, control) { const pop = document.querySelector(`[data-popover="${key}"]`); const copy = SOURCE_COPY[key]; if (!pop || !copy) return; pop.replaceChildren(); [['SOURCE', copy.source], ['WHAT', copy.what], ['WHY IT MATTERS', copy.why], ['ROLE', copy.role], ['TIME / MODE', typeof copy.time === 'function' ? copy.time() : copy.time]].forEach(([label, value]) => { const row = document.createElement('div'); const name = document.createElement('b'); name.textContent = label; const detail = document.createElement('span'); detail.textContent = value; row.append(name, detail); pop.append(row); }); pop.hidden = false; control.setAttribute('aria-expanded', 'true'); }
 function sourcePopover(control) {
   return document.querySelector(`[data-popover="${control.dataset.source}"]`);

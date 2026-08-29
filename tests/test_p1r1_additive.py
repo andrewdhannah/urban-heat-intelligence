@@ -367,6 +367,78 @@ def test_wind_speed_provider_unit_preserved():
     print("  PASS: test_wind_speed_provider_unit_preserved")
 
 
+# === R5: Consumer-path tests ===
+
+def test_weather_intent_reads_nested_schema():
+    """Weather analyst intent reads obs.temperature.value, not obs.temperature_celsius."""
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    # The weather intent should reference nested schema
+    assert "obs.temperature?.value" in js_code or "obs.temperature.value" in js_code, \
+        "Weather intent does not read obs.temperature.value"
+    # Must NOT reference the old flat field
+    assert "obs.temperature_celsius" not in js_code.split("weather")[1].split("answer")[0] if "weather" in js_code else True, \
+        "Weather intent still references obs.temperature_celsius"
+    print("  PASS: test_weather_intent_reads_nested_schema")
+
+
+def test_weather_answer_contains_station_observation():
+    """Weather answer references station identifier from payload."""
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    # Should use obs.station_identifier, not hardcoded 'KPHX'
+    assert "obs.station_identifier" in js_code, \
+        "Weather answer does not reference obs.station_identifier"
+    print("  PASS: test_weather_answer_contains_station_observation")
+
+
+def test_stale_nws_exclusion_wording_removed():
+    """Stale 'excluded from historical Replay' wording is gone."""
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    assert "excluded from historical Replay" not in js_code, \
+        "Stale NWS exclusion wording still present"
+    print("  PASS: test_stale_nws_exclusion_wording_removed")
+
+
+def test_nws_provenance_includes_historical():
+    """NWS provenance for Replay explicitly states historical is included."""
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    assert "historical station observation" in js_code.lower() or \
+           "historical.*alert.*context.*included" in js_code.lower(), \
+        "NWS provenance does not state historical NWS is included"
+    print("  PASS: test_nws_provenance_includes_historical")
+
+
+def test_weather_answer_contracts():
+    """Weather answer contains station observation + hazards + FortyGuard connection."""
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    # Search the full weather intent definition (between id: 'weather' and the next intent)
+    weather_start = js_code.index("id: 'weather'")
+    # Find the closing of the weather intent (next intent starts with "id: '")
+    next_intent = js_code.index("id: '", weather_start + 10)
+    weather_section = js_code[weather_start:next_intent]
+    assert "station" in weather_section.lower() or "KPHX" in weather_section, \
+        "Weather answer missing station observation"
+    assert "hazard" in weather_section.lower() or "condition" in weather_section.lower(), \
+        "Weather answer missing hazard context"
+    # Check for FortyGuard connection — it should be in the shared closing text
+    # that appears after the if/else blocks
+    full_answer_section = js_code[weather_start:weather_start + 2000]
+    assert "FortyGuard" in full_answer_section or "fortyguard" in full_answer_section.lower(), \
+        "Weather answer missing FortyGuard connection"
+    assert "ranking" in full_answer_section.lower(), \
+        "Weather answer missing ranking boundary"
+    print("  PASS: test_weather_answer_contracts")
+
+
+if __name__ == "__main__":
+    test_wind_speed_provider_unit_preserved()
+    test_weather_intent_reads_nested_schema()
+    test_weather_answer_contains_station_observation()
+    test_stale_nws_exclusion_wording_removed()
+    test_nws_provenance_includes_historical()
+    test_weather_answer_contracts()
+    print("\nAll R5 tests passed.")
+
+
 if __name__ == "__main__":
     test_payload_historical_nws_obs_present()
     test_payload_observation_has_provider_units()
