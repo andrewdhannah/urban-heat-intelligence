@@ -11,7 +11,10 @@
   "candidate_results": [
     {
       "rank": 1,
-      "coordinate": {"lat": 33.4581, "lon": -112.0774},
+      "coordinate": {
+        "lat": 33.458146,
+        "lon": -112.077246
+      },
       "provider_response": {
         "features": [
           {
@@ -27,14 +30,65 @@
     },
     {
       "rank": 2,
-      "coordinate": {"lat": 33.459, "lon": -112.0774},
+      "coordinate": {
+        "lat": 33.459044,
+        "lon": -112.077264
+      },
       "provider_response": {
         "features": []
       }
     },
     {
       "rank": 3,
-      "coordinate": {"lat": 33.4598, "lon": -112.0774},
+      "coordinate": {
+        "lat": 33.459941,
+        "lon": -112.077282
+      },
+      "provider_response": {
+        "features": [
+          {
+            "attributes": {
+              "OBJECTID": 1,
+              "PROPERTY_NAME": "Portland Parkway",
+              "PARK_TYPE": "Linear",
+              "PARK_ACRES": 1.32
+            }
+          }
+        ]
+      }
+    },
+    {
+      "coordinate": {
+        "lat": 33.4581,
+        "lon": -112.0774
+      },
+      "provider_response": {
+        "features": [
+          {
+            "attributes": {
+              "OBJECTID": 4002,
+              "PROPERTY_NAME": "Roosevelt Park",
+              "PARK_TYPE": "Pocket",
+              "PARK_ACRES": 0.64
+            }
+          }
+        ]
+      }
+    },
+    {
+      "coordinate": {
+        "lat": 33.459,
+        "lon": -112.0774
+      },
+      "provider_response": {
+        "features": []
+      }
+    },
+    {
+      "coordinate": {
+        "lat": 33.4598,
+        "lon": -112.0774
+      },
       "provider_response": {
         "features": [
           {

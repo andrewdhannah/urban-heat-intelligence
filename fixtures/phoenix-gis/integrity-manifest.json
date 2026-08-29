@@ -15,9 +15,21 @@
         "service_endpoint": "https://services6.arcgis.com/SDdpEAs6WyhEBmTu/arcgis/rest/services/Phoenix_Urban_Heat_Island_and_Tree_Canopy_Equity_Analysis/FeatureServer/0/query",
         "method": "server_side_point_in_polygon",
         "candidate_coordinates": [
-          {"rank": 1, "lat": 33.4581, "lon": -112.0774},
-          {"rank": 2, "lat": 33.459, "lon": -112.0774},
-          {"rank": 3, "lat": 33.4598, "lon": -112.0774}
+          {
+            "rank": 1,
+            "lat": 33.4581,
+            "lon": -112.0774
+          },
+          {
+            "rank": 2,
+            "lat": 33.459,
+            "lon": -112.0774
+          },
+          {
+            "rank": 3,
+            "lat": 33.4598,
+            "lon": -112.0774
+          }
         ],
         "synthetic": false
       }
@@ -25,16 +37,28 @@
     {
       "path": "fixtures/phoenix-gis/parks.json",
       "type": "parks",
-      "sha256": "c5223f45142d51e9cd469c83551071af2197860173312372961182d64bba20e0",
+      "sha256": "604e87c98bdbe7bcfcf0f841a0604d8ebeb81f0bf365eb4af9f597a16d202609",
       "provider": "City of Phoenix",
       "dataset": "City of Phoenix Mapped Parks",
       "source_query_proof": {
         "service_endpoint": "https://maps.phoenix.gov/pub/rest/services/Public/ParksOpenData/MapServer/10/query",
         "method": "authoritative_provider_query",
         "candidate_coordinates": [
-          {"rank": 1, "lat": 33.4581, "lon": -112.0774},
-          {"rank": 2, "lat": 33.459, "lon": -112.0774},
-          {"rank": 3, "lat": 33.4598, "lon": -112.0774}
+          {
+            "rank": 1,
+            "lat": 33.4581,
+            "lon": -112.0774
+          },
+          {
+            "rank": 2,
+            "lat": 33.459,
+            "lon": -112.0774
+          },
+          {
+            "rank": 3,
+            "lat": 33.4598,
+            "lon": -112.0774
+          }
         ],
         "synthetic": false
       }

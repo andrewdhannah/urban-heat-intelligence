@@ -396,20 +396,38 @@ class UHIHandler(SimpleHTTPRequestHandler):
         elif parsed.path == "/api/version":
             self.serve_version()
         else:
-            # Cache-busting: static assets with ?v=r6 get short cache
             if "v=" in parsed.query:
-                self.send_response(200)
-                self.send_header("Cache-Control", "public, max-age=31536000, immutable")
-                self.end_headers()
-                super().do_GET()
+                self.serve_versioned_asset(parsed)
             else:
                 super().do_GET()
+
+    def serve_versioned_asset(self, parsed):
+        """Serve a versioned static asset with immutable cache headers.
+
+        Reads the file directly and writes a single HTTP response to avoid
+        the double-header bug that occurs when super().do_GET() is called
+        after headers are already sent.
+        """
+        asset_path = get_dashboard_dir() / parsed.path.lstrip("/")
+        if not asset_path.exists():
+            self.send_error(404, "Asset not found")
+            return
+        content = asset_path.read_bytes()
+        content_type = self.guess_type(str(asset_path))
+        build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+        self.send_header("X-Build-Version", build_version)
+        self.end_headers()
+        self.wfile.write(content)
 
     def serve_index(self):
         index_path = get_dashboard_dir() / "index.html"
         content = index_path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
+        self.send_header("Cache-Control", "no-cache, must-revalidate")
         self.end_headers()
         self.wfile.write(content)
 

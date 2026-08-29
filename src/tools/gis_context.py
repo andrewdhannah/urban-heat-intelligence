@@ -21,6 +21,7 @@ Level A semantic constraints:
 """
 
 import json
+import math
 import ssl
 import urllib.request
 from datetime import datetime, timezone
@@ -40,7 +41,7 @@ PARKS_ENDPOINT = "https://maps.phoenix.gov/pub/rest/services/Public/ParksOpenDat
 
 INTERSECTION_PROVIDER = "City of Phoenix"
 INTERSECTION_DATASET = "City of Phoenix Street Intersections"
-INTERSECTION_ENDPOINT = "https://services6.arcgis.com/SDdpEAs6WyhEBmTu/arcgis/rest/services/Phoenix_Street_Intersections/FeatureServer/0/query"
+INTERSECTION_ENDPOINT = "https://maps.phoenix.gov/pub/rest/services/Public/STR_StreetIntersections/MapServer/0/query"
 
 
 def _now_iso() -> str:
@@ -52,6 +53,27 @@ def _get_ssl_context() -> ssl.SSLContext:
     """Create SSL context for GIS service queries."""
     ctx = ssl.create_default_context()
     return ctx
+
+
+def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Compute Haversine distance in metres between two WGS84 points.
+
+    Args:
+        lat1: Latitude of first point (degrees)
+        lon1: Longitude of first point (degrees)
+        lat2: Latitude of second point (degrees)
+        lon2: Longitude of second point (degrees)
+
+    Returns:
+        Distance in metres.
+    """
+    R = 6371000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlam = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 def _load_gis_fixture(fixture_name: str, mode: str) -> Optional[Dict[str, Any]]:
@@ -486,6 +508,10 @@ def query_nearest_intersection(
     """
     Query nearest City of Phoenix street intersection for a candidate location.
 
+    Uses the authoritative City of Phoenix STR_StreetIntersections MapServer
+    endpoint.  Distance is computed locally via Haversine from the returned
+    WGS84 geometry, not from an ArcGIS distance attribute.
+
     This is LOCAL CONTEXT only — used_in_decision=false.  Failure degrades
     gracefully to an unavailable result; it must not affect thermal ranking.
 
@@ -502,7 +528,7 @@ def query_nearest_intersection(
         "data": {
             "provider": INTERSECTION_PROVIDER,
             "dataset": INTERSECTION_DATASET,
-            "query_method": "nearest_feature",
+            "query_method": "haversine_from_authoritative_returned_geometry",
             "coordinate": {"latitude": latitude, "longitude": longitude},
             "mode": mode,
             "timestamp": _now_iso()
@@ -516,12 +542,13 @@ def query_nearest_intersection(
             "evidence_node": evidence_node
         }
 
-    # Query ArcGIS nearest feature — return nearest intersection with distance
+    # Query within bounded 200m radius, request WGS84 geometry
     params = (
         f"?geometry={longitude},{latitude}"
         "&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects"
-        "&outFields=FULL_NAME,PRE_DIR,STREET,STREETTYPE,SUF_DIR&returnGeometry=true"
-        "&returnDistance=true&distance=200&units=esriSRUnit_Meter&f=json"
+        "&outFields=INTERSECTION,DIR1,STREET1,DIR2,STREET2"
+        "&outSR=4326&returnGeometry=true"
+        "&distance=200&units=esriSRUnit_Meter&f=json"
     )
     ctx = _get_ssl_context()
     try:
@@ -531,35 +558,43 @@ def query_nearest_intersection(
         if not features:
             return {
                 "available": False,
-                "error": "no_intersections_within_range",
+                "error": "no_intersection_within_200m",
                 "evidence_node": evidence_node
             }
-        # Find nearest by geometry distance attribute
+
+        # Compute Haversine distance from candidate to each returned geometry
         best = None
         best_dist = float("inf")
+        best_name = None
         for feat in features:
             attrs = feat.get("attributes", {})
-            dist = attrs.get("dist", attrs.get("distance", float("inf")))
-            if dist is not None and dist < best_dist:
+            geom = feat.get("geometry", {})
+            # Geometry may have x/y (MapServer) or rings (Point)
+            gx = geom.get("x", geom.get("lon", None))
+            gy = geom.get("y", geom.get("lat", None))
+            if gx is None or gy is None:
+                continue
+            dist = _haversine_distance(latitude, longitude, gy, gx)
+            if dist < best_dist:
                 best_dist = dist
                 best = attrs
+                # Use the authoritative INTERSECTION field
+                best_name = attrs.get("INTERSECTION", None)
+
         if best is None:
             return {
                 "available": False,
                 "error": "no_distance_attribute",
                 "evidence_node": evidence_node
             }
-        # Compose intersection name from attributes
-        parts = [best.get("PRE_DIR", ""), best.get("STREET", ""), best.get("STREETTYPE", "")]
-        name = " & ".join(filter(None, [best.get("FULL_NAME", ""), ""])).strip(" &")
-        if not name:
-            name = " ".join(filter(None, parts)).strip()
+
         result = {
             "available": True,
-            "name": name or "Unknown intersection",
-            "distance_m": round(best_dist, 0) if best_dist != float("inf") else None,
+            "name": best_name or "Unknown intersection",
+            "distance_m": round(best_dist, 0),
             "source_provider": INTERSECTION_PROVIDER,
             "dataset": INTERSECTION_DATASET,
+            "distance_method": "haversine_from_authoritative_returned_geometry",
             "used_in_decision": False,
             "mode": mode,
             "retrieved_at": _now_iso()
@@ -573,6 +608,7 @@ def query_nearest_intersection(
                     "provider": INTERSECTION_PROVIDER,
                     "name": result["name"],
                     "distance_m": result["distance_m"],
+                    "distance_method": result["distance_method"],
                     "mode": mode,
                     "used_in_decision": False,
                     "timestamp": _now_iso()
