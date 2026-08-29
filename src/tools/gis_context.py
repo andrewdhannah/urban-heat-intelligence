@@ -559,6 +559,8 @@ def query_nearest_intersection(
             return {
                 "available": False,
                 "error": "no_intersection_within_200m",
+                "name": "No mapped intersection within 200 m",
+                "used_in_decision": False,
                 "evidence_node": evidence_node
             }
 
@@ -673,7 +675,15 @@ def enrich_candidate_context(
     # Build context result
     canopy_result = canopy.get("result")
     parks_result = parks.get("result")
-    intersection_result = intersection.get("result")
+    # Preserve unavailable intersection states for the UI. They are context-only
+    # and must remain distinguishable from a missing provider response.
+    intersection_result = intersection.get("result") or {
+        "available": False,
+        "error": intersection.get("error", "intersection_context_unavailable"),
+        "source_provider": INTERSECTION_PROVIDER,
+        "used_in_decision": False,
+        "mode": mode,
+    }
     canopy_available = canopy_result.get("available", False) if isinstance(canopy_result, dict) else False
     parks_available = parks_result.get("available", False) if isinstance(parks_result, dict) else False
     intersection_available = intersection_result.get("available", False) if isinstance(intersection_result, dict) else False
@@ -681,7 +691,7 @@ def enrich_candidate_context(
     context = {
         "canopy": canopy_result if canopy_available else None,
         "parks": parks_result if parks_available else None,
-        "intersection": intersection_result if intersection_available else None,
+        "intersection": intersection_result,
         "available": canopy_available or parks_available or intersection_available,
         "used_in_decision": False,
         "mode": mode,

@@ -45,7 +45,15 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(200, {"carto_basemap_key": os.environ.get("CARTO_BASEMAP_KEY", "")})
             return
         if parsed.path == "/":
-            self.path = "/index.html"
+            index = (ROOT / "index.html").read_text()
+            build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+            body = index.replace("{{BUILD_VERSION}}", build_version).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(body)
+            return
         return super().do_GET()
 
 if __name__ == "__main__":

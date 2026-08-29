@@ -1,6 +1,7 @@
 const DEFAULT_QUESTION = 'Where should Phoenix prioritize a cooling intervention this afternoon?';
 const TIE_THRESHOLD = 0.1;
-const state = { mode: 'replay', requestId: 0, controller: null, map: null, heatLayer: null, aoiLayer: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
+const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
+const deskState = { mode: 'replay', phase: 'idle', readout: 'status' };
 const $ = (id) => document.getElementById(id);
 const text = (el, value) => { if (el) el.textContent = value ?? '—'; };
 const num = (value, digits = 1, suffix = '') => value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? '—' : `${Number(value).toFixed(digits)}${suffix}`;
@@ -24,6 +25,11 @@ function initMap() {
   state.map = L.map('map', { zoomControl: true, attributionControl: true, preferCanvas: true }).setView([33.4484, -112.074], 12);
   // OpenStreetMap is a no-key fallback; it keeps the demonstration free of API-key watermarks.
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(state.map);
+  const container = $('map');
+  if (window.ResizeObserver && container) {
+    state.resizeObserver = new ResizeObserver(() => state.map?.invalidateSize({ pan: false }));
+    state.resizeObserver.observe(container);
+  }
 }
 function clearMap() {
   if (!state.map) return;
@@ -53,7 +59,8 @@ function renderMap(payload) {
     style: (f) => ({ color: cellColor, weight: cellWeight, fillColor: colorFor(featureTemp(f), min, max), fillOpacity: reducedMotion() ? cellFillOpacity : 0 }),
     onEachFeature: (f, layer) => layer.on('click', () => { const d = $('cell-detail'); d.hidden = false; d.replaceChildren(); const label = document.createElement('span'); label.textContent = 'Measured cell'; const strong = document.createElement('strong'); strong.textContent = tempD2(featureTemp(f)); d.append(label, strong); })
   }).addTo(state.map);
-  (payload.ranked_candidates || []).forEach(addMarker);
+   state.candidates = Array.isArray(payload.ranked_candidates) ? payload.ranked_candidates : [];
+   state.candidates.forEach(addMarker);
   const bounds = state.heatLayer.getBounds();
   if (!bounds.isValid()) return;
   renderMeasuredArea(bounds, features.length);
@@ -91,7 +98,7 @@ function fitMeasuredArea() {
   if (!state.map || !state.measuredAreaBounds || !state.measuredAreaBounds.isValid()) return;
   state.map.flyToBounds(state.measuredAreaBounds.pad(.10), { animate: !reducedMotion(), duration: 0.7, maxZoom: 15 });
 }
-function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const node = document.createElement('span'); node.textContent = candidate.rank; node.setAttribute('aria-hidden', 'true'); const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: `<div style="display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:${candidate.rank === 1 ? 'var(--blue-dark)' : 'var(--blue)'};color:#fff;font:700 17px 'DM Mono',monospace;line-height:1">${candidate.rank}</div>`, iconSize: [42, 42], iconAnchor: [21, 21] }), title: `Candidate ${candidate.rank}`, riseOnHover: true, zIndexOffset: baseMarkerOffset(candidate.rank) }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
+function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const peers = state.candidates.filter((c) => c !== candidate && Math.abs(c.coordinate?.[0] - lon) < 0.0005 && Math.abs(c.coordinate?.[1] - lat) < 0.0005); const fan = peers.length ? (Number(candidate.rank) - 2) * 15 : 0; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: `<div style="display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:${candidate.rank === 1 ? 'var(--blue-dark)' : 'var(--blue)'};color:#fff;font:700 17px 'DM Mono',monospace;line-height:1;transform:translateX(${fan}px)">${candidate.rank}</div>`, iconSize: [42, 42], iconAnchor: [21, 21] }), title: `Candidate ${candidate.rank}`, riseOnHover: true, zIndexOffset: baseMarkerOffset(candidate.rank) }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
 // Deterministic base stacking: Candidate 1 remains default foreground (highest base offset).
 // Higher z-index offset renders on top. Focused candidate is elevated well above all others.
 const FOCUS_Z_OFFSET = 1000;
@@ -110,8 +117,31 @@ function removeReplayContext() { $('replay-env-context')?.remove(); }
 function renderCandidates(payload) { const list = $('candidate-list'); list.replaceChildren(); const candidates = Array.isArray(payload?.ranked_candidates) ? payload.ranked_candidates : []; state.candidates = candidates; const status = payload?.conditions?.ranking_status; const explainer = $('candidate-explainer'); if (explainer) explainer.textContent = status === 'near_tie' ? 'Deterministic rank from the measured field. The hottest measured locations are nearly tied; context below is descriptive, not a score.' : 'Deterministic rank from the measured field. Context below is descriptive, not a score.'; if (!candidates.length) { const empty = document.createElement('p'); empty.className = 'empty-state'; empty.textContent = 'No candidate locations were returned for this mode.'; list.append(empty); return; }
   candidates.forEach((c) => { const card = document.createElement('article'); card.className = `candidate-card ${status === 'near_tie' ? 'near-tie' : ''}`; card.dataset.rank = c.rank; card.tabIndex = 0; card.setAttribute('aria-label', `Candidate ${c.rank}, ${tempD2(c.observed_temp)}`); card.addEventListener('mouseenter', () => focusCandidate(c.rank)); card.addEventListener('mouseleave', () => focusCandidate(-1)); card.addEventListener('focus', () => focusCandidate(c.rank)); card.addEventListener('click', () => focusCandidate(c.rank, true)); card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focusCandidate(c.rank, true); } });
     const eyebrow = document.createElement('span'); eyebrow.className = 'eyebrow'; eyebrow.textContent = status === 'near_tie' ? 'TOP THERMAL CLUSTER' : 'THERMAL CANDIDATE'; const h = document.createElement('h3'); h.textContent = `Candidate ${c.rank}`; const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = String(c.rank).padStart(2, '0'); const temp = document.createElement('div'); temp.className = 'temp'; temp.textContent = tempD2(c.observed_temp); const delta = document.createElement('div'); delta.className = 'delta'; delta.textContent = `${deltaD(c.delta_from_area_mean)} vs area mean`; const divider = document.createElement('hr'); divider.className = 'candidate-divider'; const details = document.createElement('div'); details.className = 'candidate-details'; [['Coordinates', coordLabel(c.coordinate)]].forEach(([label, value]) => { const box = document.createElement('div'); const s = document.createElement('span'); s.textContent = label; const strong = document.createElement('strong'); strong.textContent = value; box.append(s, strong); details.append(box); });     const note = document.createElement('p'); note.className = 'candidate-note'; note.textContent = state.mode === 'replay' ? (status === 'near_tie' ? 'The hottest measured locations are nearly tied; local context does not change the thermal ranking.' : 'Measured temperature plus local context; local context does not affect the thermal ranking.') : 'Thermal candidate identified from the measured field; local context does not alter the thermal ranking.';     const intersection = c.candidate_context?.intersection; if (intersection && intersection.available) { const intDiv = document.createElement('div'); intDiv.className = 'candidate-intersection'; intDiv.style.cssText = 'font-size:10px;color:var(--teal);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);'; intDiv.textContent = `Nearest intersection: ${intersection.name || '—'} · ${intersection.distance_m != null ? intersection.distance_m + ' m' : '—'}`; card.append(eyebrow, h, rank, temp, delta, divider, details, note, intDiv); } else { const intDiv = document.createElement('div'); intDiv.className = 'candidate-intersection'; intDiv.style.cssText = 'font-size:10px;color:var(--muted,#94a3b8);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);'; intDiv.textContent = 'Location context unavailable'; card.append(eyebrow, h, rank, temp, delta, divider, details, note, intDiv); } list.append(card); });
-  if (state.mode === 'replay') renderRepresentativeContext();
+   renderIntersectionStates(candidates);
+   if (state.mode === 'replay') renderRepresentativeContext();
   else removeReplayContext();
+}
+function renderIntersectionStates(candidates) {
+  candidates.forEach((candidate) => {
+    const intersection = candidate.candidate_context?.intersection;
+    const card = document.querySelector(`.candidate-card[data-rank="${candidate.rank}"]`);
+    if (!card || !intersection) return;
+    let display = card.querySelector('.candidate-intersection');
+    if (!display) {
+      display = document.createElement('div');
+      display.className = 'candidate-intersection';
+      card.append(display);
+    }
+    if (intersection.available === true) {
+      display.textContent = `Nearest intersection: ${intersection.name || '—'} · ${intersection.distance_m != null ? `${intersection.distance_m} m` : 'distance unavailable'}`;
+    } else if (intersection.error === 'no_intersection_within_200m') {
+      display.textContent = 'No mapped intersection within 200 m';
+    } else if (String(intersection.error || '').startsWith('intersection_query_failed')) {
+      display.textContent = 'Location context unavailable';
+    } else {
+      display.textContent = 'Location context unavailable';
+    }
+  });
 }
 function renderRepresentativeContext() {
   removeReplayContext();
@@ -126,6 +156,31 @@ function renderRepresentativeContext() {
 function renderContext(payload) { const root = $('context-content'); root.replaceChildren(); const candidates = payload?.ranked_candidates || []; candidates.forEach((c) => { const ctx = c.candidate_context || {}; const canopy = ctx.canopy || {}; const parks = ctx.parks; const row = document.createElement('div'); row.className = 'context-row'; const left = document.createElement('span'); left.textContent = `Candidate ${c.rank}`; const right = document.createElement('strong'); const parts = []; if (canopy.available && canopy.tree_canopy_pct != null) parts.push(`Canopy ${num(canopy.tree_canopy_pct, 1, '%')}`); else if (canopy.available === false) parts.push('Canopy unavailable'); parts.push(parkLabel(parks)); right.textContent = parts.join(' · '); row.append(left, right); root.append(row); }); const disclosure = document.createElement('div'); disclosure.className = 'context-disclosure'; disclosure.textContent = 'Phoenix GIS describes what surrounds each candidate and does not affect the thermal ranking (used_in_decision = false). A missing GIS result is not interpreted as "no mapped park."'; root.append(disclosure); }
 function renderBrief(payload) { const root = $('brief-content'); root.replaceChildren(); const brief = payload?.urban_heat_brief; if (!brief) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Brief unavailable because no usable thermal evidence was returned.'; root.append(p); return; } (brief.sections || []).forEach((section) => { const wrap = document.createElement('section'); wrap.className = 'brief-section'; const h = document.createElement('h3'); h.textContent = section.heading; wrap.append(h); (section.claims || []).forEach((claim) => { const item = document.createElement('div'); item.className = 'claim'; const dot = document.createElement('span'); dot.className = 'claim-marker'; const body = document.createElement('div'); body.append(document.createTextNode(claim.text)); const meta = document.createElement('span'); meta.className = 'claim-meta'; meta.textContent = `${claim.source_provider || 'Source unavailable'} · ${claim.used_in_decision ? 'used in decision' : 'context only'}`; body.append(meta); item.append(dot, body); wrap.append(item); }); root.append(wrap); }); }
 function renderEvidence(payload) { const root = $('evidence-content'); root.replaceChildren(); (payload?.evidence_chain || []).forEach((node, index) => { const item = document.createElement('div'); item.className = 'chain-node'; const n = document.createElement('b'); n.textContent = String(index + 1).padStart(2, '0'); const body = document.createElement('div'); const h = document.createElement('h3'); h.textContent = titleCase(node.step); const p = document.createElement('p'); const data = node.data || {}; p.textContent = data.provider ? `${data.provider}${data.used_in_decision === false ? ' · context only' : ''}` : data.rationale || data.summary || data.reason || 'Recorded application evidence event.'; const small = document.createElement('small'); small.textContent = node.timestamp || 'timestamp unavailable'; body.append(h, p, small); item.append(n, body); root.append(item); }); }
+function renderReadout() {
+  const region = $('status-region');
+  if (!region) return;
+  region.replaceChildren();
+  if (deskState.readout === 'analyst') return;
+  const label = document.createElement('strong');
+  label.textContent = deskState.phase === 'error' ? `${deskState.mode.toUpperCase()} UNAVAILABLE` : deskState.phase === 'ready' ? `DESK READOUT · ${deskState.mode.toUpperCase()}` : `DECK STATUS · ${deskState.mode.toUpperCase()}`;
+  const detail = document.createElement('span');
+  detail.textContent = deskState.phase === 'error' ? ' The current evidence request could not be completed.' : deskState.phase === 'ready' ? ` ${state.payload?.summary || 'Thermal evidence is ready for investigation.'}` : ` ${deskState.mode === 'replay' ? 'Loading deterministic local capture' : 'Requesting latest available provider observation'}…`;
+  region.append(label, detail);
+  if (deskState.phase === 'error' && deskState.mode === 'live') {
+    const retry = document.createElement('button');
+    retry.className = 'mode-button';
+    retry.type = 'button';
+    retry.textContent = 'Try Replay';
+    retry.addEventListener('click', () => request('replay'));
+    region.append(retry);
+  }
+  if (deskState.phase === 'loading') {
+    const timer = document.createElement('strong');
+    timer.id = 'desk-elapsed';
+    timer.textContent = ` ${Math.round((Date.now() - state.liveStart) / 1000)}s`;
+    region.append(timer);
+  }
+}
 function clearResultSurfaces(message = 'Waiting for usable evidence.') {
   document.body.classList.remove('has-result');
   clearLiveTimer();
@@ -135,6 +190,8 @@ function clearResultSurfaces(message = 'Waiting for usable evidence.') {
   state.focused = null;
   removeReplayContext();
   clearMap();
+  const nwsBanner = $('nws-forecast-banner');
+  if (nwsBanner) { nwsBanner.hidden = true; nwsBanner.replaceChildren(); }
   updateNwsSource(null);
   closeSourcePopovers();
   text($('legend-min'), '—');
@@ -153,14 +210,14 @@ function clearResultSurfaces(message = 'Waiting for usable evidence.') {
   renderEvidence({});
 }
 function setLoading(message, mode) {
-  $('status-region').replaceChildren();
-  clearResultSurfaces('Loading the decision…');
+   clearResultSurfaces('Loading the decision…');
   text($('stat-obs-time'), 'Loading…');
   text($('observation-note'), message);
   text($('mode-badge'), mode.toUpperCase());
   $('mode-badge').className = `mode-badge ${mode}`;
   text($('map-source-label'), `FortyGuard · ${mode === 'replay' ? 'Replay' : 'Live'}`);
-  text($('map-loading'), message);
+   text($('map-loading'), message);
+   renderReadout();
 }
 function showError(payload, mode) { const region = $('status-region'); region.replaceChildren(); const p = document.createElement('p'); const reason = payload?.why_this_answer || payload?.answer?.why_this_answer || payload?.message || ''; p.textContent = mode === 'live' && /last \d+ hours|freshness window|bounded freshness|No usable FortyGuard observation/i.test(reason) ? 'LIVE UNAVAILABLE — No usable FortyGuard observation was available within the bounded freshness window.' : mode === 'live' ? 'LIVE UNAVAILABLE — The current Live request could not be completed.' : 'Unable to load Replay evidence.'; region.append(p); if (mode === 'live') { const button = document.createElement('button'); button.className = 'mode-button'; button.type = 'button'; button.textContent = 'Try Replay'; button.addEventListener('click', () => request('replay')); region.append(button); } }
 function renderError(payload, mode) {
@@ -307,7 +364,7 @@ function render(payload, mode) {
   state.payload = payload;
   state.replayEnv = mode === 'replay' ? payload?.priority_location?.env_params || null : null;
   const error = payload?.error === true || payload?.answer?.error === true;
-  if (error) { renderError(payload, mode); return; }
+  if (error) { deskState.phase = 'error'; deskState.readout = 'status'; renderError(payload, mode); renderReadout(); return; }
   document.body.classList.add('has-result');
   renderNwsForecast(payload);
   renderHistoricalNwsContext(payload);
@@ -337,6 +394,9 @@ function render(payload, mode) {
   renderBrief(payload);
   renderContext(payload);
   renderEvidence(payload);
+  deskState.phase = 'ready';
+  deskState.readout = 'decision_summary';
+  renderReadout();
 }
 
 const INTENTS = [
@@ -393,6 +453,8 @@ function runAnalyst(question) {
   const answer = document.createElement('p'); answer.textContent = intent.answer(question, targetMode);
   const source = document.createElement('small'); source.textContent = `Source: ${intent.source} · Why it matters: ${intent.why || 'This source directly supports the answer.'}`;
   result.append(label, answer, source);
+  deskState.readout = 'analyst';
+  renderReadout();
   const suggestions = $('analyst-suggestions'); suggestions.replaceChildren();
   intent.suggestions.filter((s) => !(state.mode === 'replay' && /NWS|weather|current/i.test(s))).slice(0, 3).forEach((suggestion) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = suggestion; b.addEventListener('click', () => { $('question-input').value = suggestion; runAnalyst(suggestion); }); suggestions.append(b); });
   intent.action?.();
@@ -400,33 +462,37 @@ function runAnalyst(question) {
   // For not_understood: show the answer but do NOT trigger a request or mode switch
 }
 function openEvidence() { const drawer = $('evidence-drawer'); drawer.hidden = false; $('evidence-toggle').setAttribute('aria-expanded', 'true'); drawer.scrollIntoView({ behavior: scrollBehavior(), block: 'start' }); }
-function setFocusMode(enabled) { state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); const exitBtn = $('focus-exit-button'); if (exitBtn) { exitBtn.hidden = !enabled; exitBtn.setAttribute('aria-pressed', String(enabled)); } if (enabled && exitBtn) exitBtn.focus(); setTimeout(() => state.map?.invalidateSize(), 20); }
+function setFocusMode(enabled) { if (enabled && !state.focusMode) state.focusScrollY = window.scrollY; state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); const exitBtn = $('focus-exit-button'); if (exitBtn) { exitBtn.hidden = !enabled; exitBtn.setAttribute('aria-pressed', String(enabled)); } if (enabled && exitBtn) exitBtn.focus(); requestAnimationFrame(() => state.map?.invalidateSize({ pan: false })); if (!enabled) requestAnimationFrame(() => window.scrollTo({ top: state.focusScrollY, behavior: scrollBehavior() })); }
 function toggleUnit() { state.unit = state.unit === 'C' ? 'F' : 'C'; $('btn-unit').textContent = state.unit === 'F' ? '°F ' : '°C '; const small = document.createElement('small'); small.textContent = state.unit === 'F' ? '/ °C' : '/ °F'; $('btn-unit').append(small); $('btn-unit').classList.toggle('active', state.unit === 'F'); $('btn-unit').setAttribute('aria-pressed', String(state.unit === 'F')); if (state.payload) render(state.payload, state.mode); }
 async function request(mode = state.mode) {
   const id = ++state.requestId;
+  state.requestGeneration = id;
   state.mode = mode;
   if (state.controller) state.controller.abort();
   state.controller = new AbortController();
+  deskState.mode = mode; deskState.phase = 'loading'; deskState.readout = 'status';
   clearLiveTimer();
   setLoading(mode === 'replay' ? 'Loading reproducible capture…' : 'Requesting latest available provider observation…', mode);
   $('btn-replay').classList.toggle('active', mode === 'replay');
   $('btn-live').classList.toggle('active', mode === 'live');
   $('btn-replay').setAttribute('aria-pressed', String(mode === 'replay'));
   $('btn-live').setAttribute('aria-pressed', String(mode === 'live'));
-  if (mode === 'live') startLiveTimer();
+  startLiveTimer();
   try {
     const q = encodeURIComponent($('question-input').value || DEFAULT_QUESTION);
     const response = await fetch(`/api/answer?question=${q}&mode=${mode}`, { signal: state.controller.signal });
-    clearLiveTimer();
     let payload = null;
     try { payload = await response.json(); }
     catch { payload = { error: true, message: 'Invalid server response', mode }; }
-    if (id !== state.requestId) return;
+    if (id !== state.requestGeneration) return;
+    clearLiveTimer();
     if (!response.ok) payload = { ...(payload || {}), error: true, mode };
     render(payload || { error: true, mode }, mode);
   } catch (error) {
+    if (id !== state.requestGeneration) return;
     clearLiveTimer();
-    if (error.name !== 'AbortError' && id === state.requestId) {
+    if (error.name !== 'AbortError') {
+      deskState.phase = 'error'; deskState.readout = 'status';
       const region = $('status-region');
       region.replaceChildren();
       const p = document.createElement('p');
@@ -442,6 +508,7 @@ async function request(mode = state.mode) {
         button.addEventListener('click', () => request('replay'));
         region.append(button);
       }
+      renderReadout();
     }
   }
 }
@@ -564,7 +631,19 @@ function initQuestionCatalogue() {
   const toggle = document.querySelector('.catalogue-toggle');
   const panel = $('catalogue-panel');
   if (!toggle || !panel) return;
-  toggle.addEventListener('click', () => {
+   const desktopExpanded = window.innerWidth >= 1050;
+   toggle.setAttribute('aria-expanded', String(desktopExpanded));
+   panel.hidden = !desktopExpanded;
+   window.addEventListener('resize', () => {
+     if (window.innerWidth < 700) {
+       toggle.setAttribute('aria-expanded', 'false');
+       panel.hidden = true;
+     } else if (window.innerWidth >= 1050) {
+       toggle.setAttribute('aria-expanded', 'true');
+       panel.hidden = false;
+     }
+   });
+   toggle.addEventListener('click', () => {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     toggle.setAttribute('aria-expanded', String(!expanded));
     panel.hidden = expanded;
@@ -590,16 +669,8 @@ function startLiveTimer() { clearLiveTimer(); state.liveStart = Date.now(); stat
 function clearLiveTimer() { if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; } state.liveStart = 0; }
 function updateLiveProgress() {
   const elapsed = state.liveStart ? Math.round((Date.now() - state.liveStart) / 1000) : 0;
-  const region = $('status-region');
-  if (!region || !state.liveStart) return;
-  // Truthful wording: describe what MAY be occurring, not synthetic stage transitions.
-  const hint = elapsed < 5 ? 'Requesting FortyGuard evidence…'
-    : elapsed < 60 ? 'Provider processing can take several minutes…'
-    : 'Still waiting for the provider response…';
-  region.replaceChildren();
-  const s = document.createElement('span'); s.textContent = `${hint} `;
-  const timer = document.createElement('strong'); timer.textContent = `${elapsed}s`;
-  s.append(timer); region.append(s);
+  if (!state.liveStart || deskState.phase !== 'loading') return;
+  renderReadout();
 }
 function init() { $('question-input').value = DEFAULT_QUESTION; initSourceControls(); initMap(); initHeatOpacityControl(); initBasemapControl(); initQuestionCatalogue(); $('question-form').addEventListener('submit', (e) => { e.preventDefault(); const q = $('question-input').value.trim(); if (q && q !== DEFAULT_QUESTION) runAnalyst(q); else request(state.mode); });   $('btn-replay').addEventListener('click', () => request('replay')); $('btn-live').addEventListener('click', () => request('live')); $('btn-unit').addEventListener('click', toggleUnit); $('map-focus-button').addEventListener('click', () => setFocusMode(!state.focusMode)); $('fit-area-button').addEventListener('click', fitMeasuredArea); $('focus-exit-button').addEventListener('click', () => setFocusMode(false)); document.addEventListener('keydown', handleEscape); $('evidence-close').addEventListener('click', () => { $('evidence-drawer').hidden = true; $('evidence-toggle').setAttribute('aria-expanded', 'false'); }); $('evidence-toggle').addEventListener('click', openEvidence); request('replay'); }
 window.addEventListener('DOMContentLoaded', init);

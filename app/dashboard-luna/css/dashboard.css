@@ -65,3 +65,17 @@ body { font-family: Manrope, var(--sans); }
 .catalogue-group-items button { border:1px solid var(--line); background:var(--surface); color:var(--blue-dark); padding:5px 8px; font-size:10px; border-radius:3px; text-align:left; line-height:1.3; }
 .catalogue-group-items button:hover { background:var(--blue-soft); border-color:var(--blue); }
 .catalogue-group-items button:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+.desk-readout { display:flex; align-items:center; gap:10px; margin:10px 0 0; padding:9px 12px; background:var(--blue-soft); border-left:3px solid var(--blue); color:var(--blue-dark); font:10px 'DM Mono',monospace; }
+.desk-readout:empty { display:none; }
+.candidate-intersection { font-size:10px; color:var(--teal); margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
+.candidate-details { margin-top:0; }
+.candidate-details summary { cursor:pointer; color:var(--blue-dark); font-size:10px; }
+body.map-focus { overflow:hidden; }
+body.map-focus .shell { max-width:none; padding:0; }
+body.map-focus .topbar { position:relative; }
+body.map-focus .intro, body.map-focus .candidates-section, body.map-focus .lower-grid, body.map-focus .footer { display:none; }
+body.map-focus .decision-grid { position:relative; min-height:calc(100vh - 74px); height:calc(100vh - 74px); }
+body.map-focus .map-panel { border-radius:0; }
+body.map-focus .map { min-height:0; flex:1; }
+body.map-focus .answer-rail { position:absolute; right:26px; top:92px; width:min(330px,calc(100vw - 52px)); z-index:500; max-height:calc(100vh - 120px); overflow:auto; }
+body.map-focus .focus-exit-inline { position:fixed; top:92px; left:26px; z-index:1200; }

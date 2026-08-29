@@ -7,14 +7,14 @@
   <title>Luna / Urban Heat Intelligence</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="css/tokens.css?v=r6">
-  <link rel="stylesheet" href="css/dashboard.css?v=r6">
-  <link rel="stylesheet" href="css/responsive.css?v=r6">
+  <link rel="stylesheet" href="css/tokens.css?v={{BUILD_VERSION}}">
+  <link rel="stylesheet" href="css/dashboard.css?v={{BUILD_VERSION}}">
+  <link rel="stylesheet" href="css/responsive.css?v={{BUILD_VERSION}}">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#top" aria-label="Urban Heat Intelligence home"><span class="brand-mark">UHI</span><span>Urban Heat<br><strong>Intelligence</strong></span></a>
-    <div class="topbar-meta"><span class="eyebrow">DECISION DESK</span><span class="slash">/</span><span>Phoenix, Arizona</span></div>
+    <div class="topbar-meta"><span class="eyebrow">DECISION DESK</span><span class="desk-separator">·</span><span>PHOENIX, ARIZONA</span></div>
     <div class="mode-switch" role="group" aria-label="Data mode">
       <span class="switch-label">DATA MODE</span>
       <button id="btn-replay" class="mode-button active" type="button" aria-pressed="true">Replay <small>captured</small></button>
@@ -31,8 +31,8 @@
         <p class="eyebrow accent">AFTERNOON COOLING PRIORITY</p>
         <h1 id="page-title">Find the places<br><em>carrying the heat.</em></h1>
         <form id="question-form" class="question-form">
-          <label for="question-input">Decision question</label>
-          <div class="question-row"><input id="question-input" name="question" value="Where should Phoenix prioritize a cooling intervention this afternoon?" autocomplete="off"><button type="submit" aria-label="Run decision query">Run query <span aria-hidden="true">↗</span></button></div><p class="analyst-hint">Ask the grounded analyst about the loaded evidence.</p><div id="analyst-result" class="analyst-result" aria-live="polite"></div><div id="analyst-suggestions" class="analyst-suggestions"></div>
+        <label for="question-input">Decision question</label>
+          <div class="question-row"><input id="question-input" name="question" value="Where should Phoenix prioritize a cooling intervention this afternoon?" autocomplete="off"><button type="submit" aria-label="Run decision query">Run query <span aria-hidden="true">↗</span></button></div><p class="analyst-hint">Ask the grounded analyst about the loaded evidence.</p><div id="analyst-result" class="analyst-result" aria-live="polite"></div><div id="analyst-suggestions" class="analyst-suggestions"></div><section id="status-region" class="status-region desk-readout" aria-live="polite" role="status"></section>
         </form>
         <div id="question-catalogue" class="question-catalogue">
           <button class="catalogue-toggle" type="button" aria-expanded="false" aria-controls="catalogue-panel">
@@ -71,8 +71,6 @@
       </div>
     </section>
 
-    <section id="status-region" class="status-region" aria-live="polite" role="status"></section>
-
     <section class="decision-grid" aria-label="Thermal decision surface" id="decision-surface">
       <div class="map-panel panel">
         <div class="panel-head map-head"><div><span class="eyebrow">MEASURED FIELD</span><h2>Where the burden concentrates</h2><div class="source-line"><button class="source-control" data-source="fortyguard" type="button" aria-expanded="false">Source: FortyGuard <span aria-hidden="true">ⓘ</span></button><span>Measured thermal observations · used to rank</span></div><div class="source-popover" data-popover="fortyguard" hidden></div></div><div class="map-source"><span class="source-dot measured"></span><span id="map-source-label">FortyGuard · Replay</span><span id="measured-area-label" class="measured-area-label" hidden></span>        <button id="map-focus-button" class="map-focus-button" type="button" aria-pressed="false">Focus map</button><button id="fit-area-button" class="map-focus-button" type="button">Fit measured area</button><button id="focus-exit-button" class="map-focus-button focus-exit-inline" type="button" hidden>Exit map focus <span aria-hidden="true">×</span></button></div></div>
@@ -107,6 +105,6 @@
   </main>
   <footer class="footer"><span>FORTYGUARD / URBAN HEAT INTELLIGENCE</span><span>Investigation priority, not intervention efficacy.</span></footer>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="js/dashboard.js?v=r6"></script>
+  <script type="module" src="js/dashboard.js?v={{BUILD_VERSION}}"></script>
 </body>
 </html>

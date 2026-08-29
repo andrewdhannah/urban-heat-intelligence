@@ -79,7 +79,7 @@ def test_versioned_css_asset_single_response():
     handler.send_header = lambda key, val: handler._headers_buffer.append(("header", key, val))
     handler.end_headers = lambda: handler._headers_buffer.append(("end_headers",))
 
-    parsed = type("P", (), {"query": "v=test", "path": "/css/tokens.css"})()
+    parsed = type("P", (), {"query": "v=r6-dev", "path": "/css/tokens.css"})()
     handler.serve_versioned_asset(parsed)
     raw = handler.wfile.getvalue().decode("utf-8", errors="replace")
 
@@ -113,7 +113,7 @@ def test_versioned_js_asset_single_response():
     handler.send_header = lambda key, val: handler._headers_buffer.append(("header", key, val))
     handler.end_headers = lambda: handler._headers_buffer.append(("end_headers",))
 
-    parsed = type("P", (), {"query": "v=r6", "path": "/js/dashboard.js"})()
+    parsed = type("P", (), {"query": "v=r6-dev", "path": "/js/dashboard.js"})()
     handler.serve_versioned_asset(parsed)
     raw = handler.wfile.getvalue().decode("utf-8", errors="replace")
 
@@ -134,6 +134,23 @@ def test_versioned_js_asset_single_response():
     assert "Cache-Control" in header_dict
     assert "immutable" in header_dict["Cache-Control"]
     assert "javascript" in header_dict.get("Content-Type", "").lower() or "text" in header_dict.get("Content-Type", "").lower()
+
+
+def test_stale_asset_version_is_not_immutable():
+    """Only the active build URL receives immutable caching."""
+    from app.server import UHIHandler
+    handler = UHIHandler.__new__(UHIHandler)
+    handler.wfile = io.BytesIO()
+    handler._headers_buffer = []
+    handler.send_response = lambda code, message=None: handler._headers_buffer.append(("status", code))
+    handler.send_header = lambda key, val: handler._headers_buffer.append(("header", key, val))
+    handler.end_headers = lambda: handler._headers_buffer.append(("end_headers",))
+    with patch.dict(os.environ, {"RENDER_GIT_COMMIT": "build-current"}):
+        parsed = type("P", (), {"query": "v=build-old", "path": "/css/tokens.css"})()
+        handler.serve_versioned_asset(parsed)
+    headers = dict((e[1], e[2]) for e in handler._headers_buffer if e[0] == "header")
+    assert "immutable" not in headers["Cache-Control"]
+    assert "no-cache" in headers["Cache-Control"]
 
 
 def test_versioned_asset_404():
@@ -187,6 +204,42 @@ def test_index_html_serve_index_single_response():
     handler.serve_index()
     status_codes = [e[1] for e in handler._headers_buffer if e[0] == "status"]
     assert len(status_codes) == 1, f"Expected 1 status, got {len(status_codes)}"
+
+
+def test_index_asset_urls_follow_build_identity():
+    """The no-cache index binds descendant URLs to the running build."""
+    from app.server import UHIHandler
+    handler = UHIHandler.__new__(UHIHandler)
+    handler.wfile = io.BytesIO()
+    handler._headers_buffer = []
+    handler.send_response = lambda code, message=None: handler._headers_buffer.append(("status", code))
+    handler.send_header = lambda key, val: handler._headers_buffer.append(("header", key, val))
+    handler.end_headers = lambda: handler._headers_buffer.append(("end_headers",))
+    with patch.dict(os.environ, {"RENDER_GIT_COMMIT": "build-a"}):
+        handler.serve_index()
+    first = handler.wfile.getvalue().decode()
+    assert "?v=build-a" in first
+    assert "{{BUILD_VERSION}}" not in first
+    assert "Cache-Control" in dict((e[1], e[2]) for e in handler._headers_buffer if e[0] == "header")
+
+    handler.wfile = io.BytesIO()
+    handler._headers_buffer = []
+    with patch.dict(os.environ, {"RENDER_GIT_COMMIT": "build-b"}):
+        handler.serve_index()
+    second = handler.wfile.getvalue().decode()
+    assert "?v=build-b" in second
+    assert first != second
+
+
+def test_dashboard_closure_contracts_are_runtime_wired():
+    """Critical 2-D contracts are present in the executable dashboard source."""
+    content = Path("app/dashboard-luna/js/dashboard.js").read_text()
+    assert "const deskState" in content
+    assert "requestGeneration" in content
+    assert "ResizeObserver" in content
+    assert "intersection.available" in content
+    assert "Location context unavailable" in content
+    assert "renderReadout()" in content
 
 
 # ---------------------------------------------------------------------------
@@ -463,6 +516,21 @@ def test_intersection_zero_features():
 
     assert result["available"] is False
     assert result["error"] == "no_intersection_within_200m"
+
+
+def test_intersection_unavailable_state_survives_context_enrichment():
+    """No-result and provider-failure context remains consumable by the UI."""
+    from src.tools.gis_context import enrich_candidate_context
+    with patch("src.tools.gis_context.query_tree_canopy", return_value={}), \
+         patch("src.tools.gis_context.query_parks", return_value={}), \
+         patch("src.tools.gis_context.query_nearest_intersection", return_value={
+             "available": False,
+             "error": "no_intersection_within_200m",
+             "used_in_decision": False,
+         }):
+        context = enrich_candidate_context(33.457, -112.074, mode="live")["context"]
+    assert context["intersection"]["error"] == "no_intersection_within_200m"
+    assert context["intersection"]["used_in_decision"] is False
 
 
 def test_intersection_replay_returns_unavailable():

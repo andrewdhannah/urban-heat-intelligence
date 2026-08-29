@@ -6,17 +6,23 @@ import os
 from playwright.async_api import async_playwright
 
 URL = os.environ.get("LUNA_URL", "http://127.0.0.1:8090/")
+VIEWPORT = tuple(int(value) for value in os.environ.get("LUNA_VIEWPORT", "1440x900").split("x"))
 
 async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        page = await browser.new_page(viewport={"width": 1440, "height": 900})
+        page = await browser.new_page(viewport={"width": VIEWPORT[0], "height": VIEWPORT[1]})
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
         await page.goto(URL, wait_until="networkidle", timeout=120000)
         await page.wait_for_timeout(2000)
         assert await page.locator(".candidate-card").count() == 3
         assert await page.locator(".candidate-marker").count() == 3
+        assert all("Location context unavailable" in text for text in await page.locator(".candidate-card").all_inner_texts())
+        asset_urls = await page.locator("link[rel='stylesheet'], script[type='module']").evaluate_all("els => els.map(e => e.href || e.src).filter(url => url.startsWith(location.origin))")
+        assert asset_urls and all("?v=" in url and "{{BUILD_VERSION}}" not in url for url in asset_urls)
+        if VIEWPORT[0] >= 1050:
+            assert await page.locator("#catalogue-panel").is_visible()
         assert await page.locator("#stat-obs-time").inner_text() != "Loading…"
         # Animation settled: evidenceAnimating should be null
         assert await page.evaluate("window.__lunaState_evidenceAnimating") is None

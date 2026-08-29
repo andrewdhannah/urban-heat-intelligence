@@ -127,13 +127,13 @@ def test_gis_used_in_decision_false():
 # ---------------------------------------------------------------------------
 
 def test_index_html_cache_busting_params():
-    """Dashboard index.html references CSS/JS with ?v=r6 cache-busting params."""
+    """Dashboard index.html binds CSS/JS URLs to the server build identity."""
     html_path = Path("app/dashboard-luna/index.html")
     content = html_path.read_text()
-    assert 'css/tokens.css?v=r6' in content, "tokens.css missing cache-busting param"
-    assert 'css/dashboard.css?v=r6' in content, "dashboard.css missing cache-busting param"
-    assert 'css/responsive.css?v=r6' in content, "responsive.css missing cache-busting param"
-    assert 'js/dashboard.js?v=r6' in content, "dashboard.js missing cache-busting param"
+    assert 'css/tokens.css?v={{BUILD_VERSION}}' in content, "tokens.css missing build placeholder"
+    assert 'css/dashboard.css?v={{BUILD_VERSION}}' in content, "dashboard.css missing build placeholder"
+    assert 'css/responsive.css?v={{BUILD_VERSION}}' in content, "responsive.css missing build placeholder"
+    assert 'js/dashboard.js?v={{BUILD_VERSION}}' in content, "dashboard.js missing build placeholder"
 
 
 # ---------------------------------------------------------------------------

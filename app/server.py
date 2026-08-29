@@ -415,6 +415,15 @@ class UHIHandler(SimpleHTTPRequestHandler):
         content = asset_path.read_bytes()
         content_type = self.guess_type(str(asset_path))
         build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+        requested_version = parse_qs(parsed.query).get("v", [""])[0]
+        if requested_version != build_version:
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+            self.send_header("X-Build-Version", build_version)
+            self.end_headers()
+            self.wfile.write(content)
+            return
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Cache-Control", "public, max-age=31536000, immutable")
@@ -424,7 +433,8 @@ class UHIHandler(SimpleHTTPRequestHandler):
 
     def serve_index(self):
         index_path = get_dashboard_dir() / "index.html"
-        content = index_path.read_bytes()
+        build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+        content = index_path.read_text().replace("{{BUILD_VERSION}}", build_version).encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
         self.send_header("Cache-Control", "no-cache, must-revalidate")
