@@ -307,7 +307,7 @@ async function request(mode = state.mode) {
       region.replaceChildren();
       const p = document.createElement('p');
       p.textContent = mode === 'live'
-        ? 'LIVE UNAVAILABLE — The request timed out or could not reach the provider.'
+        ? 'LIVE UNAVAILABLE — The request could not be completed within the execution window. The server may still be processing; try again in a few minutes.'
         : 'Unable to load Replay evidence.';
       region.append(p);
       if (mode === 'live') {
@@ -446,20 +446,33 @@ function initQuestionCatalogue() {
     list.append(b);
   });
 }
-// P1-R1 Live latency UX: elapsed timer + stage labels grounded in actual flow
-const LIVE_TIMEOUT_MS = 60000; // bounded timeout — grounded in provider behavior
+// P1-R1 Live latency UX: elapsed timer + truthful status
+// TIMEOUT CONTRACT: Derived from backend execution model.
+// Server: resolve_latest_available_observation polls up to 12 lookback hours,
+// each with submit_heatmap (30s HTTP timeout) + poll_status (15 polls × 3s).
+// After discovery: env_params for up to 3 candidates, each submit + poll (30 polls × 3s).
+// Server blocks the HTTP connection for the entire workflow.
+// Client timeout MUST exceed worst-case server execution.
+// Worst case ~9000s; practical case ~120-300s. We use 600s (10 min) as a
+// generous client-side bound that covers typical Live while acknowledging
+// the server may still be working beyond it.
+const LIVE_CLIENT_TIMEOUT_MS = 600000; // 10 minutes — exceeds typical server execution
 function startLiveTimer() { clearLiveTimer(); state.liveStart = Date.now(); state.liveTimer = setInterval(() => updateLiveProgress(), 1000); updateLiveProgress(); }
 function clearLiveTimer() { if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; } state.liveStart = 0; }
 function updateLiveProgress() {
   const elapsed = state.liveStart ? Math.round((Date.now() - state.liveStart) / 1000) : 0;
   const region = $('status-region');
   if (!region || !state.liveStart) return;
-  const stage = elapsed < 2 ? 'Observation discovery…' : elapsed < 8 ? 'Provider processing…' : 'Decision construction…';
+  // Truthful wording: describe what MAY be occurring, not synthetic stage transitions.
+  // The browser has no signal about server-internal phase transitions during a blocking fetch.
+  const hint = elapsed < 5 ? 'Connecting to provider…'
+    : elapsed < 30 ? 'Requesting FortyGuard evidence…'
+    : elapsed < 120 ? 'Provider processing — this may take a few minutes…'
+    : 'Provider processing — still within governed execution window…';
   region.replaceChildren();
-  const s = document.createElement('span'); s.textContent = `${stage} `;
+  const s = document.createElement('span'); s.textContent = `${hint} `;
   const timer = document.createElement('strong'); timer.textContent = `${elapsed}s`;
-  const expected = document.createElement('small'); expected.textContent = ' · Typical Live response under 10s; timeout at 60s.';
-  s.append(timer); region.append(s, expected);
+  s.append(timer); region.append(s);
 }
 function init() { $('question-input').value = DEFAULT_QUESTION; initSourceControls(); initMap(); initHeatOpacityControl(); initBasemapControl(); initQuestionCatalogue(); $('question-form').addEventListener('submit', (e) => { e.preventDefault(); const q = $('question-input').value.trim(); if (q && q !== DEFAULT_QUESTION) runAnalyst(q); else request(state.mode); });   $('btn-replay').addEventListener('click', () => request('replay')); $('btn-live').addEventListener('click', () => request('live')); $('btn-unit').addEventListener('click', toggleUnit); $('map-focus-button').addEventListener('click', () => setFocusMode(!state.focusMode)); $('fit-area-button').addEventListener('click', fitMeasuredArea); $('focus-exit-button').addEventListener('click', () => setFocusMode(false)); document.addEventListener('keydown', handleEscape); $('evidence-close').addEventListener('click', () => { $('evidence-drawer').hidden = true; $('evidence-toggle').setAttribute('aria-expanded', 'false'); }); $('evidence-toggle').addEventListener('click', openEvidence); request('replay'); }
 window.addEventListener('DOMContentLoaded', init);

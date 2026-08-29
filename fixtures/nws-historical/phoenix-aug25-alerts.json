@@ -1,0 +1,77 @@
+{
+  "query": {
+    "endpoint": "/alerts",
+    "params": {
+      "point": "33.45,-112.07",
+      "status": "actual",
+      "limit": "50"
+    },
+    "target_time_utc": "2026-08-25T21:00:00+00:00",
+    "target_time_local": "2026-08-25T14:00:00-07:00",
+    "station": "NWS Phoenix AZ",
+    "retrieved_at": "2026-08-29T00:54:26.662327+00:00"
+  },
+  "aug25_alerts": [
+    {
+      "event": "Extreme Heat Warning",
+      "headline": "Extreme Heat Warning issued August 25 at 12:57PM MST until August 29 at 8:00PM MST by NWS Phoenix AZ",
+      "description": "* WHAT...Dangerously hot conditions. Afternoon temperatures 108 to\n117. Major to Extreme Heat Risk.\n\n* WHERE...The Phoenix metropolitan area.\n\n* WHEN...Until 8 PM MST Saturday.\n\n* IMPACTS...Increase in heat related illnesses, including heat\ncramps, heat exhaustion, and heat stroke. Heat stroke can l",
+      "onset": "2026-08-25T12:57:00-07:00",
+      "expires": "2026-08-26T04:00:00-07:00",
+      "effective": "2026-08-25T12:57:00-07:00",
+      "status": "Actual",
+      "message_type": "Update",
+      "category": "Met",
+      "sender": "NWS Phoenix AZ",
+      "area_desc": "Northwest Valley; Buckeye/Avondale; Deer Valley; Central Phoenix; North Phoenix/Glendale; Scottsdale/Paradise Valley; East Valley; South Mountain/Ahwatukee; Southeast Valley/Queen Creek"
+    },
+    {
+      "event": "Air Quality Alert",
+      "headline": "Air Quality Alert issued August 25 at 9:17AM MST by NWS Phoenix AZ",
+      "description": "AQAPSR\n\nThe Arizona Department of Environmental Quality (ADEQ) has extended\nan Ozone High Pollution Advisory for the Phoenix Metro Area through\nWednesday.\n\nThis means that forecast weather conditions combined with existing\nozone levels are expected to result in local maximum 8-hour ozone\nconcentrati",
+      "onset": "2026-08-25T09:17:00-07:00",
+      "expires": "2026-08-26T21:00:00-07:00",
+      "effective": "2026-08-25T09:17:00-07:00",
+      "status": "Actual",
+      "message_type": "Alert",
+      "category": "Met",
+      "sender": "NWS Phoenix AZ",
+      "area_desc": "Maricopa, AZ"
+    },
+    {
+      "event": "Extreme Heat Warning",
+      "headline": "Extreme Heat Warning issued August 25 at 1:42AM MST until August 29 at 8:00PM MST by NWS Phoenix AZ",
+      "description": "* WHAT...Dangerously hot conditions. Afternoon temperatures 106 to\n116. Major to Extreme Heat Risk.\n\n* WHERE...The Phoenix metropolitan area.\n\n* WHEN...Until 8 PM MST Saturday.\n\n* IMPACTS...Increase in heat related illnesses, including heat\ncramps, heat exhaustion, and heat stroke. Heat stroke can l",
+      "onset": "2026-08-25T01:42:00-07:00",
+      "expires": "2026-08-25T15:00:00-07:00",
+      "effective": "2026-08-25T01:42:00-07:00",
+      "status": "Actual",
+      "message_type": "Update",
+      "category": "Met",
+      "sender": "NWS Phoenix AZ",
+      "area_desc": "Northwest Valley; Buckeye/Avondale; Deer Valley; Central Phoenix; North Phoenix/Glendale; Scottsdale/Paradise Valley; East Valley; South Mountain/Ahwatukee; Southeast Valley/Queen Creek"
+    },
+    {
+      "event": "Air Quality Alert",
+      "headline": "Air Quality Alert issued August 24 at 10:21AM MST by NWS Phoenix AZ",
+      "description": "AQAPSR\n\nThe Arizona Department of Environmental Quality (ADEQ) has issued an\nOzone High Pollution Advisory for the Phoenix Metro Area on Tuesday.\n\nThis means that forecast weather conditions combined with existing\nozone levels are expected to result in local maximum 8-hour ozone\nconcentrations that ",
+      "onset": "2026-08-24T10:21:00-07:00",
+      "expires": "2026-08-25T21:00:00-07:00",
+      "effective": "2026-08-24T10:21:00-07:00",
+      "status": "Actual",
+      "message_type": "Alert",
+      "category": "Met",
+      "sender": "NWS Phoenix AZ",
+      "area_desc": "Maricopa, AZ"
+    }
+  ],
+  "total_in_response": 25,
+  "provenance": {
+    "provider": "NWS",
+    "endpoint": "/alerts",
+    "data_type": "historical_alerts",
+    "temporal_coverage": "past 7 days",
+    "used_in_decision": false,
+    "note": "NWS alert context for Aug 25, 2026. Alerts active at the Replay observation time (14:00 MST)."
+  }
+}
