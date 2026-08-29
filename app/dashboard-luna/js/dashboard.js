@@ -199,45 +199,51 @@ function renderNwsForecast(payload) {
   const disc = document.createElement('div'); disc.className = 'nws-disclosure'; disc.textContent = 'Forecast-period data from NWS — not a station observation. FortyGuard measured thermal field determines candidate ranking.';
   banner.append(disc);
 }
-// P1-R1: Historical NWS station observation for Replay — fixture only, no network
-function renderHistoricalNwsObs(payload) {
+// P1-R1: Historical NWS context for Replay — station observation + hazards, combined
+function renderHistoricalNwsContext(payload) {
   const banner = $('nws-forecast-banner');
-  if (!banner || payload?.mode !== 'replay') return;
+  if (!banner || payload?.mode !== 'replay') { banner.hidden = true; return; }
   const obs = payload?.historical_nws_obs;
-  if (!obs) return;
-  // Don't override if already rendered by historical alerts
-  if (!banner.hidden) return;
-  banner.hidden = false;
-  banner.replaceChildren();
-  const label = document.createElement('span'); label.className = 'nws-label'; label.textContent = 'NWS STATION OBSERVATION · REPLAY · NOT USED TO RANK';
-  banner.append(label);
-  const temp = document.createElement('div'); temp.className = 'nws-temp';
-  temp.textContent = `${obs.temperature_celsius != null ? tempD(obs.temperature_celsius) : '—'} · ${obs.text_description || '—'}`;
-  const detail = document.createElement('div'); detail.className = 'nws-detail';
-  detail.textContent = `Station: ${obs.station || 'KPHX'} · Obs: ${obs.observation_timestamp || '—'} (≈${obs.offset_minutes || '—'} min from Replay time) · Wind: ${obs.wind_speed_ms || '—'} m/s`;
-  const disc = document.createElement('div'); disc.className = 'nws-disclosure';
-  disc.textContent = 'NWS station air temperature ≠ FortyGuard thermal-cell temperature. Station observation is a point measurement; FortyGuard measures spatial thermal burden. Not used to rank.';
-  banner.append(temp, detail, disc);
-}
-// P1-R1: Historical alerts for Replay — fixture only, no network
-function renderHistoricalAlerts(payload) {
-  const banner = $('nws-forecast-banner');
-  if (!banner || !banner.hidden) return; // Don't override existing NWS banner (Live)
   const ha = payload?.historical_alerts;
-  if (!ha || !ha.alerts || ha.alerts.length === 0 || payload?.mode !== 'replay') return;
+  const hasObs = obs && obs.temperature_celsius != null;
+  const hasAlerts = ha && ha.alerts && ha.alerts.length > 0;
+  if (!hasObs && !hasAlerts) { banner.hidden = true; return; }
+
   banner.hidden = false;
   banner.replaceChildren();
-  const label = document.createElement('span'); label.className = 'nws-label'; label.textContent = 'HISTORICAL ALERTS · REPLAY · NOT USED TO RANK';
+
+  const label = document.createElement('span'); label.className = 'nws-label';
+  label.textContent = 'HISTORICAL NWS · REPLAY · NOT USED TO RANK';
   banner.append(label);
-  ha.alerts.forEach((a) => {
-    const alert = document.createElement('div'); alert.className = 'nws-alert';
-    alert.textContent = `${a.event}: ${a.headline || ''}`;
+
+  // Station observation (primary for "what was the weather" question)
+  if (hasObs) {
+    const temp = document.createElement('div'); temp.className = 'nws-temp';
+    temp.textContent = `${tempD(obs.temperature_celsius)} · ${obs.text_description || '—'}`;
     const detail = document.createElement('div'); detail.className = 'nws-detail';
-    detail.textContent = `Active: ${a.onset || '—'} to ${a.expires || '—'}`;
-    banner.append(alert, detail);
-  });
+    detail.textContent = `Station: ${obs.station || 'KPHX'} · ${obs.observation_timestamp || '—'} (≈${obs.offset_minutes || 0} min from Replay time)`;
+    banner.append(temp, detail);
+    if (obs.wind_speed_ms != null) {
+      const wind = document.createElement('div'); wind.className = 'nws-detail';
+      wind.textContent = `Wind: ${obs.wind_speed_ms} km/h from ${obs.wind_direction_deg || '—'}° · Humidity: ${obs.relative_humidity_pct != null ? num(obs.relative_humidity_pct, 0, '%') : '—'}`;
+      banner.append(wind);
+    }
+  }
+
+  // Deduplicated hazard context
+  if (hasAlerts) {
+    const cp = ha.consumer_projection || {};
+    const hazards = cp.active_hazards || [];
+    if (hazards.length > 0) {
+      const hazLabel = document.createElement('div'); hazLabel.className = 'nws-detail';
+      hazLabel.style.marginTop = '6px';
+      hazLabel.textContent = `Active conditions: ${hazards.map(h => h.event).join(' and ')} (${hazards.length} concurrent hazard${hazards.length > 1 ? 's' : ''}, from ${cp.raw_message_count || ha.alerts.length} NWS messages)`;
+      banner.append(hazLabel);
+    }
+  }
+
   const disc = document.createElement('div'); disc.className = 'nws-disclosure';
-  disc.textContent = `Historical NWS alerts at ${ha.query_time || 'Aug 25, 2026 14:00 MST'}. Source: NWS · not used to rank. FortyGuard measured the thermal field.`;
+  disc.textContent = 'NWS station observation is a point measurement; FortyGuard thermal cells measure spatial burden. Alerts provide atmospheric context; neither changes thermal ranking.';
   banner.append(disc);
 }
 function render(payload, mode) {
@@ -248,8 +254,7 @@ function render(payload, mode) {
   if (error) { renderError(payload, mode); return; }
   document.body.classList.add('has-result');
   renderNwsForecast(payload);
-  renderHistoricalNwsObs(payload);
-  renderHistoricalAlerts(payload);
+  renderHistoricalNwsContext(payload);
   const conditions = payload.conditions || {};
   updateNwsSource(payload);
   const ranked = payload.ranked_candidates || conditions.ranked_candidates || [];
@@ -293,12 +298,22 @@ const INTENTS = [
   { id: 'weather', keys: ['nws', 'weather', 'happening now', 'forecast'],
     answer: () => {
       if (state.mode === 'replay') {
+        const obs = state.payload?.historical_nws_obs;
         const ha = state.payload?.historical_alerts;
-        if (ha && ha.alerts && ha.alerts.length > 0) {
-          const summary = ha.alerts.map((a) => `${a.event} (active at ${a.onset?.split('T')[1]?.split('-')[0] || '—'})`).join('; ');
-          return `Historical NWS alerts active at the Replay time (${ha.query_time || 'Aug 25, 2026 14:00 MST'}): ${summary}. FortyGuard measured the thermal field for the captured afternoon; alerts provide broader atmospheric context and do not change the ranking.`;
+        let parts = [];
+        if (obs && obs.temperature_celsius != null) {
+          parts.push(`NWS station KPHX observed ${tempD(obs.temperature_celsius)} and ${obs.text_description || 'conditions'} at ${obs.observation_timestamp || 'the Replay time'}.`);
         }
-        return 'No historical NWS alerts are available for the Replay time. FortyGuard measured the thermal field for the captured afternoon.';
+        const cp = ha?.consumer_projection;
+        if (cp && cp.active_hazards && cp.active_hazards.length > 0) {
+          const hazList = cp.active_hazards.map(h => h.event).join(' and ');
+          parts.push(`Active conditions included ${hazList}.`);
+        }
+        if (parts.length === 0) {
+          return 'No historical NWS context is available for the Replay time. FortyGuard measured the thermal field for the captured afternoon.';
+        }
+        parts.push('NWS describes broader point atmospheric conditions; FortyGuard supplies the spatial thermal field used to localize where measured burden concentrated. Neither changes thermal ranking.');
+        return parts.join(' ');
       }
       const status = state.payload?.nws_context?.evidence_status;
       return status === 'supplemental_context'

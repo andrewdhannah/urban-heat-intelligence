@@ -2,30 +2,61 @@
   "query": {
     "endpoint": "/stations/KPHX/observations",
     "params": {
-      "start": "2026-08-25T20:00:00Z",
-      "end": "2026-08-25T22:00:00Z",
+      "start": "2026-08-25T20:50:00Z",
+      "end": "2026-08-25T21:10:00Z",
       "limit": "10"
     },
     "station": "KPHX",
-    "station_name": "Mostly Clear",
-    "target_time_utc": "2026-08-25T21:00:00+00:00",
+    "target_time_utc": "2026-08-25T21:00:00Z",
     "target_time_local": "2026-08-25T14:00:00-07:00",
-    "selected_observation": "2026-08-25T21:15:00+00:00",
-    "offset_minutes": 15,
-    "retrieved_at": "2026-08-29T01:17:54.509276+00:00"
+    "selected_observation": "2026-08-25T21:00:00+00:00",
+    "offset_minutes": 0,
+    "selection_rule": "minimum absolute distance from target; exact match wins",
+    "retrieved_at": "2026-08-29T02:06:01.257113+00:00"
   },
   "observation": {
-    "timestamp": "2026-08-25T21:15:00+00:00",
-    "temperature_celsius": 45,
-    "dewpoint_celsius": 11,
-    "wind_speed_ms": 18.504,
-    "wind_direction_deg": 260,
-    "relative_humidity_pct": 13.664668876908,
-    "barometric_pressure_pa": 100948.24,
-    "visibility_m": 16093.44,
-    "heat_index_celsius": 43.78655290775,
+    "timestamp": "2026-08-25T21:00:00+00:00",
+    "temperature": {
+      "value": 45,
+      "unitCode": "wmoUnit:degC"
+    },
+    "dewpoint": {
+      "value": 14.4,
+      "unitCode": "wmoUnit:degC"
+    },
+    "wind_speed": {
+      "value": 14.832,
+      "unitCode": "wmoUnit:km_h-1"
+    },
+    "wind_direction": {
+      "value": 280,
+      "unitCode": "wmoUnit:degree_(angle)"
+    },
+    "relative_humidity": {
+      "value": 13.664668876908,
+      "unitCode": "wmoUnit:percent"
+    },
+    "barometric_pressure": {
+      "value": 100560,
+      "unitCode": "wmoUnit:Pa"
+    },
+    "visibility": {
+      "value": 16090,
+      "unitCode": "wmoUnit:m"
+    },
+    "heat_index": {
+      "value": 43.11,
+      "unitCode": "wmoUnit:degC"
+    },
     "text_description": "Mostly Clear",
-    "raw_message": ""
+    "raw_message": "KPHX 252100Z 28014KT 10SM SKC 45/14 A2969",
+    "station": "KPHX"
+  },
+  "station_metadata": {
+    "station_identifier": "KPHX",
+    "station_name": null,
+    "text_description": "Mostly Clear",
+    "note": "Station name not retrieved from this endpoint; identifier is KPHX (Phoenix Sky Harbor)"
   },
   "provenance": {
     "provider": "NWS",
@@ -36,5 +67,6 @@
     "note": "NWS station air temperature is a point measurement of air temperature. FortyGuard thermal-cell value is a measured surface/thermal value for a spatial cell. They are different physical measurements.",
     "used_in_decision": false,
     "temporal_relationship": "contemporaneous_with_replay"
-  }
+  },
+  "raw_window_fixture": "fixtures/nws-historical/kphx-raw-window-aug25.json"
 }

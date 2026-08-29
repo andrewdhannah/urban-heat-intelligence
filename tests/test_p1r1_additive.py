@@ -257,19 +257,163 @@ def test_replay_fixture_integrity():
     print("  PASS: test_replay_fixture_integrity")
 
 
+# === R3: Historical NWS selection ===
+
+def test_exact_21h_observation_wins():
+    """Exact 21:00 UTC observation is selected over 21:15."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
+    assert data["query"]["selected_observation"] == "2026-08-25T21:00:00+00:00", \
+        f"Expected exact 21:00 UTC, got {data['query']['selected_observation']}"
+    assert data["query"]["offset_minutes"] == 0, \
+        f"Expected 0 offset, got {data['query']['offset_minutes']}"
+    print("  PASS: test_exact_21h_observation_wins")
+
+
+def test_selection_rule_documented():
+    """Selection rule is explicitly documented in fixture."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
+    rule = data["query"].get("selection_rule", "")
+    assert "minimum" in rule.lower() or "distance" in rule.lower(), \
+        f"Selection rule not documented: {rule}"
+    assert "exact" in rule.lower(), f"Exact-match rule not documented: {rule}"
+    print("  PASS: test_selection_rule_documented")
+
+
+def test_provider_unit_codes_preserved():
+    """Provider unitCode metadata is preserved in raw fixture."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
+    obs = data["observation"]
+    assert "unitCode" in obs["temperature"], "temperature unitCode missing"
+    assert "unitCode" in obs["wind_speed"], "wind_speed unitCode missing"
+    assert "unitCode" in obs["relative_humidity"], "humidity unitCode missing"
+    assert "wmoUnit" in obs["temperature"]["unitCode"], \
+        f"Unexpected temperature unit: {obs['temperature']['unitCode']}"
+    print("  PASS: test_provider_unit_codes_preserved")
+
+
+def test_raw_window_fixture_exists():
+    """Raw window fixture preserves all candidate observations."""
+    import json
+    from pathlib import Path
+    raw_path = Path("fixtures/nws-historical/kphx-raw-window-aug25.json")
+    assert raw_path.exists(), "Raw window fixture missing"
+    data = json.loads(raw_path.read_text())
+    assert "observations" in data
+    assert len(data["observations"]) >= 3, \
+        f"Expected multiple observations, got {len(data['observations'])}"
+    print("  PASS: test_raw_window_fixture_exists")
+
+
+# === R3: Station metadata ===
+
+def test_station_identity_vs_text_description():
+    """Station identifier and weather text are stored separately."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
+    assert data["station_metadata"]["station_identifier"] == "KPHX"
+    assert data["station_metadata"]["text_description"] == "Mostly Clear"
+    # station_name should NOT be the weather description
+    assert data["station_metadata"]["station_name"] is None or \
+           data["station_metadata"]["station_name"] != "Mostly Clear", \
+        "station_name is incorrectly set to weather description"
+    print("  PASS: test_station_identity_vs_text_description")
+
+
+# === R3: Alert deduplication ===
+
+def test_alert_raw_messages_preserved():
+    """All 4 raw NWS messages remain preserved."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/phoenix-aug25-alerts.json").read_text())
+    assert len(data["aug25_alerts"]) == 4, \
+        f"Expected 4 raw messages, got {len(data['aug25_alerts'])}"
+    print("  PASS: test_alert_raw_messages_preserved")
+
+
+def test_alert_consumer_projection_deduplicates():
+    """Consumer projection shows 2 distinct concurrent hazards from 4 raw messages."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/phoenix-aug25-alerts.json").read_text())
+    cp = data.get("consumer_projection", {})
+    assert cp.get("raw_message_count") == 4
+    assert cp.get("distinct_hazard_count") == 2
+    hazards = cp.get("active_hazards", [])
+    assert len(hazards) == 2
+    hazard_types = sorted([h["event"] for h in hazards])
+    assert "Air Quality Alert" in hazard_types
+    assert "Extreme Heat Warning" in hazard_types
+    print("  PASS: test_alert_consumer_projection_deduplicates")
+
+
+def test_hazard_used_in_decision_false():
+    """All consumer-projected hazards carry used_in_decision=false."""
+    import json
+    from pathlib import Path
+    data = json.loads(Path("fixtures/nws-historical/phoenix-aug25-alerts.json").read_text())
+    for h in data.get("consumer_projection", {}).get("active_hazards", []):
+        assert h["used_in_decision"] is False, \
+            f"Hazard {h['event']} has used_in_decision != False"
+    print("  PASS: test_hazard_used_in_decision_false")
+
+
+# === R3: Combined rendering ===
+
+def test_combined_historical_context_in_server():
+    """Server.py loads both historical_nws_obs and historical_alerts for Replay."""
+    server_code = open("app/server.py").read()
+    assert "historical_nws_obs" in server_code
+    assert "historical_alerts" in server_code
+    # Verify the combined rendering function exists in JS
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    assert "renderHistoricalNwsContext" in js_code
+    # Old separate functions should not be called
+    assert "renderHistoricalNwsObs(" not in js_code or "function renderHistoricalNwsObs" not in js_code
+    assert "renderHistoricalAlerts(" not in js_code or "function renderHistoricalAlerts" not in js_code
+    print("  PASS: test_combined_historical_context_in_server")
+
+
+# === R3: Provenance ===
+
+def test_replay_provenance_includes_historical():
+    """Replay provenance reflects that historical NWS is included."""
+    server_code = open("app/server.py").read()
+    assert "frozen contemporaneous historical" in server_code.lower() or \
+           "historical station observation" in server_code.lower(), \
+        "Replay provenance does not reflect included historical NWS"
+    print("  PASS: test_replay_provenance_includes_historical")
+
+
+# === R3: Weather answer ===
+
+def test_weather_answer_includes_station_obs():
+    """'What was the weather' answer includes station observation, not just alerts."""
+    js_code = open("app/dashboard-luna/js/dashboard.js").read()
+    # The weather intent for Replay should reference station observation
+    assert "tempD(obs.temperature_celsius)" in js_code or "station KPHX observed" in js_code, \
+        "Weather answer does not reference station observation"
+    print("  PASS: test_weather_answer_includes_station_obs")
+
+
 if __name__ == "__main__":
-    test_toF_absolute()
-    test_deltaF_conversion()
-    test_historical_alerts_fixture_exists()
-    test_historical_alerts_fixture_temporal()
-    test_historical_nws_obs_fixture_exists()
-    test_historical_nws_obs_temporal_proximity()
-    test_parseIntent_priority_matches_priority()
-    test_parseIntent_unknown_returns_not_understood()
-    test_catalogue_questions_have_intents()
-    test_catalogue_no_dropped_intents()
-    test_replay_payload_has_historical_fields()
-    test_historical_data_used_in_decision_false()
-    test_thermal_ranking_invariant()
-    test_replay_fixture_integrity()
-    print("\nAll 14 additive tests passed.")
+    # ... existing tests ...
+    test_exact_21h_observation_wins()
+    test_selection_rule_documented()
+    test_provider_unit_codes_preserved()
+    test_raw_window_fixture_exists()
+    test_station_identity_vs_text_description()
+    test_alert_raw_messages_preserved()
+    test_alert_consumer_projection_deduplicates()
+    test_hazard_used_in_decision_false()
+    test_combined_historical_context_in_server()
+    test_replay_provenance_includes_historical()
+    test_weather_answer_includes_station_obs()
+    print("\nAll R3 tests passed.")

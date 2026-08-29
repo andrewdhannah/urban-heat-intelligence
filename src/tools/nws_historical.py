@@ -4,17 +4,24 @@ NWS Historical Observation — Station observation for Replay context.
 Provides a deterministic historical NWS station observation at or nearest
 the Aug 25 14:00 MST FortyGuard Replay time.
 
-Deterministic rule:
-  Station: KPHX (Phoenix Sky Harbor) — closest official NWS station to
-  the FortyGuard downtown Phoenix AOI.
-  Time: Aug 25, 2026, 14:00 MST (21:00 UTC) — the FortyGuard Replay
-  observation time.
-  Selection: Station observation with timestamp nearest to 21:00 UTC
-  on Aug 25, 2026, preferring observations at or before the target time.
+Governed retrieval contract:
+  1. Query /stations/{stationId}/observations with start/end parameters
+     around the target time (±10 minutes).
+  2. Filter to valid observations (non-null temperature).
+  3. Select the observation with minimum absolute temporal distance
+     from the target.
+  4. Exact timestamp match wins over offset observations.
+  5. On equal non-zero distance, prefer at-or-before target.
+  6. If no valid observations found, return not_proven.
 
-This is a FORECAST-PERIOD or STATION OBSERVATION from the NWS API.
-It is NOT a FortyGuard thermal measurement. The two measure different
-physical quantities and must not be presented as equivalent.
+Station: KPHX (Phoenix Sky Harbor)
+  - Closest official NWS station to the FortyGuard downtown Phoenix AOI
+  - Confirmed via NWS station endpoint
+
+This is a historical NWS STATION OBSERVATION.
+It is NOT a forecast-period data, NOT a FortyGuard thermal measurement.
+The two measure different physical quantities and must not be presented
+as equivalent.
 """
 
 import json
@@ -41,7 +48,7 @@ def _nws_get(path):
     for k, v in HEADERS.items():
         req.add_header(k, v)
     try:
-        with urllib.request.urlopen(req, timeout=10, context=_ssl_ctx) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=_ssl_ctx) as resp:
             return json.loads(resp.read().decode())
     except Exception:
         return None
@@ -51,68 +58,114 @@ def get_historical_observation():
     """
     Retrieve the KPHX station observation nearest to Aug 25 14:00 MST.
 
-    Deterministic selection rule:
-    1. Fetch recent observations from /stations/KPHX/observations
-    2. Filter to Aug 25, 2026 observations
-    3. Select the observation with timestamp nearest to 21:00 UTC
-       (preferring observations at or before the target time)
-    4. If no Aug 25 observations available, return None (NOT PROVEN)
+    Governed selection rule:
+    1. Query with bounded start/end window (±10 min from target).
+    2. Filter to valid observations (non-null temperature).
+    3. Select minimum absolute temporal distance from 21:00 UTC.
+    4. Exact timestamp match wins.
+    5. On equal non-zero distance, prefer at-or-before target.
+    6. If no valid observations found, return not_proven.
     """
-    data = _nws_get(f"/stations/{PHOENIX_STATION}/observations?limit=24")
+    window_minutes = 10
+    start_utc = TARGET_TIME_UTC - timedelta(minutes=window_minutes)
+    end_utc = TARGET_TIME_UTC + timedelta(minutes=window_minutes)
+
+    params = (
+        f"?start={start_utc.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        f"&end={end_utc.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        f"&limit=20"
+    )
+    data = _nws_get(f"/stations/{PHOENIX_STATION}/observations{params}")
     if not data:
-        return {"status": "unavailable", "reason": "NWS API request failed", "station": PHOENIX_STATION}
+        return {
+            "status": "retrieval_failed",
+            "reason": "NWS API request failed",
+            "station": PHOENIX_STATION,
+            "query": {"start": start_utc.isoformat(), "end": end_utc.isoformat()}
+        }
 
     features = data.get("features", [])
     if not features:
-        return {"status": "unavailable", "reason": "No observations returned", "station": PHOENIX_STATION}
+        return {
+            "status": "not_proven",
+            "reason": f"No observations in window {start_utc.isoformat()} to {end_utc.isoformat()}",
+            "station": PHOENIX_STATION,
+            "query": {"start": start_utc.isoformat(), "end": end_utc.isoformat()}
+        }
 
-    # Filter to Aug 25, 2026 observations
-    aug25_observations = []
+    # Filter to valid observations
+    candidates = []
     for f in features:
         props = f.get("properties", {})
-        timestamp_str = props.get("timestamp")
-        if not timestamp_str:
+        ts_str = props.get("timestamp")
+        temp = props.get("temperature", {})
+        if not ts_str or temp.get("value") is None:
             continue
         try:
-            ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-            if ts.date() == TARGET_TIME_UTC.date():
-                aug25_observations.append((ts, props))
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
         except (ValueError, TypeError):
             continue
+        offset = abs((ts - TARGET_TIME_UTC).total_seconds())
+        candidates.append({
+            "timestamp": ts_str,
+            "offset_seconds": offset,
+            "props": props
+        })
 
-    if not aug25_observations:
-        return {"status": "not_proven", "reason": "No Aug 25 observations found in recent window", "station": PHOENIX_STATION}
+    if not candidates:
+        return {
+            "status": "not_proven",
+            "reason": "No valid observations with temperature in window",
+            "station": PHOENIX_STATION,
+            "query": {"start": start_utc.isoformat(), "end": end_utc.isoformat()},
+            "raw_count": len(features)
+        }
 
-    # Select nearest to target time, preferring at-or-before
-    best = min(aug25_observations, key=lambda x: abs((x[0] - TARGET_TIME_UTC).total_seconds()))
-    ts, props = best
+    # Selection: minimum absolute distance, exact wins, at-or-before tie
+    best = min(candidates, key=lambda c: (
+        c["offset_seconds"],
+        0 if datetime.fromisoformat(c["timestamp"].replace("Z", "+00:00")) <= TARGET_TIME_UTC else 1
+    ))
+
+    props = best["props"]
+    ts = datetime.fromisoformat(best["timestamp"].replace("Z", "+00:00"))
+    temp = props.get("temperature", {})
+    wind_speed = props.get("windSpeed", {})
+    wind_dir = props.get("windDirection", {})
+    humidity = props.get("relativeHumidity", {})
+    pressure = props.get("barometricPressure", {})
+    visibility = props.get("visibility", {})
+    heat_index = props.get("heatIndex", {})
+    dewpoint = props.get("dewpoint", {})
 
     return {
         "status": "resolved",
         "station": PHOENIX_STATION,
-        "station_name": props.get("textDescription", PHOENIX_STATION),
-        "observation_timestamp": ts.isoformat(),
+        "station_name": None,
+        "text_description": props.get("textDescription", ""),
+        "observation_timestamp": best["timestamp"],
         "target_time_utc": TARGET_TIME_UTC.isoformat(),
-        "offset_minutes": round((ts - TARGET_TIME_UTC).total_seconds() / 60),
-        "temperature_celsius": props.get("temperature", {}).get("value"),
-        "temperature_unit": "°C (raw from NWS)",
-        "dewpoint_celsius": props.get("dewpoint", {}).get("value"),
-        "wind_speed_ms": props.get("windSpeed", {}).get("value"),
-        "wind_direction_deg": props.get("windDirection", {}).get("value"),
-        "barometric_pressure_pa": props.get("barometricPressure", {}).get("value"),
-        "relative_humidity": props.get("relativeHumidity", {}).get("value"),
-        "heat_index_celsius": props.get("heatIndex", {}).get("value"),
-        "wind_chill_celsius": props.get("windChill", {}).get("value"),
-        "visibility_m": props.get("visibility", {}).get("value"),
-        "precipitation_last_hour_mm": props.get("precipitationLastHour", {}).get("value"),
+        "offset_minutes": round(best["offset_seconds"] / 60),
+        "selection_rule": "minimum absolute distance from target; exact match wins; at-or-before tie",
+        "temperature": temp,
+        "dewpoint": dewpoint,
+        "wind_speed": wind_speed,
+        "wind_direction": wind_dir,
+        "relative_humidity": humidity,
+        "barometric_pressure": pressure,
+        "visibility": visibility,
+        "heat_index": heat_index,
         "raw_message": props.get("rawMessage", ""),
+        "raw_window_count": len(features),
+        "valid_candidate_count": len(candidates),
         "provenance": {
             "provider": "NWS",
             "endpoint": f"/stations/{PHOENIX_STATION}/observations",
+            "query_params": {"start": start_utc.isoformat(), "end": end_utc.isoformat(), "limit": "20"},
             "station_identifier": PHOENIX_STATION,
             "data_type": "station_observation",
             "measurement_type": "air_temperature_at_station",
-            "note": "NWS station air temperature ≠ FortyGuard thermal-cell temperature",
+            "note": "NWS station air temperature is a point measurement. FortyGuard thermal-cell value is a measured surface/thermal value for a spatial cell. Different physical measurements.",
             "used_in_decision": False,
             "retrieved_at": datetime.now(timezone.utc).isoformat()
         }

@@ -73,5 +73,29 @@
     "temporal_coverage": "past 7 days",
     "used_in_decision": false,
     "note": "NWS alert context for Aug 25, 2026. Alerts active at the Replay observation time (14:00 MST)."
+  },
+  "consumer_projection": {
+    "raw_message_count": 4,
+    "distinct_hazard_count": 2,
+    "active_hazards": [
+      {
+        "event": "Extreme Heat Warning",
+        "governing_message": "Extreme Heat Warning issued August 25 at 12:57PM MST until August 29 at 8:00PM MST by NWS Phoenix AZ",
+        "onset": "2026-08-25T12:57:00-07:00",
+        "expires": "2026-08-26T04:00:00-07:00",
+        "area": "Northwest Valley; Buckeye/Avondale; Deer Valley; Central Phoenix; North Phoenix/Glendale; Scottsdale/Paradise Valley; East Valley; South Mountain/Ahwatukee; Southeast Valley/Queen Creek",
+        "provider": "NWS Phoenix AZ",
+        "used_in_decision": false
+      },
+      {
+        "event": "Air Quality Alert",
+        "governing_message": "Air Quality Alert issued August 25 at 9:17AM MST by NWS Phoenix AZ",
+        "onset": "2026-08-25T09:17:00-07:00",
+        "expires": "2026-08-26T21:00:00-07:00",
+        "area": "Maricopa, AZ",
+        "provider": "NWS Phoenix AZ",
+        "used_in_decision": false
+      }
+    ]
   }
 }

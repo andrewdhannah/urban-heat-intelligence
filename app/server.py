@@ -192,11 +192,11 @@ def build_visualization_payload(result):
         ])
     else:
         payload_chain.append({
-            "step": "nws_exclusion",
+            "step": "nws_context",
             "data": {
                 "provider": "NWS",
                 "mode": "replay",
-                "reason": "Current NWS context is not included in historical Replay",
+                "reason": "Current NWS forecast data excluded from Replay; frozen contemporaneous historical station observation and alert context included",
                 "used_in_decision": False
             },
             "timestamp": None
