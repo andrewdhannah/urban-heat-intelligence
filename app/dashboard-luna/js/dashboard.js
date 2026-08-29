@@ -1,6 +1,6 @@
 const DEFAULT_QUESTION = 'Where should Phoenix prioritize a cooling intervention this afternoon?';
 const TIE_THRESHOLD = 0.1;
-const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
+const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, highlightLayer: null, highlightRenderer: null, highlightCanvas: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
 const deskState = { mode: 'replay', phase: 'idle', readout: 'status' };
 const $ = (id) => document.getElementById(id);
 const text = (el, value) => { if (el) el.textContent = value ?? '—'; };
@@ -37,6 +37,7 @@ function clearMap() {
   window.__lunaState_evidenceAnimating = state.evidenceAnimating;
   if (state.heatLayer) { state.map.removeLayer(state.heatLayer); state.heatLayer = null; }
   if (state.aoiLayer) { state.map.removeLayer(state.aoiLayer); state.aoiLayer = null; }
+  clearSourceCellHighlight();
   state.measuredAreaBounds = null;
   const areaLabel = $('measured-area-label');
   if (areaLabel) areaLabel.hidden = true;
@@ -111,7 +112,53 @@ function applyMarkerElevation() {
   });
 }
 function focusCandidate(rank, pan = false) { state.focused = Number(rank) > 0 ? Number(rank) : null; document.querySelectorAll('.candidate-card').forEach((card) => card.classList.toggle('focused', Number(card.dataset.rank) === state.focused)); applyMarkerElevation(); highlightSourceCell(state.focused); const marker = state.markers.get(state.focused); if (marker && pan && state.map) state.map.flyTo(marker.getLatLng(), 16, { animate: !reducedMotion(), duration: 0.6 }); }
-function highlightSourceCell(rank) { if (!state.heatLayer) return; state.heatLayer.eachLayer((layer) => { const el = layer.getElement?.(); if (el) el.classList.remove('source-cell-highlight'); }); if (!rank || !state.candidates.length) return; const cand = state.candidates.find((c) => c.rank === rank); if (!cand || !cand.tile_id) return; state.heatLayer.eachLayer((layer) => { const f = layer.feature; if (f && f.properties && f.properties.tile_id === cand.tile_id) { const el = layer.getElement?.(); if (el) el.classList.add('source-cell-highlight'); } }); }
+function clearSourceCellHighlight() {
+  if (state.highlightLayer) {
+    try { state.map.removeLayer(state.highlightLayer); } catch (e) { /* map may be mid-teardown */ }
+    state.highlightLayer = null;
+  }
+  if (state.highlightRenderer) {
+    try { state.map.removeLayer(state.highlightRenderer); } catch (e) { /* map may be mid-teardown */ }
+    state.highlightRenderer = null;
+  }
+  if (state.highlightCanvas) { state.highlightCanvas.remove(); state.highlightCanvas = null; }
+}
+// Renderer-compatible source-cell highlight: the heat field uses Leaflet's Canvas
+// renderer (preferCanvas:true), so cells have no per-feature DOM element. Apply a
+// dedicated Canvas-rendered overlay for the candidate's true tile_id so the
+// highlight is consumer-visible over the measured field without touching data or ranking.
+function highlightSourceCell(rank) {
+  clearSourceCellHighlight();
+  if (!rank || !state.candidates.length || !state.map) return;
+  const cand = state.candidates.find((c) => c.rank === Number(rank));
+  if (!cand || !cand.tile_id) return;
+  let feature = null;
+  if (state.heatLayer) {
+    state.heatLayer.eachLayer((layer) => {
+      const f = layer.feature;
+      if (f && f.properties && String(f.properties.tile_id) === String(cand.tile_id)) feature = f;
+    });
+  }
+  if (!feature) return;
+  const renderer = L.canvas();
+  const layer = L.geoJSON(feature, {
+    renderer,
+    interactive: false,
+    style: () => ({ color: '#d9871b', weight: 3, fillColor: '#ffb84d', fillOpacity: 0.3, dashArray: null, opacity: 1 })
+  });
+  renderer.addTo(state.map);
+  layer.addTo(state.map);
+  state.highlightLayer = layer;
+  state.highlightRenderer = renderer;
+  const canvas = (renderer.getContainer && renderer.getContainer())
+    || (renderer.getCanvas && renderer.getCanvas())
+    || renderer._container || null;
+  if (canvas) {
+    canvas.classList.add('source-cell-highlight');
+    canvas.dataset.tileId = String(cand.tile_id);
+    state.highlightCanvas = canvas;
+  }
+}
 function parkLabel(parks) { if (!parks || parks.available === false) return 'Parks context unavailable'; if (parks.inside_park && typeof parks.inside_park === 'object') return `Inside mapped park${parks.inside_park.park_name ? `: ${parks.inside_park.park_name}` : ''}`; return 'No mapped park at candidate'; }
 function removeReplayContext() { $('replay-env-context')?.remove(); }
 function renderCandidates(payload) { const list = $('candidate-list'); list.replaceChildren(); const candidates = Array.isArray(payload?.ranked_candidates) ? payload.ranked_candidates : []; state.candidates = candidates; const status = payload?.conditions?.ranking_status; const explainer = $('candidate-explainer'); if (explainer) explainer.textContent = status === 'near_tie' ? 'Deterministic rank from the measured field. The hottest measured locations are nearly tied; context below is descriptive, not a score.' : 'Deterministic rank from the measured field. Context below is descriptive, not a score.'; if (!candidates.length) { const empty = document.createElement('p'); empty.className = 'empty-state'; empty.textContent = 'No candidate locations were returned for this mode.'; list.append(empty); return; }
@@ -366,8 +413,8 @@ function render(payload, mode) {
   const error = payload?.error === true || payload?.answer?.error === true;
   if (error) { deskState.phase = 'error'; deskState.readout = 'status'; renderError(payload, mode); renderReadout(); return; }
   document.body.classList.add('has-result');
-  renderNwsForecast(payload);
-  renderHistoricalNwsContext(payload);
+  if (mode === 'live') renderNwsForecast(payload);
+  else renderHistoricalNwsContext(payload);
   renderHeroContextRail(payload);
   const conditions = payload.conditions || {};
   updateNwsSource(payload);
@@ -443,7 +490,27 @@ const INTENTS = [
   { id: 'unsupported', keys: ['plant', 'planting', 'trees would', 'cool most', 'effect', 'reduce', 'benefit most', 'work best', 'efficacy'], answer: () => 'The current evidence can compare measured heat and available local context, but it does not estimate the cooling effect or efficacy of a specific intervention.', source: 'Governed analytical scope', why: 'The available evidence does not estimate intervention effectiveness.', suggestions: ['Compare the candidates', 'Show me the evidence'] },
   { id: 'not_understood', keys: [], answer: (_q) => `I don't have a governed answer for that question. Try one of the supported questions below.`, source: 'Governed analytical scope', why: 'The input did not match any recognized intent.', suggestions: ['Where should Phoenix prioritize cooling?', 'Compare the candidates', 'Why are these locations nearly tied?', 'Compare tree canopy', 'Where did this evidence come from?', 'What can this analysis not tell me?'] }
 ];
-function parseIntent(question) { const q = question.toLowerCase(); const unsupported = INTENTS.find((intent) => intent.id === 'unsupported' && intent.keys.some((key) => q.includes(key))); if (unsupported && /(plant|planting|trees would|cool most|cooling effect|reduce|benefit most|how many degrees|work best|efficacy|intervention)/.test(q)) return unsupported; return INTENTS.find((intent) => intent.id !== 'unsupported' && intent.id !== 'not_understood' && intent.keys.some((key) => q.includes(key))) || INTENTS.find((intent) => intent.id === 'not_understood'); }
+const INTENT_ROUTES = [
+  { id: 'mode', re: /show live data|use live|switch to live|show replay|use replay|switch to replay/ },
+  { id: 'unsupported', re: /plant|planting|trees would|cool most|cooling effect|reduce|benefit most|how many degrees|work best|efficacy|intervention|what can this analysis not tell me/ },
+  { id: 'canopy', re: /canopy|tree cover|trees/ },
+  { id: 'parks', re: /near parks|parks/ },
+  { id: 'map', re: /focus candidate|show candidate|focus the map|measured cell/ },
+  { id: 'evidence', re: /evidence|provenance|data came|trust/ },
+  { id: 'weather', re: /nws|weather|happening now|forecast/ },
+  { id: 'tie', re: /nearly tied|tie|winner|close/ },
+  { id: 'compare', re: /compare|different|candidates/ },
+  { id: 'priority', re: /where|hottest|top locations|priorit/ }
+];
+function parseIntent(question) {
+  const q = String(question || '').toLowerCase();
+  for (const route of INTENT_ROUTES) {
+    if (route.re.test(q)) {
+      return INTENTS.find((intent) => intent.id === route.id) || INTENTS.find((intent) => intent.id === 'not_understood');
+    }
+  }
+  return INTENTS.find((intent) => intent.id === 'not_understood');
+}
 function requestedMode(question) { return /\blive\b/i.test(question) ? 'live' : 'replay'; }
 function runAnalyst(question) {
   const intent = parseIntent(question);
