@@ -226,6 +226,7 @@ def build_visualization_payload(result):
         ctx = candidate_contexts.get(i, {})
         canopy = ctx.get("canopy")
         parks = ctx.get("parks")
+        intersection = ctx.get("intersection")
         cand["candidate_context"] = {
             "canopy": {
                 "available": canopy.get("available", False) if canopy else False,
@@ -239,6 +240,13 @@ def build_visualization_payload(result):
                 "inside_park": parks.get("inside_park") if parks else None,
                 "source_provider": parks.get("source_provider") if parks else None,
             } if parks else None,
+            "intersection": {
+                "available": intersection.get("available", False) if intersection else False,
+                "name": intersection.get("name") if intersection else None,
+                "distance_m": intersection.get("distance_m") if intersection else None,
+                "source_provider": intersection.get("source_provider") if intersection else None,
+                "used_in_decision": False,
+            } if intersection else None,
             "used_in_decision": False,
         }
     
@@ -385,8 +393,17 @@ class UHIHandler(SimpleHTTPRequestHandler):
             self.serve_config()
         elif parsed.path == "/api/variant":
             self.serve_variant()
+        elif parsed.path == "/api/version":
+            self.serve_version()
         else:
-            super().do_GET()
+            # Cache-busting: static assets with ?v=r6 get short cache
+            if "v=" in parsed.query:
+                self.send_response(200)
+                self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+                self.end_headers()
+                super().do_GET()
+            else:
+                super().do_GET()
 
     def serve_index(self):
         index_path = get_dashboard_dir() / "index.html"
@@ -447,6 +464,14 @@ class UHIHandler(SimpleHTTPRequestHandler):
     def serve_variant(self):
         """Return the selected dashboard variant. No secrets exposed."""
         response = json.dumps({"variant": get_dashboard_variant()})
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(response.encode())
+
+    def serve_version(self):
+        """Return the application version for client verification."""
+        response = json.dumps({"version": "r6", "build": "remediation/dash-v2-r6-public-ux"})
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()

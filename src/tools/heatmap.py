@@ -11,13 +11,34 @@ from datetime import datetime, timezone
 
 
 def _polygon_centroid(coords):
-    """Calculate centroid of a polygon ring."""
+    """Calculate centroid of a polygon ring using the Shoelace formula.
+
+    Falls back to vertex average for degenerate cases (fewer than 3 points
+    or zero signed area).  The Shoelace centroid is the area-weighted center
+    of the polygon and is more accurate than a simple vertex average for
+    non-convex or irregular tiles.
+    """
     if not coords or len(coords) < 3:
         return coords[0] if coords else None
-    # Simple average of vertices (good enough for small tiles)
-    lngs = [c[0] for c in coords]
-    lats = [c[1] for c in coords]
-    return [round(sum(lngs) / len(lngs), 6), round(sum(lats) / len(lats), 6)]
+    n = len(coords)
+    signed_area = 0.0
+    cx = 0.0
+    cy = 0.0
+    for i in range(n):
+        x0, y0 = coords[i]
+        x1, y1 = coords[(i + 1) % n]
+        cross = x0 * y1 - x1 * y0
+        signed_area += cross
+        cx += (x0 + x1) * cross
+        cy += (y0 + y1) * cross
+    signed_area *= 0.5
+    if abs(signed_area) < 1e-12:
+        lngs = [c[0] for c in coords]
+        lats = [c[1] for c in coords]
+        return [round(sum(lngs) / len(lngs), 6), round(sum(lats) / len(lats), 6)]
+    cx /= (6.0 * signed_area)
+    cy /= (6.0 * signed_area)
+    return [round(cx, 6), round(cy, 6)]
 
 
 def _derive_observation_time(request_params):

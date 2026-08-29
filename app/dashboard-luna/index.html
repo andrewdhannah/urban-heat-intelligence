@@ -7,9 +7,9 @@
   <title>Luna / Urban Heat Intelligence</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/dashboard.css">
-  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/tokens.css?v=r6">
+  <link rel="stylesheet" href="css/dashboard.css?v=r6">
+  <link rel="stylesheet" href="css/responsive.css?v=r6">
 </head>
 <body>
   <header class="topbar">
@@ -24,7 +24,7 @@
     </div>
   </header>
 
-  <div id="focus-exit-layer" class="focus-exit-layer" hidden><button id="focus-exit-button" class="focus-exit-button" type="button" aria-pressed="true">Exit map focus <span aria-hidden="true">×</span></button></div>
+
   <main id="top" class="shell">
     <section class="intro" aria-labelledby="page-title">
       <div>
@@ -35,16 +35,39 @@
           <div class="question-row"><input id="question-input" name="question" value="Where should Phoenix prioritize a cooling intervention this afternoon?" autocomplete="off"><button type="submit" aria-label="Run decision query">Run query <span aria-hidden="true">↗</span></button></div><p class="analyst-hint">Ask the grounded analyst about the loaded evidence.</p><div id="analyst-result" class="analyst-result" aria-live="polite"></div><div id="analyst-suggestions" class="analyst-suggestions"></div>
         </form>
         <div id="question-catalogue" class="question-catalogue">
-          <details>
-            <summary class="catalogue-toggle">Supported questions <span aria-hidden="true">▸</span></summary>
-            <div class="catalogue-list" id="catalogue-list"></div>
-          </details>
+          <button class="catalogue-toggle" type="button" aria-expanded="false" aria-controls="catalogue-panel">
+            Explore questions <span aria-hidden="true">▸</span>
+          </button>
+          <div id="catalogue-panel" class="catalogue-panel" hidden>
+            <div class="catalogue-group">
+              <div class="catalogue-group-header">Decision</div>
+              <div class="catalogue-group-items" id="catalogue-decision"></div>
+            </div>
+            <div class="catalogue-group">
+              <div class="catalogue-group-header">Context</div>
+              <div class="catalogue-group-items" id="catalogue-context"></div>
+            </div>
+            <div class="catalogue-group">
+              <div class="catalogue-group-header">Evidence &amp; Scope</div>
+              <div class="catalogue-group-items" id="catalogue-evidence"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="observation-card" aria-live="polite">
-        <span class="eyebrow">OBSERVATION</span>
-        <strong id="stat-obs-time">Loading…</strong>
-        <span id="observation-note">Preparing deterministic provider capture</span>
+      <div class="hero-context-rail" aria-live="polite">
+        <div class="rail-section">
+          <span class="eyebrow">OBSERVATION</span>
+          <strong id="stat-obs-time">Loading…</strong>
+          <span id="observation-note">Preparing deterministic provider capture</span>
+        </div>
+        <div class="rail-section rail-context" id="hero-context-section">
+          <span class="eyebrow" id="hero-context-label">CONTEXT</span>
+          <div id="hero-context-content">Loading context…</div>
+        </div>
+        <div class="rail-section rail-identity">
+          <span class="eyebrow">FORTYGUARD</span>
+          <span id="hero-identity">Observation identity pending</span>
+        </div>
       </div>
     </section>
 
@@ -52,7 +75,7 @@
 
     <section class="decision-grid" aria-label="Thermal decision surface" id="decision-surface">
       <div class="map-panel panel">
-        <div class="panel-head map-head"><div><span class="eyebrow">MEASURED FIELD</span><h2>Where the burden concentrates</h2><div class="source-line"><button class="source-control" data-source="fortyguard" type="button" aria-expanded="false">Source: FortyGuard <span aria-hidden="true">ⓘ</span></button><span>Measured thermal observations · used to rank</span></div><div class="source-popover" data-popover="fortyguard" hidden></div></div><div class="map-source"><span class="source-dot measured"></span><span id="map-source-label">FortyGuard · Replay</span><span id="measured-area-label" class="measured-area-label" hidden></span><button id="map-focus-button" class="map-focus-button" type="button" aria-pressed="false">Focus map</button><button id="fit-area-button" class="map-focus-button" type="button">Fit measured area</button></div></div>
+        <div class="panel-head map-head"><div><span class="eyebrow">MEASURED FIELD</span><h2>Where the burden concentrates</h2><div class="source-line"><button class="source-control" data-source="fortyguard" type="button" aria-expanded="false">Source: FortyGuard <span aria-hidden="true">ⓘ</span></button><span>Measured thermal observations · used to rank</span></div><div class="source-popover" data-popover="fortyguard" hidden></div></div><div class="map-source"><span class="source-dot measured"></span><span id="map-source-label">FortyGuard · Replay</span><span id="measured-area-label" class="measured-area-label" hidden></span>        <button id="map-focus-button" class="map-focus-button" type="button" aria-pressed="false">Focus map</button><button id="fit-area-button" class="map-focus-button" type="button">Fit measured area</button><button id="focus-exit-button" class="map-focus-button focus-exit-inline" type="button" hidden>Exit map focus <span aria-hidden="true">×</span></button></div></div>
         <div id="map" class="map" role="application" aria-label="Interactive FortyGuard measured temperature map"><div class="map-loading">Loading heat field…</div></div>
         <div class="map-footer"><div class="legend"><span class="eyebrow">MEASURED TEMPERATURE</span><span class="legend-gradient" aria-hidden="true"></span><span id="legend-min">—</span><span id="legend-max">—</span><span id="legend-unit">°C</span></div><div class="map-tools"><label class="map-tool" for="heat-opacity"><span class="eyebrow" id="heat-opacity-label">HEAT OVERLAY</span><span class="map-tool-row"><input id="heat-opacity" type="range" min="20" max="90" step="5" value="65" aria-labelledby="heat-opacity-label"><output id="heat-opacity-value" for="heat-opacity">65%</output></span></label><div class="map-tool" role="group" aria-label="Basemap style"><span class="eyebrow">BASEMAP</span><span class="map-tool-row"><button id="basemap-standard" class="basemap-button active" type="button" aria-pressed="true">Standard</button><button id="basemap-monochrome-btn" class="basemap-button" type="button" aria-pressed="false">Monochrome</button></span></div></div><p>Cells show measured thermal observations. Color is a visual aid; values and candidate cards carry the meaning.</p></div>
         <div id="cell-detail" class="cell-detail" hidden></div>
@@ -84,6 +107,6 @@
   </main>
   <footer class="footer"><span>FORTYGUARD / URBAN HEAT INTELLIGENCE</span><span>Investigation priority, not intervention efficacy.</span></footer>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="js/dashboard.js?v=r6"></script>
 </body>
 </html>

@@ -91,7 +91,7 @@ function fitMeasuredArea() {
   if (!state.map || !state.measuredAreaBounds || !state.measuredAreaBounds.isValid()) return;
   state.map.flyToBounds(state.measuredAreaBounds.pad(.10), { animate: !reducedMotion(), duration: 0.7, maxZoom: 15 });
 }
-function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const node = document.createElement('span'); node.textContent = candidate.rank; node.setAttribute('aria-hidden', 'true'); const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: node.outerHTML, iconSize: [42, 42], iconAnchor: [21, 21] }), title: `Candidate ${candidate.rank}`, riseOnHover: true, zIndexOffset: baseMarkerOffset(candidate.rank) }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
+function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const node = document.createElement('span'); node.textContent = candidate.rank; node.setAttribute('aria-hidden', 'true'); const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: `<div style="display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:${candidate.rank === 1 ? 'var(--blue-dark)' : 'var(--blue)'};color:#fff;font:700 17px 'DM Mono',monospace;line-height:1">${candidate.rank}</div>`, iconSize: [42, 42], iconAnchor: [21, 21] }), title: `Candidate ${candidate.rank}`, riseOnHover: true, zIndexOffset: baseMarkerOffset(candidate.rank) }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
 // Deterministic base stacking: Candidate 1 remains default foreground (highest base offset).
 // Higher z-index offset renders on top. Focused candidate is elevated well above all others.
 const FOCUS_Z_OFFSET = 1000;
@@ -103,12 +103,13 @@ function applyMarkerElevation() {
     m.getElement()?.classList.toggle('marker-focused', focused);
   });
 }
-function focusCandidate(rank, pan = false) { state.focused = Number(rank) > 0 ? Number(rank) : null; document.querySelectorAll('.candidate-card').forEach((card) => card.classList.toggle('focused', Number(card.dataset.rank) === state.focused)); applyMarkerElevation(); const marker = state.markers.get(state.focused); if (marker && pan && state.map) state.map.panTo(marker.getLatLng()); }
+function focusCandidate(rank, pan = false) { state.focused = Number(rank) > 0 ? Number(rank) : null; document.querySelectorAll('.candidate-card').forEach((card) => card.classList.toggle('focused', Number(card.dataset.rank) === state.focused)); applyMarkerElevation(); highlightSourceCell(state.focused); const marker = state.markers.get(state.focused); if (marker && pan && state.map) state.map.panTo(marker.getLatLng()); }
+function highlightSourceCell(rank) { if (!state.heatLayer) return; state.heatLayer.eachLayer((layer) => { const el = layer.getElement?.(); if (el) el.classList.remove('source-cell-highlight'); }); if (!rank || !state.candidates.length) return; const cand = state.candidates.find((c) => c.rank === rank); if (!cand || !cand.tile_id) return; state.heatLayer.eachLayer((layer) => { const f = layer.feature; if (f && f.properties && f.properties.tile_id === cand.tile_id) { const el = layer.getElement?.(); if (el) el.classList.add('source-cell-highlight'); } }); }
 function parkLabel(parks) { if (!parks || parks.available === false) return 'Parks context unavailable'; if (parks.inside_park && typeof parks.inside_park === 'object') return `Inside mapped park${parks.inside_park.park_name ? `: ${parks.inside_park.park_name}` : ''}`; return 'No mapped park at candidate'; }
 function removeReplayContext() { $('replay-env-context')?.remove(); }
 function renderCandidates(payload) { const list = $('candidate-list'); list.replaceChildren(); const candidates = Array.isArray(payload?.ranked_candidates) ? payload.ranked_candidates : []; state.candidates = candidates; const status = payload?.conditions?.ranking_status; const explainer = $('candidate-explainer'); if (explainer) explainer.textContent = status === 'near_tie' ? 'Deterministic rank from the measured field. The hottest measured locations are nearly tied; context below is descriptive, not a score.' : 'Deterministic rank from the measured field. Context below is descriptive, not a score.'; if (!candidates.length) { const empty = document.createElement('p'); empty.className = 'empty-state'; empty.textContent = 'No candidate locations were returned for this mode.'; list.append(empty); return; }
   candidates.forEach((c) => { const card = document.createElement('article'); card.className = `candidate-card ${status === 'near_tie' ? 'near-tie' : ''}`; card.dataset.rank = c.rank; card.tabIndex = 0; card.setAttribute('aria-label', `Candidate ${c.rank}, ${tempD2(c.observed_temp)}`); card.addEventListener('mouseenter', () => focusCandidate(c.rank)); card.addEventListener('mouseleave', () => focusCandidate(-1)); card.addEventListener('focus', () => focusCandidate(c.rank)); card.addEventListener('click', () => focusCandidate(c.rank, true)); card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focusCandidate(c.rank, true); } });
-    const eyebrow = document.createElement('span'); eyebrow.className = 'eyebrow'; eyebrow.textContent = status === 'near_tie' ? 'TOP THERMAL CLUSTER' : 'THERMAL CANDIDATE'; const h = document.createElement('h3'); h.textContent = `Candidate ${c.rank}`; const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = String(c.rank).padStart(2, '0'); const temp = document.createElement('div'); temp.className = 'temp'; temp.textContent = tempD2(c.observed_temp); const delta = document.createElement('div'); delta.className = 'delta'; delta.textContent = `${deltaD(c.delta_from_area_mean)} vs area mean`; const divider = document.createElement('hr'); divider.className = 'candidate-divider'; const details = document.createElement('div'); details.className = 'candidate-details'; [['Coordinates', coordLabel(c.coordinate)]].forEach(([label, value]) => { const box = document.createElement('div'); const s = document.createElement('span'); s.textContent = label; const strong = document.createElement('strong'); strong.textContent = value; box.append(s, strong); details.append(box); }); const note = document.createElement('p'); note.className = 'candidate-note'; note.textContent = state.mode === 'replay' ? (status === 'near_tie' ? 'The hottest measured locations are nearly tied; local context does not change the thermal ranking.' : 'Measured temperature plus local context; local context does not affect the thermal ranking.') : 'Thermal candidate identified from the measured field; local context does not alter the thermal ranking.'; card.append(eyebrow, h, rank, temp, delta, divider, details, note); list.append(card); });
+    const eyebrow = document.createElement('span'); eyebrow.className = 'eyebrow'; eyebrow.textContent = status === 'near_tie' ? 'TOP THERMAL CLUSTER' : 'THERMAL CANDIDATE'; const h = document.createElement('h3'); h.textContent = `Candidate ${c.rank}`; const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = String(c.rank).padStart(2, '0'); const temp = document.createElement('div'); temp.className = 'temp'; temp.textContent = tempD2(c.observed_temp); const delta = document.createElement('div'); delta.className = 'delta'; delta.textContent = `${deltaD(c.delta_from_area_mean)} vs area mean`; const divider = document.createElement('hr'); divider.className = 'candidate-divider'; const details = document.createElement('div'); details.className = 'candidate-details'; [['Coordinates', coordLabel(c.coordinate)]].forEach(([label, value]) => { const box = document.createElement('div'); const s = document.createElement('span'); s.textContent = label; const strong = document.createElement('strong'); strong.textContent = value; box.append(s, strong); details.append(box); });     const note = document.createElement('p'); note.className = 'candidate-note'; note.textContent = state.mode === 'replay' ? (status === 'near_tie' ? 'The hottest measured locations are nearly tied; local context does not change the thermal ranking.' : 'Measured temperature plus local context; local context does not affect the thermal ranking.') : 'Thermal candidate identified from the measured field; local context does not alter the thermal ranking.'; const intersection = c.candidate_context?.intersection; if (intersection && intersection.available) { const intDiv = document.createElement('div'); intDiv.className = 'candidate-intersection'; intDiv.style.cssText = 'font-size:10px;color:var(--teal);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);'; intDiv.textContent = `Nearest intersection: ${intersection.name || '—'} · ${intersection.distance_m != null ? intersection.distance_m + ' m' : '—'}`; card.append(eyebrow, h, rank, temp, delta, divider, details, note, intDiv); } else { card.append(eyebrow, h, rank, temp, delta, divider, details, note); } list.append(card); });
   if (state.mode === 'replay') renderRepresentativeContext();
   else removeReplayContext();
 }
@@ -172,6 +173,59 @@ function renderError(payload, mode) {
   renderEvidence(payload || {});
 }
 // P1-R1: Compact NWS forecast banner — Live only, clearly labeled as forecast (not station observation)
+function renderHeroContextRail(payload) {
+  const ctxLabel = $('hero-context-label');
+  const ctxContent = $('hero-context-content');
+  const identity = $('hero-identity');
+  if (!ctxContent || !identity) return;
+  ctxContent.replaceChildren();
+  const mode = payload?.mode || state.mode;
+  if (mode === 'live') {
+    if (ctxLabel) ctxLabel.textContent = 'NWS FORECAST';
+    const nws = payload?.nws_context;
+    const cond = nws?.conditions;
+    if (cond) {
+      const nwsTempC = cond.temperature_f != null ? (cond.temperature_f - 32) * 5 / 9 : null;
+      const val = document.createElement('div'); val.className = 'nws-val';
+      val.textContent = `${tempD(nwsTempC)} · ${cond.short_forecast || '—'}`;
+      const detail = document.createElement('div'); detail.className = 'nws-detail';
+      detail.textContent = `Wind: ${cond.wind_speed || '—'} ${cond.wind_direction || ''}`;
+      ctxContent.append(val, detail);
+    } else {
+      const unavail = document.createElement('div'); unavail.textContent = 'Forecast unavailable';
+      ctxContent.append(unavail);
+    }
+    if (nws?.alerts && nws.alerts.length > 0) {
+      nws.alerts.forEach((a) => { const alert = document.createElement('div'); alert.className = 'nws-alert'; alert.textContent = `⚠ ${a.event || 'Alert'}`; ctxContent.append(alert); });
+    }
+    const disc = document.createElement('div'); disc.className = 'rail-disclosure'; disc.textContent = 'Supplemental · not used to rank';
+    ctxContent.append(disc);
+    identity.textContent = `Live observation · ${payload?.observation_time || 'pending'}`;
+  } else {
+    if (ctxLabel) ctxLabel.textContent = 'HISTORICAL OBSERVATION';
+    const obs = payload?.historical_nws_obs;
+    if (obs && obs.temperature?.value != null) {
+      const val = document.createElement('div'); val.className = 'nws-val';
+      val.textContent = `${tempD(obs.temperature.value)} · ${obs.text_description || '—'}`;
+      const detail = document.createElement('div'); detail.className = 'nws-detail';
+      detail.textContent = `Station: ${obs.station_identifier || 'KPHX'} · ${obs.observation_timestamp || '—'}`;
+      ctxContent.append(val, detail);
+    } else {
+      const unavail = document.createElement('div'); unavail.textContent = 'Historical observation unavailable';
+      ctxContent.append(unavail);
+    }
+    const ha = payload?.historical_alerts;
+    const cp = ha?.consumer_projection;
+    if (cp && cp.active_hazards && cp.active_hazards.length > 0) {
+      const haz = document.createElement('div'); haz.className = 'nws-alert';
+      haz.textContent = `Active: ${cp.active_hazards.map((h) => h.event).join(' and ')}`;
+      ctxContent.append(haz);
+    }
+    const disc = document.createElement('div'); disc.className = 'rail-disclosure'; disc.textContent = 'Replay · not used to rank';
+    ctxContent.append(disc);
+    identity.textContent = `Replay capture · ${payload?.observation_time || 'Aug 25, 2026 14:00 MST'}`;
+  }
+}
 function renderNwsForecast(payload) {
   const banner = $('nws-forecast-banner');
   if (!banner) return;
@@ -257,6 +311,7 @@ function render(payload, mode) {
   document.body.classList.add('has-result');
   renderNwsForecast(payload);
   renderHistoricalNwsContext(payload);
+  renderHeroContextRail(payload);
   const conditions = payload.conditions || {};
   updateNwsSource(payload);
   const ranked = payload.ranked_candidates || conditions.ranked_candidates || [];
@@ -345,7 +400,7 @@ function runAnalyst(question) {
   // For not_understood: show the answer but do NOT trigger a request or mode switch
 }
 function openEvidence() { const drawer = $('evidence-drawer'); drawer.hidden = false; $('evidence-toggle').setAttribute('aria-expanded', 'true'); drawer.scrollIntoView({ behavior: scrollBehavior(), block: 'start' }); }
-function setFocusMode(enabled) { state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); $('focus-exit-layer').hidden = !enabled; $('focus-exit-button').setAttribute('aria-pressed', String(enabled)); if (enabled) $('focus-exit-button').focus(); setTimeout(() => state.map?.invalidateSize(), 20); }
+function setFocusMode(enabled) { state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); const exitBtn = $('focus-exit-button'); if (exitBtn) { exitBtn.hidden = !enabled; exitBtn.setAttribute('aria-pressed', String(enabled)); } if (enabled && exitBtn) exitBtn.focus(); setTimeout(() => state.map?.invalidateSize(), 20); }
 function toggleUnit() { state.unit = state.unit === 'C' ? 'F' : 'C'; $('btn-unit').textContent = state.unit === 'F' ? '°F ' : '°C '; const small = document.createElement('small'); small.textContent = state.unit === 'F' ? '/ °C' : '/ °F'; $('btn-unit').append(small); $('btn-unit').classList.toggle('active', state.unit === 'F'); $('btn-unit').setAttribute('aria-pressed', String(state.unit === 'F')); if (state.payload) render(state.payload, state.mode); }
 async function request(mode = state.mode) {
   const id = ++state.requestId;
@@ -500,16 +555,31 @@ const CATALOGUE_QUESTIONS = [
   { q: 'What can this analysis not tell me?', intents: ['unsupported'] },
   { q: 'Focus Candidate N.', intents: ['map'] }
 ];
+const CATALOGUE_GROUPS = {
+  decision: ['priority', 'compare', 'tie'],
+  context: ['weather', 'canopy', 'parks'],
+  evidence: ['evidence', 'unsupported', 'map']
+};
 function initQuestionCatalogue() {
-  const list = $('catalogue-list');
-  if (!list) return;
-  list.replaceChildren();
-  CATALOGUE_QUESTIONS.forEach((item) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = item.q;
-    b.addEventListener('click', () => { $('question-input').value = item.q; runAnalyst(item.q); });
-    list.append(b);
+  const toggle = document.querySelector('.catalogue-toggle');
+  const panel = $('catalogue-panel');
+  if (!toggle || !panel) return;
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    panel.hidden = expanded;
+  });
+  Object.entries(CATALOGUE_GROUPS).forEach(([groupId, intentIds]) => {
+    const container = $(`catalogue-${groupId}`);
+    if (!container) return;
+    container.replaceChildren();
+    CATALOGUE_QUESTIONS.filter((item) => intentIds.some((id) => item.intents.includes(id))).forEach((item) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = item.q;
+      b.addEventListener('click', () => { $('question-input').value = item.q; runAnalyst(item.q); });
+      container.append(b);
+    });
   });
 }
 // P1-R1 Live latency UX: elapsed timer + truthful status

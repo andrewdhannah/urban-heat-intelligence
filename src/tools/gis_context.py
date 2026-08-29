@@ -38,6 +38,10 @@ PARKS_PROVIDER = "City of Phoenix"
 PARKS_DATASET = "City of Phoenix Mapped Parks"
 PARKS_ENDPOINT = "https://maps.phoenix.gov/pub/rest/services/Public/ParksOpenData/MapServer/10/query"
 
+INTERSECTION_PROVIDER = "City of Phoenix"
+INTERSECTION_DATASET = "City of Phoenix Street Intersections"
+INTERSECTION_ENDPOINT = "https://services6.arcgis.com/SDdpEAs6WyhEBmTu/arcgis/rest/services/Phoenix_Street_Intersections/FeatureServer/0/query"
+
 
 def _now_iso() -> str:
     """Return current UTC time in ISO format."""
@@ -474,6 +478,115 @@ def query_parks(
     }
 
 
+def query_nearest_intersection(
+    latitude: float,
+    longitude: float,
+    mode: str = "live"
+) -> Dict[str, Any]:
+    """
+    Query nearest City of Phoenix street intersection for a candidate location.
+
+    This is LOCAL CONTEXT only — used_in_decision=false.  Failure degrades
+    gracefully to an unavailable result; it must not affect thermal ranking.
+
+    Args:
+        latitude: Candidate latitude
+        longitude: Candidate longitude
+        mode: 'live' or 'replay' (only executed for 'live')
+
+    Returns:
+        Dict with intersection name, distance in metres, and provenance.
+    """
+    evidence_node = {
+        "step": "intersection_request",
+        "data": {
+            "provider": INTERSECTION_PROVIDER,
+            "dataset": INTERSECTION_DATASET,
+            "query_method": "nearest_feature",
+            "coordinate": {"latitude": latitude, "longitude": longitude},
+            "mode": mode,
+            "timestamp": _now_iso()
+        }
+    }
+
+    if mode != "live":
+        return {
+            "available": False,
+            "error": "intersection_not_queried_in_replay",
+            "evidence_node": evidence_node
+        }
+
+    # Query ArcGIS nearest feature — return nearest intersection with distance
+    params = (
+        f"?geometry={longitude},{latitude}"
+        "&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects"
+        "&outFields=FULL_NAME,PRE_DIR,STREET,STREETTYPE,SUF_DIR&returnGeometry=true"
+        "&returnDistance=true&distance=200&units=esriSRUnit_Meter&f=json"
+    )
+    ctx = _get_ssl_context()
+    try:
+        req = urllib.request.urlopen(INTERSECTION_ENDPOINT + params, timeout=15, context=ctx)
+        data = json.loads(req.read())
+        features = data.get("features", [])
+        if not features:
+            return {
+                "available": False,
+                "error": "no_intersections_within_range",
+                "evidence_node": evidence_node
+            }
+        # Find nearest by geometry distance attribute
+        best = None
+        best_dist = float("inf")
+        for feat in features:
+            attrs = feat.get("attributes", {})
+            dist = attrs.get("dist", attrs.get("distance", float("inf")))
+            if dist is not None and dist < best_dist:
+                best_dist = dist
+                best = attrs
+        if best is None:
+            return {
+                "available": False,
+                "error": "no_distance_attribute",
+                "evidence_node": evidence_node
+            }
+        # Compose intersection name from attributes
+        parts = [best.get("PRE_DIR", ""), best.get("STREET", ""), best.get("STREETTYPE", "")]
+        name = " & ".join(filter(None, [best.get("FULL_NAME", ""), ""])).strip(" &")
+        if not name:
+            name = " ".join(filter(None, parts)).strip()
+        result = {
+            "available": True,
+            "name": name or "Unknown intersection",
+            "distance_m": round(best_dist, 0) if best_dist != float("inf") else None,
+            "source_provider": INTERSECTION_PROVIDER,
+            "dataset": INTERSECTION_DATASET,
+            "used_in_decision": False,
+            "mode": mode,
+            "retrieved_at": _now_iso()
+        }
+        return {
+            "result": result,
+            "evidence_node": evidence_node,
+            "result_evidence_node": {
+                "step": "intersection_result",
+                "data": {
+                    "provider": INTERSECTION_PROVIDER,
+                    "name": result["name"],
+                    "distance_m": result["distance_m"],
+                    "mode": mode,
+                    "used_in_decision": False,
+                    "timestamp": _now_iso()
+                }
+            }
+        }
+    except Exception as e:
+        return {
+            "available": False,
+            "error": f"intersection_query_failed: {e}",
+            "evidence_node": evidence_node
+        }
+
+
 def enrich_candidate_context(
     latitude: float,
     longitude: float,
@@ -513,17 +626,27 @@ def enrich_candidate_context(
         context_evidence_chain.append(parks["evidence_node"])
     if parks.get("result_evidence_node"):
         context_evidence_chain.append(parks["result_evidence_node"])
-    
+
+    # Query nearest intersection (LIVE only, local context)
+    intersection = query_nearest_intersection(latitude, longitude, mode)
+    if intersection.get("evidence_node"):
+        context_evidence_chain.append(intersection["evidence_node"])
+    if intersection.get("result_evidence_node"):
+        context_evidence_chain.append(intersection["result_evidence_node"])
+
     # Build context result
     canopy_result = canopy.get("result")
     parks_result = parks.get("result")
+    intersection_result = intersection.get("result")
     canopy_available = canopy_result.get("available", False) if isinstance(canopy_result, dict) else False
     parks_available = parks_result.get("available", False) if isinstance(parks_result, dict) else False
-    
+    intersection_available = intersection_result.get("available", False) if isinstance(intersection_result, dict) else False
+
     context = {
         "canopy": canopy_result if canopy_available else None,
         "parks": parks_result if parks_available else None,
-        "available": canopy_available or parks_available,
+        "intersection": intersection_result if intersection_available else None,
+        "available": canopy_available or parks_available or intersection_available,
         "used_in_decision": False,
         "mode": mode,
         "retrieved_at": _now_iso()
@@ -535,6 +658,7 @@ def enrich_candidate_context(
         "data": {
             "canopy_available": canopy_available,
             "parks_available": parks_available,
+            "intersection_available": intersection_available,
             "context_available": context["available"],
             "mode": mode,
             "timestamp": _now_iso()

@@ -13,3 +13,4 @@ button, input { font: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: none; box-shadow: var(--focus); }
 ::selection { background: var(--blue-soft); }
+.eyebrow { font-family: 'DM Mono', monospace; }
