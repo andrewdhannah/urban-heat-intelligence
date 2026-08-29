@@ -4,10 +4,14 @@ An isolated clean-sheet challenger for FortyGuard Hackathon ’26 Urban Heat Int
 
 ## Status
 
-Lifecycle: **researched → designed → implemented → self-tested → comparison complete → challenger candidate**. This is not qualified, accepted, canonical, promoted, or submission-ready.
+Lifecycle: **promoted Luna lineage → P1 (audience + map legibility) → P1-R1 (pre-freeze target Shape)**.
 
-Base source SHA: `3134f288cc10792c66fa7839d34f1abe63ba0206`
-Challenger branch: `dashboard-luna-cleansheet`
+- P1 base: `bb6e1cc` (refinement/dash-v2-p1-map-legibility)
+- P1 product commit: `c10ac26`
+- P1-R1 branch: `refinement/dash-v2-p1-r1-prefreeze`
+- P1-R1 status: **implemented as bounded refinement; NOT qualified/frozen/deployed**
+
+See `docs/teaching/UHI-PRODUCT-NARRATIVE-P1R1-001.md` for the stabilized product thesis, evidence roles, temporal rules, and pre-freeze Shape.
 
 ## Run
 

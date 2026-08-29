@@ -1,3 +1,20 @@
+/* P1-R1: result-density — when a result resolves, compress the intro/hero so the
+   first useful desktop viewport exposes query, observation, headline decision,
+   primary map, and top-three candidate summary. Deeper context/provenance stays below. */
+body.has-result .intro { padding-bottom:0; margin-bottom:var(--space-4); }
+body.has-result .intro h1 { font-size:clamp(1.9rem,3vw,3.2rem); margin:6px 0 18px; }
+body.has-result .question-form label { margin-bottom:5px; }
+body.has-result .question-row input { padding:10px 14px; }
+body.has-result .question-row button { padding:0 16px; }
+body.has-result .observation-card { padding:9px 0 9px 16px; }
+body.has-result .observation-card strong { font-size:15px; margin:5px 0 3px; }
+body.has-result .decision-grid { min-height:480px; }
+body.has-result .candidates-section { padding-top:var(--space-5); }
+body.has-result .candidates-section .section-heading { margin-bottom:12px; }
+body.has-result .candidates-section .section-heading h2 { font-size:24px; }
+body.has-result .answer-rail h2 { margin-top:28px; }
+body.has-result .answer-rail { padding-top:22px; }
+
 @media (max-width: 1050px) { .topbar { padding:0 20px; }.shell { padding:32px 20px 50px; }.decision-grid { grid-template-columns:1fr; }.map-panel { border-radius:10px 10px 0 0; }.answer-rail { border-radius:0 0 10px 10px; min-height:420px; }.answer-rail h2 { margin-top:25px; }.source-key { margin-top:30px; }.lower-grid { grid-template-columns:1fr; } }
 @media (max-width: 700px) { body.has-result .decision-grid { min-height:0; } body.has-result .intro h1 { font-size:2.3rem; } body.map-focus .answer-rail { right:12px; top:78px; width:calc(100% - 24px); }.focus-exit-layer { top:76px; right:12px; }.focus-exit-button { padding:9px 11px; } body.map-focus .decision-grid { min-height:calc(100vh - 78px); } .topbar { height:auto; min-height:66px; flex-wrap:wrap; gap:12px; padding:14px 16px; }.topbar-meta { order:3; width:100%; }.mode-switch { margin-left:auto; }.switch-label { display:none; }.mode-button { padding:7px 8px; }.shell { padding:25px 14px 40px; }.intro { display:block; }.intro h1 { margin-bottom:22px; font-size:clamp(2.5rem,13vw,4rem); }.observation-card { margin-top:24px; }.question-row { display:block; }.question-row input { width:100%; border-right:1px solid var(--line); border-radius:3px; }.question-row button { width:100%; margin-top:6px; min-height:43px; border-radius:3px; }.map { min-height:390px; }.map-footer { display:block; padding:13px 15px; }.legend { flex-wrap:wrap; }.map-footer p { text-align:left; margin-top:10px; }.answer-rail { padding:23px 19px; }.candidate-list { grid-template-columns:1fr; }.section-heading { display:block; }.section-heading h2 { font-size:25px; }.section-heading p { margin-top:10px; }.lower-grid { gap:10px; }.panel-head { padding:16px; }.brief-content,.context-content { padding:16px; }.footer { display:block; padding:16px; line-height:1.7; }.footer span { display:block; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; } }
