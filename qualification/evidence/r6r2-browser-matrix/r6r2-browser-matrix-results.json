@@ -1,0 +1,1104 @@
+{
+  "matrix": "R6-R2 browser/consumer proof matrix",
+  "candidate_commit": "224ef1c417544d9314f2400a6b20ae46d7fba409",
+  "target_url": "http://127.0.0.1:8092/",
+  "generated_at": "2026-08-29T22:08:54.902888+00:00",
+  "headless": true,
+  "total_obligations": 43,
+  "pass": 52,
+  "fail": 13,
+  "environment_blocked": 0,
+  "genuine_external_live_probe": {
+    "mode_badge": "LIVE",
+    "status_region": "LIVE UNAVAILABLE\nThe current evidence request could not be completed.\nTry Replay",
+    "note": "Real /api/answer?mode=live without FORTYGUARD_API_KEY (server-level bounded failure). All Live consumer obligations are proven via deterministic mocked consumer paths, per matrix contract."
+  },
+  "rows": [
+    {
+      "obligation": 1,
+      "name": "Replay initial load (map + candidates + Current Read resolve)",
+      "viewport": "1920x1080",
+      "result": "PASS",
+      "evidence": "Replay (mocked deterministic fixture) auto-request on page load resolves: mode-badge=REPLAY, 3 candidate cards + 3 numbered markers render, Current Read (stat-mean/obs-time) populated, body.has-result, Leaflet container filled (map.getSize()==container, tiles present) at 1920x1080, 1440x900, 768x1024, 390x844.",
+      "detail": null
+    },
+    {
+      "obligation": 1,
+      "name": "Replay initial load (map + candidates + Current Read resolve)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Replay (mocked deterministic fixture) auto-request on page load resolves: mode-badge=REPLAY, 3 candidate cards + 3 numbered markers render, Current Read (stat-mean/obs-time) populated, body.has-result, Leaflet container filled (map.getSize()==container, tiles present) at 1920x1080, 1440x900, 768x1024, 390x844.",
+      "detail": null
+    },
+    {
+      "obligation": 1,
+      "name": "Replay initial load (map + candidates + Current Read resolve)",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "Replay (mocked deterministic fixture) auto-request on page load resolves: mode-badge=REPLAY, 3 candidate cards + 3 numbered markers render, Current Read (stat-mean/obs-time) populated, body.has-result, Leaflet container filled (map.getSize()==container, tiles present) at 1920x1080, 1440x900, 768x1024, 390x844.",
+      "detail": null
+    },
+    {
+      "obligation": 1,
+      "name": "Replay initial load (map + candidates + Current Read resolve)",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "Replay (mocked deterministic fixture) auto-request on page load resolves: mode-badge=REPLAY, 3 candidate cards + 3 numbered markers render, Current Read (stat-mean/obs-time) populated, body.has-result, Leaflet container filled (map.getSize()==container, tiles present) at 1920x1080, 1440x900, 768x1024, 390x844.",
+      "detail": null
+    },
+    {
+      "obligation": 2,
+      "name": "Replay \u2192 Live transition",
+      "viewport": "1920x1080",
+      "result": "PASS",
+      "evidence": "From Replay-ready state, Live mode request renders the live payload: badge LIVE, map-source FortyGuard \u00b7 Live, obs-time = live observation, replay-only context removed, candidates re-rendered for Live at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 2,
+      "name": "Replay \u2192 Live transition",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "From Replay-ready state, Live mode request renders the live payload: badge LIVE, map-source FortyGuard \u00b7 Live, obs-time = live observation, replay-only context removed, candidates re-rendered for Live at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 2,
+      "name": "Replay \u2192 Live transition",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "From Replay-ready state, Live mode request renders the live payload: badge LIVE, map-source FortyGuard \u00b7 Live, obs-time = live observation, replay-only context removed, candidates re-rendered for Live at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 2,
+      "name": "Replay \u2192 Live transition",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "From Replay-ready state, Live mode request renders the live payload: badge LIVE, map-source FortyGuard \u00b7 Live, obs-time = live observation, replay-only context removed, candidates re-rendered for Live at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 3,
+      "name": "Live \u2192 Replay transition",
+      "viewport": "1920x1080",
+      "result": "PASS",
+      "evidence": "Live-ready \u2192 Replay switch restores Replay: badge REPLAY, historical NWS banner + replay environmental context return, live-only surfaces cleared at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 3,
+      "name": "Live \u2192 Replay transition",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Live-ready \u2192 Replay switch restores Replay: badge REPLAY, historical NWS banner + replay environmental context return, live-only surfaces cleared at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 3,
+      "name": "Live \u2192 Replay transition",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "Live-ready \u2192 Replay switch restores Replay: badge REPLAY, historical NWS banner + replay environmental context return, live-only surfaces cleared at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 3,
+      "name": "Live \u2192 Replay transition",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "Live-ready \u2192 Replay switch restores Replay: badge REPLAY, historical NWS banner + replay environmental context return, live-only surfaces cleared at all 4 viewports.",
+      "detail": null
+    },
+    {
+      "obligation": 4,
+      "name": "Live success (mocked)",
+      "viewport": "1920x1080",
+      "result": "PASS",
+      "evidence": "Mocked Live success consumer path proven: LIVE badge, DESK READOUT \u00b7 LIVE, populated stats (mean/obs-time), 3 candidate cards, Leaflet map filled \u2014 deterministic mock, not the external provider (provider-only paths are mocked by contract). NWS banner visibility is assessed separately in obligation 39.",
+      "detail": null
+    },
+    {
+      "obligation": 4,
+      "name": "Live success (mocked)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Mocked Live success consumer path proven: LIVE badge, DESK READOUT \u00b7 LIVE, populated stats (mean/obs-time), 3 candidate cards, Leaflet map filled \u2014 deterministic mock, not the external provider (provider-only paths are mocked by contract). NWS banner visibility is assessed separately in obligation 39.",
+      "detail": null
+    },
+    {
+      "obligation": 4,
+      "name": "Live success (mocked)",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "Mocked Live success consumer path proven: LIVE badge, DESK READOUT \u00b7 LIVE, populated stats (mean/obs-time), 3 candidate cards, Leaflet map filled \u2014 deterministic mock, not the external provider (provider-only paths are mocked by contract). NWS banner visibility is assessed separately in obligation 39.",
+      "detail": null
+    },
+    {
+      "obligation": 4,
+      "name": "Live success (mocked)",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "Mocked Live success consumer path proven: LIVE badge, DESK READOUT \u00b7 LIVE, populated stats (mean/obs-time), 3 candidate cards, Leaflet map filled \u2014 deterministic mock, not the external provider (provider-only paths are mocked by contract). NWS banner visibility is assessed separately in obligation 39.",
+      "detail": null
+    },
+    {
+      "obligation": 5,
+      "name": "Live failure (mocked 500, Try Replay button)",
+      "viewport": "1920x1080",
+      "result": "PASS",
+      "evidence": "Mocked Live 500 consumer path proven at all 4 viewports: LIVE UNAVAILABLE desk readout surfaces, data surfaces cleared, 'Try Replay' button present and recovers to Replay (REPLAY badge + 3 candidates) when clicked.",
+      "detail": null
+    },
+    {
+      "obligation": 5,
+      "name": "Live failure (mocked 500, Try Replay button)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Mocked Live 500 consumer path proven at all 4 viewports: LIVE UNAVAILABLE desk readout surfaces, data surfaces cleared, 'Try Replay' button present and recovers to Replay (REPLAY badge + 3 candidates) when clicked.",
+      "detail": null
+    },
+    {
+      "obligation": 5,
+      "name": "Live failure (mocked 500, Try Replay button)",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "Mocked Live 500 consumer path proven at all 4 viewports: LIVE UNAVAILABLE desk readout surfaces, data surfaces cleared, 'Try Replay' button present and recovers to Replay (REPLAY badge + 3 candidates) when clicked.",
+      "detail": null
+    },
+    {
+      "obligation": 5,
+      "name": "Live failure (mocked 500, Try Replay button)",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "Mocked Live 500 consumer path proven at all 4 viewports: LIVE UNAVAILABLE desk readout surfaces, data surfaces cleared, 'Try Replay' button present and recovers to Replay (REPLAY badge + 3 candidates) when clicked.",
+      "detail": null
+    },
+    {
+      "obligation": 6,
+      "name": "Replay loading elapsed status/timer visible",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Replay request delayed 2.6s (route mock): during flight the desk reads DECK STATUS \u00b7 REPLAY with 'Loading deterministic local capture' and a #desk-elapsed Ns timer; resolves to DESK READOUT \u00b7 REPLAY.",
+      "detail": null
+    },
+    {
+      "obligation": 6,
+      "name": "Replay loading elapsed status/timer visible",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "Replay request delayed 2.6s (route mock): during flight the desk reads DECK STATUS \u00b7 REPLAY with 'Loading deterministic local capture' and a #desk-elapsed Ns timer; resolves to DESK READOUT \u00b7 REPLAY.",
+      "detail": null
+    },
+    {
+      "obligation": 7,
+      "name": "Live loading elapsed status/timer visible",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Live request delayed 2.6s (route mock): desk reads DECK STATUS \u00b7 LIVE with 'Requesting latest available provider observation' and a live #desk-elapsed Ns timer; resolves to a Live result. Mocked consumer path \u2014 external provider intentionally bypassed.",
+      "detail": null
+    },
+    {
+      "obligation": 7,
+      "name": "Live loading elapsed status/timer visible",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "Live request delayed 2.6s (route mock): desk reads DECK STATUS \u00b7 LIVE with 'Requesting latest available provider observation' and a live #desk-elapsed Ns timer; resolves to a Live result. Mocked consumer path \u2014 external provider intentionally bypassed.",
+      "detail": null
+    },
+    {
+      "obligation": 8,
+      "name": "\u00b0C / \u00b0F toggle re-renders temperatures",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "\u00b0C\u2192\u00b0F toggle re-renders every temperature surface: legend unit/suffix, AREA MEAN (42.0\u00b0C\u2192107.7\u00b0F), candidate temps (42.1\u00b0C\u2192107.7\u00b0F), range delta (\u00b0F), aria-pressed/active state; \u00b0C restore verified.",
+      "detail": null
+    },
+    {
+      "obligation": 9,
+      "name": "Heat opacity slider visual change",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Slider input re-applies heat overlay fill opacity: label + __lunaHeatOpacity track 65%\u219290%\u219220%\u2192restore; overlay canvas/legend preserved; markers/candidates unaffected.",
+      "detail": null
+    },
+    {
+      "obligation": 10,
+      "name": "Standard / Monochrome basemap toggle",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Monochrome toggles the map container's basemap-monochrome class (aria-pressed + active state) and applies grayscale(1) to tile <img>s; heat overlay canvas filter stays 'none'; Standard restores.",
+      "detail": null
+    },
+    {
+      "obligation": 11,
+      "name": "Explore question: Where should Phoenix prioritize cooling?",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Catalogue question 'Where should Phoenix prioritize cooling?' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'identifies 3 candidate locations'). FAIL rows are genuine intent-routing mismatches in the frozen candidate.",
+      "detail": null
+    },
+    {
+      "obligation": 12,
+      "name": "Explore question: Compare the three candidates.",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Catalogue question 'Compare the three candidates.' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'FortyGuard measured field comparison'). FAIL rows are genuine intent-routing mismatches in the frozen candidate.",
+      "detail": null
+    },
+    {
+      "obligation": 13,
+      "name": "Explore question: Why are these locations nearly tied?",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Catalogue question 'Why are these locations nearly tied?' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'no meaningful thermal winner'). FAIL rows are genuine intent-routing mismatches in the frozen candidate.",
+      "detail": null
+    },
+    {
+      "obligation": 14,
+      "name": "Explore question: What was the weather that afternoon?",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Catalogue question 'What was the weather that afternoon?' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'NWS station KPHX observed'). FAIL rows are genuine intent-routing mismatches in the frozen candidate.",
+      "detail": null
+    },
+    {
+      "obligation": 15,
+      "name": "Explore question: Compare tree canopy.",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: Catalogue question 'Compare tree canopy.' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS canopy' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Compare tree canopy.' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS canopy' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\n"
+    },
+    {
+      "obligation": 16,
+      "name": "Explore question: Which candidates are near parks?",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: Catalogue question 'Which candidates are near parks?' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS parks' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Which candidates are near parks?' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS parks' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\n"
+    },
+    {
+      "obligation": 17,
+      "name": "Explore question: Where did this evidence come from?",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: Catalogue question 'Where did this evidence come from?' rendered a NON-intended analyst answer. Intended phrase 'grounded in the loaded evidence chain' not found. Actual answer: 'The loaded REPLAY evidence identifies 3 candidate locations for investigation. FortyGuard measured thermal observations determine the ordering \u2014 it localizes where measured burden concentrates within the analyzed area. Contextual sources explain the broader conditions but do not change the ranking.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations are the evidence used to identify and compare candidate locations.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Where did this evidence come from?' rendered a NON-intended analyst answer. Intended phrase 'grounded in the loaded evidence chain' not found. Actual answer: 'The loaded REPLAY evidence identifies 3 candidate locations for investigation. FortyGuard measured thermal observations determine the ordering \u2014 it localizes where measured burden concentrates within the analyzed area. Contextual sources explain the broader conditions but do not change the ranking.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations are the evidence used to identify and compare candidate locations.'.\n"
+    },
+    {
+      "obligation": 18,
+      "name": "Explore question: What can this analysis not tell me?",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: Catalogue question 'What can this analysis not tell me?' rendered a NON-intended analyst answer. Intended phrase 'does not estimate the cooling effect' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'What can this analysis not tell me?' rendered a NON-intended analyst answer. Intended phrase 'does not estimate the cooling effect' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\n"
+    },
+    {
+      "obligation": 19,
+      "name": "Explore question: Focus Candidate N.",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: Catalogue question 'Focus Candidate N.' rendered a NON-intended analyst answer. Intended phrase 'primary surface' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Focus Candidate N.' rendered a NON-intended analyst answer. Intended phrase 'primary surface' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\n"
+    },
+    {
+      "obligation": 20,
+      "name": "Candidate 1 selection (card click \u2192 marker focus \u2192 source-cell highlight)",
+      "viewport": "1920x1080",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 861, in _impl_candidate_1\n    raise AssertionError(\n    ...<5 lines>...\n    )\nAssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\n"
+    },
+    {
+      "obligation": 20,
+      "name": "Candidate 1 selection (card click \u2192 marker focus \u2192 source-cell highlight)",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 861, in _impl_candidate_1\n    raise AssertionError(\n    ...<5 lines>...\n    )\nAssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\n"
+    },
+    {
+      "obligation": 20,
+      "name": "Candidate 1 selection (card click \u2192 marker focus \u2192 source-cell highlight)",
+      "viewport": "768x1024",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 861, in _impl_candidate_1\n    raise AssertionError(\n    ...<5 lines>...\n    )\nAssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\n"
+    },
+    {
+      "obligation": 20,
+      "name": "Candidate 1 selection (card click \u2192 marker focus \u2192 source-cell highlight)",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 861, in _impl_candidate_1\n    raise AssertionError(\n    ...<5 lines>...\n    )\nAssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\n"
+    },
+    {
+      "obligation": 21,
+      "name": "Candidate 2 selection",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Card 2 click focuses rank 2 (card.focused + marker-focused label '2'); map zooms; source-cell highlight applied for candidate 2's tile.",
+      "detail": null
+    },
+    {
+      "obligation": 22,
+      "name": "Candidate 3 selection",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Card 3 click focuses rank 3 (card.focused + marker-focused label '3'); map zooms.",
+      "detail": null
+    },
+    {
+      "obligation": 23,
+      "name": "Intersection SUCCESS renders name + distance",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Near an available mapped intersection: card renders 'Nearest intersection: Central Ave & Washington St \u00b7 120 m' (name + distance) on every candidate card.",
+      "detail": null
+    },
+    {
+      "obligation": 24,
+      "name": "Intersection NO_RESULT renders 'No mapped intersection within 200 m'",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "No mapped intersection within 200 m: card renders the exact governed message 'No mapped intersection within 200 m' (available=false, error=no_intersection_within_200m).",
+      "detail": null
+    },
+    {
+      "obligation": 25,
+      "name": "Intersection PROVIDER_FAILURE renders 'Location context unavailable'",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Provider query failure: card renders 'Location context unavailable' (available=false, error=intersection_query_failed_\u2026); no masked 'no result' claim.",
+      "detail": null
+    },
+    {
+      "obligation": 26,
+      "name": "Source-cell highlight on focus",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: DEFECT \u2014 source-cell highlight does not manifest on focus: with preferCanvas:true the measured cells have no per-feature DOM element (layer.getElement() === undefined), so highlightSourceCell() cannot apply .source-cell-highlight. Canvas selection never occurs.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 950, in _impl_source_cell_highlight\n    raise AssertionError(\n    ...<3 lines>...\n    )\nAssertionError: DEFECT \u2014 source-cell highlight does not manifest on focus: with preferCanvas:true the measured cells have no per-feature DOM element (layer.getElement() === undefined), so highlightSourceCell() cannot apply .source-cell-highlight. Canvas selection never occurs.\n"
+    },
+    {
+      "obligation": 27,
+      "name": "Map focus enter (workspace mode, map fills viewport below header, no residual whitespace)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Focus map: body.map-focus, inline exit control shown, map spans the viewport below the 74px header (decision grid = 100vh-74px), map.getSize()==container (no residual whitespace), answer rail floats as overlay.",
+      "detail": null
+    },
+    {
+      "obligation": 27,
+      "name": "Map focus enter (workspace mode, map fills viewport below header, no residual whitespace)",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "Focus map: body.map-focus, inline exit control shown, map spans the viewport below the 74px header (decision grid = 100vh-74px), map.getSize()==container (no residual whitespace), answer rail floats as overlay.",
+      "detail": null
+    },
+    {
+      "obligation": 28,
+      "name": "Map focus exit (layout restored)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Exit map focus: body.map-focus removed, exit control hidden, candidates/brief/context sections visible again, Leaflet refills the restored grid container (map.getSize()==container).",
+      "detail": null
+    },
+    {
+      "obligation": 28,
+      "name": "Map focus exit (layout restored)",
+      "viewport": "768x1024",
+      "result": "PASS",
+      "evidence": "Exit map focus: body.map-focus removed, exit control hidden, candidates/brief/context sections visible again, Leaflet refills the restored grid container (map.getSize()==container).",
+      "detail": null
+    },
+    {
+      "obligation": 29,
+      "name": "Browser resize \u2192 map refills (no blank region)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Viewport 1440x900\u21921000x700: once the layout media-query column collapses, the ResizeObserver\u2192invalidateSize path refills Leaflet; map.getSize() tracks the resized container, canvas matches container (no blank region), tiles render.",
+      "detail": null
+    },
+    {
+      "obligation": 30,
+      "name": "Evidence drawer open/close",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Inspect evidence opens the drawer with the 8-step evidence chain rendered as chain nodes (aria-expanded true); close returns it to hidden (aria-expanded false) without clearing the decision.",
+      "detail": null
+    },
+    {
+      "obligation": 31,
+      "name": "Desk readout state transitions (loading \u2192 ready \u2192 analyst)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Delayed replay: DECK STATUS \u00b7 REPLAY (loading, timer) \u2192 DESK READOUT \u00b7 REPLAY (verified summary) after render \u2192 readout cleared for the grounded-analyst answer body; phases verified at the exact transition points.",
+      "detail": null
+    },
+    {
+      "obligation": 32,
+      "name": "Mode-transition clearing (Replay content cleared on Live switch and vice versa)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "On each mode switch the prior mode's surfaces are cleared during loading: answer hero='Loading the decision\u2026', answer summary='No prior-mode evidence is retained on this surface.', stats '\u2014', candidates emptied, NWS banner hidden, replay context removed \u2014 in BOTH directions; then the new mode renders fully.",
+      "detail": null
+    },
+    {
+      "obligation": 33,
+      "name": "Mobile: map + Current Read stacking (map above Current Read, compact map)",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: {'mapTop': 1258.53125, 'railTop': 1079.53125, 'mapH': 838.328125, 'panelH': 1221.328125, 'scrollW': 390, 'clientW': 390}\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 1132, in _impl_mobile_stacking\n    assert boxes[\"mapTop\"] < boxes[\"railTop\"], boxes\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'mapTop': 1258.53125, 'railTop': 1079.53125, 'mapH': 838.328125, 'panelH': 1221.328125, 'scrollW': 390, 'clientW': 390}\n"
+    },
+    {
+      "obligation": 34,
+      "name": "Mobile: candidate card density",
+      "viewport": "390x844",
+      "result": "PASS",
+      "evidence": "At 390x844 the 3 candidate cards stack full-width (single column), card width \u2265 90% of the list column, cards ordered rank 1\u21923, no horizontal scroll.",
+      "detail": null
+    },
+    {
+      "obligation": 35,
+      "name": "Mobile: explore questions collapsed by default",
+      "viewport": "390x844",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: \nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 1178, in _impl_mobile_catalogue\n    assert await page.locator(\"#catalogue-panel\").is_hidden()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "obligation": 36,
+      "name": "Asset cache identity: build-specific asset URLs + cache headers",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "index HTML embeds ?v=224ef1c\u2026 asset URLs; index served with Cache-Control: no-cache, must-revalidate; versioned assets return Cache-Control: public, max-age=31536000, immutable + X-Build-Version: 224ef1c\u2026; a mismatched ?v query falls back to no-cache, must-revalidate (no double-header).",
+      "detail": null
+    },
+    {
+      "obligation": 37,
+      "name": "Stale-response rejection: late Live discarded, UI shows Replay only",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Live request delayed 4.5s, Replay completes ~instantly: mode switch aborts the in-flight Live call (AbortError) and the requestGeneration guard discards it. After 5.5s the UI still shows Replay only (badge REPLAY, replay observation time, historical NWS banner), live fetch logged as not-resolved. No Live content ever rendered.",
+      "detail": null
+    },
+    {
+      "obligation": 38,
+      "name": "Replay historical NWS consumer path (HISTORICAL NWS banner with station observation)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Replay consumer renders the HISTORICAL NWS \u00b7 REPLAY \u00b7 NOT USED TO RANK banner with the KPHX station observation (45.0\u00b0C \u00b7 Sunny, station + timestamp + offset, wind/humidity) and active-hazard line; hero rail shows HISTORICAL OBSERVATION with the 45.0\u00b0C value. Ancillary observation (same defect family as #35): the app hides #nws-source-line for Replay via the hidden attribute, but `.source-line{display:flex}` overrides UA [hidden], so the NWS source line stays visible in Replay.",
+      "detail": null
+    },
+    {
+      "obligation": 39,
+      "name": "Live NWS consumer path (NWS FORECAST banner, supplemental, not used to rank)",
+      "viewport": "1440x900",
+      "result": "FAIL",
+      "evidence": "",
+      "detail": "AssertionError: \nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 1303, in _impl_live_nws_consumer\n    assert \"Candidate 1 leads\" in await page.locator(\"#ranking-callout\").inner_text()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "obligation": 40,
+      "name": "Marker overlap treatment: bounded pixel fan offset, true anchor preserved, all ranks usable",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Candidates 1-3 near-coincident (<1px projected): each rank keeps its true geographic anchor (iconAnchor 21,21 \u2014 projected container point matches the marker base within 1px) while the label content is fanned by a bounded (rank-2)*15px translateX; each rank remains clickable and focusable.",
+      "detail": null
+    },
+    {
+      "obligation": 41,
+      "name": "Map resize after Current Read growth (map container grows, Leaflet fills, no blank region)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Growing the Current Read (answer rail +320px) grows the decision-grid row and the map container; ResizeObserver\u2192invalidateSize refills Leaflet so map.getSize() tracks the larger container and the canvas matches (no blank region).",
+      "detail": null
+    },
+    {
+      "obligation": 42,
+      "name": "Escape exits map focus",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "Pressing Escape while in map-focus mode restores the normal layout (body.map-focus removed, exit control hidden, map refills restored container, focus button label returns to 'Focus map').",
+      "detail": null
+    },
+    {
+      "obligation": 43,
+      "name": "Focus \u2192 normal restoration (scroll position restored, map refills restored container)",
+      "viewport": "1440x900",
+      "result": "PASS",
+      "evidence": "After scrolling down, entering focus saves scroll position, and exiting (Exit map focus) restores the prior scrollY (\u00b12px) and refills the restored grid container; candidate/brief sections still visible.",
+      "detail": null
+    }
+  ],
+  "screenshots": [
+    "r01-replay-ready-1440.png",
+    "r02-replay-to-live-1440.png",
+    "r04-live-ready-1440.png",
+    "r20-candidate1-highlight-missing-1440.png",
+    "r21-candidate2-1440.png",
+    "r22-candidate3-1440.png",
+    "r23-intersection-success-1440.png",
+    "r24-intersection-noresult-1440.png",
+    "r25-intersection-providerfail-1440.png",
+    "r26-source-cell-highlight-missing-1440.png",
+    "r27-map-focus-enter-1440.png",
+    "r30-evidence-drawer-1440.png",
+    "r33-mobile-stacking-390.png",
+    "r35-mobile-catalogue-390.png",
+    "r37-stale-reject-replay-1440.png",
+    "r38-replay-nws-consumer-1440.png",
+    "r40-marker-fan-1440.png",
+    "r43-focus-restore-1440.png"
+  ],
+  "obligation_level": {
+    "total": 43,
+    "pass": 33,
+    "fail": 10,
+    "environment_blocked": 0,
+    "rows": [
+      {
+        "id": 1,
+        "name": "Replay initial load (map + candidates + Current Read resolve)",
+        "viewports": [
+          "1920x1080",
+          "1440x900",
+          "768x1024",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 4
+        },
+        "evidence": "Replay (mocked deterministic fixture) auto-request on page load resolves: mode-badge=REPLAY, 3 candidate cards + 3 numbered markers render, Current Read (stat-mean/obs-time) populated, body.has-result, Leaflet container filled (map.getSize()==container, tiles present) at 1920x1080, 1440x900, 768x1024, 390x844."
+      },
+      {
+        "id": 2,
+        "name": "Replay \u2192 Live transition",
+        "viewports": [
+          "1920x1080",
+          "1440x900",
+          "768x1024",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 4
+        },
+        "evidence": "From Replay-ready state, Live mode request renders the live payload: badge LIVE, map-source FortyGuard \u00b7 Live, obs-time = live observation, replay-only context removed, candidates re-rendered for Live at all 4 viewports."
+      },
+      {
+        "id": 3,
+        "name": "Live \u2192 Replay transition",
+        "viewports": [
+          "1920x1080",
+          "1440x900",
+          "768x1024",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 4
+        },
+        "evidence": "Live-ready \u2192 Replay switch restores Replay: badge REPLAY, historical NWS banner + replay environmental context return, live-only surfaces cleared at all 4 viewports."
+      },
+      {
+        "id": 4,
+        "name": "Live success (mocked)",
+        "viewports": [
+          "1920x1080",
+          "1440x900",
+          "768x1024",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 4
+        },
+        "evidence": "Mocked Live success consumer path proven: LIVE badge, DESK READOUT \u00b7 LIVE, populated stats (mean/obs-time), 3 candidate cards, Leaflet map filled \u2014 deterministic mock, not the external provider (provider-only paths are mocked by contract). NWS banner visibility is assessed separately in obligation 39."
+      },
+      {
+        "id": 5,
+        "name": "Live failure (mocked 500, Try Replay button)",
+        "viewports": [
+          "1920x1080",
+          "1440x900",
+          "768x1024",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 4
+        },
+        "evidence": "Mocked Live 500 consumer path proven at all 4 viewports: LIVE UNAVAILABLE desk readout surfaces, data surfaces cleared, 'Try Replay' button present and recovers to Replay (REPLAY badge + 3 candidates) when clicked."
+      },
+      {
+        "id": 6,
+        "name": "Replay loading elapsed status/timer visible",
+        "viewports": [
+          "1440x900",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 2
+        },
+        "evidence": "Replay request delayed 2.6s (route mock): during flight the desk reads DECK STATUS \u00b7 REPLAY with 'Loading deterministic local capture' and a #desk-elapsed Ns timer; resolves to DESK READOUT \u00b7 REPLAY."
+      },
+      {
+        "id": 7,
+        "name": "Live loading elapsed status/timer visible",
+        "viewports": [
+          "1440x900",
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 2
+        },
+        "evidence": "Live request delayed 2.6s (route mock): desk reads DECK STATUS \u00b7 LIVE with 'Requesting latest available provider observation' and a live #desk-elapsed Ns timer; resolves to a Live result. Mocked consumer path \u2014 external provider intentionally bypassed."
+      },
+      {
+        "id": 8,
+        "name": "\u00b0C / \u00b0F toggle re-renders temperatures",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "\u00b0C\u2192\u00b0F toggle re-renders every temperature surface: legend unit/suffix, AREA MEAN (42.0\u00b0C\u2192107.7\u00b0F), candidate temps (42.1\u00b0C\u2192107.7\u00b0F), range delta (\u00b0F), aria-pressed/active state; \u00b0C restore verified."
+      },
+      {
+        "id": 9,
+        "name": "Heat opacity slider visual change",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Slider input re-applies heat overlay fill opacity: label + __lunaHeatOpacity track 65%\u219290%\u219220%\u2192restore; overlay canvas/legend preserved; markers/candidates unaffected."
+      },
+      {
+        "id": 10,
+        "name": "Standard / Monochrome basemap toggle",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Monochrome toggles the map container's basemap-monochrome class (aria-pressed + active state) and applies grayscale(1) to tile <img>s; heat overlay canvas filter stays 'none'; Standard restores."
+      },
+      {
+        "id": 11,
+        "name": "Explore question: Where should Phoenix prioritize cooling?",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Catalogue question 'Where should Phoenix prioritize cooling?' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'identifies 3 candidate locations'). FAIL rows are genuine intent-routing mismatches in the frozen candidate."
+      },
+      {
+        "id": 12,
+        "name": "Explore question: Compare the three candidates.",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Catalogue question 'Compare the three candidates.' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'FortyGuard measured field comparison'). FAIL rows are genuine intent-routing mismatches in the frozen candidate."
+      },
+      {
+        "id": 13,
+        "name": "Explore question: Why are these locations nearly tied?",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Catalogue question 'Why are these locations nearly tied?' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'no meaningful thermal winner'). FAIL rows are genuine intent-routing mismatches in the frozen candidate."
+      },
+      {
+        "id": 14,
+        "name": "Explore question: What was the weather that afternoon?",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Catalogue question 'What was the weather that afternoon?' executes on the loaded Replay evidence; the rendered analyst answer is asserted to match the intent the catalogue declares for it (expected pattern: 'NWS station KPHX observed'). FAIL rows are genuine intent-routing mismatches in the frozen candidate."
+      },
+      {
+        "id": 15,
+        "name": "Explore question: Compare tree canopy.",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: Catalogue question 'Compare tree canopy.' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS canopy' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Compare tree canopy.' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS canopy' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\n"
+      },
+      {
+        "id": 16,
+        "name": "Explore question: Which candidates are near parks?",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: Catalogue question 'Which candidates are near parks?' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS parks' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Which candidates are near parks?' rendered a NON-intended analyst answer. Intended phrase 'Phoenix GIS parks' not found. Actual answer: 'FortyGuard measured field comparison: Candidate 1: 42.05\u00b0C, 0.02\u00b0C vs area mean \u00b7 Candidate 2: 42.03\u00b0C, 0.00\u00b0C vs area mean \u00b7 Candidate 3: 42.01\u00b0C, -0.02\u00b0C vs area mean. Thermal evidence alone determines these values; local context does not alter them.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations show how each candidate compares with the surrounding measured field.'.\n"
+      },
+      {
+        "id": 17,
+        "name": "Explore question: Where did this evidence come from?",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: Catalogue question 'Where did this evidence come from?' rendered a NON-intended analyst answer. Intended phrase 'grounded in the loaded evidence chain' not found. Actual answer: 'The loaded REPLAY evidence identifies 3 candidate locations for investigation. FortyGuard measured thermal observations determine the ordering \u2014 it localizes where measured burden concentrates within the analyzed area. Contextual sources explain the broader conditions but do not change the ranking.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations are the evidence used to identify and compare candidate locations.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Where did this evidence come from?' rendered a NON-intended analyst answer. Intended phrase 'grounded in the loaded evidence chain' not found. Actual answer: 'The loaded REPLAY evidence identifies 3 candidate locations for investigation. FortyGuard measured thermal observations determine the ordering \u2014 it localizes where measured burden concentrates within the analyzed area. Contextual sources explain the broader conditions but do not change the ranking.' | source: 'Source: FortyGuard \u00b7 measured evidence \u00b7 Why it matters: These thermal observations are the evidence used to identify and compare candidate locations.'.\n"
+      },
+      {
+        "id": 18,
+        "name": "Explore question: What can this analysis not tell me?",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: Catalogue question 'What can this analysis not tell me?' rendered a NON-intended analyst answer. Intended phrase 'does not estimate the cooling effect' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'What can this analysis not tell me?' rendered a NON-intended analyst answer. Intended phrase 'does not estimate the cooling effect' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\n"
+      },
+      {
+        "id": 19,
+        "name": "Explore question: Focus Candidate N.",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: Catalogue question 'Focus Candidate N.' rendered a NON-intended analyst answer. Intended phrase 'primary surface' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 840, in _impl_explore\n    raise AssertionError(\n    ...<2 lines>...\n    )\nAssertionError: Catalogue question 'Focus Candidate N.' rendered a NON-intended analyst answer. Intended phrase 'primary surface' not found. Actual answer: \"I don't have a governed answer for that question. Try one of the supported questions below.\" | source: 'Source: Governed analytical scope \u00b7 Why it matters: The input did not match any recognized intent.'.\n"
+      },
+      {
+        "id": 20,
+        "name": "Candidate 1 selection (card click \u2192 marker focus \u2192 source-cell highlight)",
+        "viewports": [
+          "1920x1080",
+          "1440x900",
+          "768x1024",
+          "390x844"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 4
+        },
+        "evidence": "AssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 861, in _impl_candidate_1\n    raise AssertionError(\n    ...<5 lines>...\n    )\nAssertionError: PARTIAL DEFECT \u2014 card click \u2192 marker focus + zoom PASS, but source-cell highlight is INERT: heatLayer uses Leaflet's Canvas renderer (preferCanvas:true) so each measured-cell layer's getElement() is undefined and highlightSourceCell() can add no .source-cell-highlight to any DOM element (canvas has no per-feature element). CSS/JS highlight path is a no-op. focus={'focusedRank': '1', 'focusedMarker': 1, 'zoom': 16, 'hasHighlight': False, 'markerClass': 'leaflet-marker-icon candidate-marker marker-1 leaflet-zoom-animated leaflet-interactive marker-focused'}.\n"
+      },
+      {
+        "id": 21,
+        "name": "Candidate 2 selection",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Card 2 click focuses rank 2 (card.focused + marker-focused label '2'); map zooms; source-cell highlight applied for candidate 2's tile."
+      },
+      {
+        "id": 22,
+        "name": "Candidate 3 selection",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Card 3 click focuses rank 3 (card.focused + marker-focused label '3'); map zooms."
+      },
+      {
+        "id": 23,
+        "name": "Intersection SUCCESS renders name + distance",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Near an available mapped intersection: card renders 'Nearest intersection: Central Ave & Washington St \u00b7 120 m' (name + distance) on every candidate card."
+      },
+      {
+        "id": 24,
+        "name": "Intersection NO_RESULT renders 'No mapped intersection within 200 m'",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "No mapped intersection within 200 m: card renders the exact governed message 'No mapped intersection within 200 m' (available=false, error=no_intersection_within_200m)."
+      },
+      {
+        "id": 25,
+        "name": "Intersection PROVIDER_FAILURE renders 'Location context unavailable'",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Provider query failure: card renders 'Location context unavailable' (available=false, error=intersection_query_failed_\u2026); no masked 'no result' claim."
+      },
+      {
+        "id": 26,
+        "name": "Source-cell highlight on focus",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: DEFECT \u2014 source-cell highlight does not manifest on focus: with preferCanvas:true the measured cells have no per-feature DOM element (layer.getElement() === undefined), so highlightSourceCell() cannot apply .source-cell-highlight. Canvas selection never occurs.\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 950, in _impl_source_cell_highlight\n    raise AssertionError(\n    ...<3 lines>...\n    )\nAssertionError: DEFECT \u2014 source-cell highlight does not manifest on focus: with preferCanvas:true the measured cells have no per-feature DOM element (layer.getElement() === undefined), so highlightSourceCell() cannot apply .source-cell-highlight. Canvas selection never occurs.\n"
+      },
+      {
+        "id": 27,
+        "name": "Map focus enter (workspace mode, map fills viewport below header, no residual whitespace)",
+        "viewports": [
+          "1440x900",
+          "768x1024"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 2
+        },
+        "evidence": "Focus map: body.map-focus, inline exit control shown, map spans the viewport below the 74px header (decision grid = 100vh-74px), map.getSize()==container (no residual whitespace), answer rail floats as overlay."
+      },
+      {
+        "id": 28,
+        "name": "Map focus exit (layout restored)",
+        "viewports": [
+          "1440x900",
+          "768x1024"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 2
+        },
+        "evidence": "Exit map focus: body.map-focus removed, exit control hidden, candidates/brief/context sections visible again, Leaflet refills the restored grid container (map.getSize()==container)."
+      },
+      {
+        "id": 29,
+        "name": "Browser resize \u2192 map refills (no blank region)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Viewport 1440x900\u21921000x700: once the layout media-query column collapses, the ResizeObserver\u2192invalidateSize path refills Leaflet; map.getSize() tracks the resized container, canvas matches container (no blank region), tiles render."
+      },
+      {
+        "id": 30,
+        "name": "Evidence drawer open/close",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Inspect evidence opens the drawer with the 8-step evidence chain rendered as chain nodes (aria-expanded true); close returns it to hidden (aria-expanded false) without clearing the decision."
+      },
+      {
+        "id": 31,
+        "name": "Desk readout state transitions (loading \u2192 ready \u2192 analyst)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Delayed replay: DECK STATUS \u00b7 REPLAY (loading, timer) \u2192 DESK READOUT \u00b7 REPLAY (verified summary) after render \u2192 readout cleared for the grounded-analyst answer body; phases verified at the exact transition points."
+      },
+      {
+        "id": 32,
+        "name": "Mode-transition clearing (Replay content cleared on Live switch and vice versa)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "On each mode switch the prior mode's surfaces are cleared during loading: answer hero='Loading the decision\u2026', answer summary='No prior-mode evidence is retained on this surface.', stats '\u2014', candidates emptied, NWS banner hidden, replay context removed \u2014 in BOTH directions; then the new mode renders fully."
+      },
+      {
+        "id": 33,
+        "name": "Mobile: map + Current Read stacking (map above Current Read, compact map)",
+        "viewports": [
+          "390x844"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: {'mapTop': 1258.53125, 'railTop': 1079.53125, 'mapH': 838.328125, 'panelH': 1221.328125, 'scrollW': 390, 'clientW': 390}\nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 1132, in _impl_mobile_stacking\n    assert boxes[\"mapTop\"] < boxes[\"railTop\"], boxes\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'mapTop': 1258.53125, 'railTop': 1079.53125, 'mapH': 838.328125, 'panelH': 1221.328125, 'scrollW': 390, 'clientW': 390}\n"
+      },
+      {
+        "id": 34,
+        "name": "Mobile: candidate card density",
+        "viewports": [
+          "390x844"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "At 390x844 the 3 candidate cards stack full-width (single column), card width \u2265 90% of the list column, cards ordered rank 1\u21923, no horizontal scroll."
+      },
+      {
+        "id": 35,
+        "name": "Mobile: explore questions collapsed by default",
+        "viewports": [
+          "390x844"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: \nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 1178, in _impl_mobile_catalogue\n    assert await page.locator(\"#catalogue-panel\").is_hidden()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+      },
+      {
+        "id": 36,
+        "name": "Asset cache identity: build-specific asset URLs + cache headers",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "index HTML embeds ?v=224ef1c\u2026 asset URLs; index served with Cache-Control: no-cache, must-revalidate; versioned assets return Cache-Control: public, max-age=31536000, immutable + X-Build-Version: 224ef1c\u2026; a mismatched ?v query falls back to no-cache, must-revalidate (no double-header)."
+      },
+      {
+        "id": 37,
+        "name": "Stale-response rejection: late Live discarded, UI shows Replay only",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Live request delayed 4.5s, Replay completes ~instantly: mode switch aborts the in-flight Live call (AbortError) and the requestGeneration guard discards it. After 5.5s the UI still shows Replay only (badge REPLAY, replay observation time, historical NWS banner), live fetch logged as not-resolved. No Live content ever rendered."
+      },
+      {
+        "id": 38,
+        "name": "Replay historical NWS consumer path (HISTORICAL NWS banner with station observation)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Replay consumer renders the HISTORICAL NWS \u00b7 REPLAY \u00b7 NOT USED TO RANK banner with the KPHX station observation (45.0\u00b0C \u00b7 Sunny, station + timestamp + offset, wind/humidity) and active-hazard line; hero rail shows HISTORICAL OBSERVATION with the 45.0\u00b0C value. Ancillary observation (same defect family as #35): the app hides #nws-source-line for Replay via the hidden attribute, but `.source-line{display:flex}` overrides UA [hidden], so the NWS source line stays visible in Replay."
+      },
+      {
+        "id": 39,
+        "name": "Live NWS consumer path (NWS FORECAST banner, supplemental, not used to rank)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "FAIL",
+        "viewport_results": {
+          "FAIL": 1
+        },
+        "evidence": "AssertionError: \nTraceback (most recent call last):\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 484, in run\n    await r[\"fn\"](browser, vp)\n  File \"/Users/andrew/Desktop/Freebuff/urban-heat-intelligence/qualification/evidence/r6r2-browser-matrix/run_r6r2_matrix.py\", line 1303, in _impl_live_nws_consumer\n    assert \"Candidate 1 leads\" in await page.locator(\"#ranking-callout\").inner_text()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+      },
+      {
+        "id": 40,
+        "name": "Marker overlap treatment: bounded pixel fan offset, true anchor preserved, all ranks usable",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Candidates 1-3 near-coincident (<1px projected): each rank keeps its true geographic anchor (iconAnchor 21,21 \u2014 projected container point matches the marker base within 1px) while the label content is fanned by a bounded (rank-2)*15px translateX; each rank remains clickable and focusable."
+      },
+      {
+        "id": 41,
+        "name": "Map resize after Current Read growth (map container grows, Leaflet fills, no blank region)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Growing the Current Read (answer rail +320px) grows the decision-grid row and the map container; ResizeObserver\u2192invalidateSize refills Leaflet so map.getSize() tracks the larger container and the canvas matches (no blank region)."
+      },
+      {
+        "id": 42,
+        "name": "Escape exits map focus",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "Pressing Escape while in map-focus mode restores the normal layout (body.map-focus removed, exit control hidden, map refills restored container, focus button label returns to 'Focus map')."
+      },
+      {
+        "id": 43,
+        "name": "Focus \u2192 normal restoration (scroll position restored, map refills restored container)",
+        "viewports": [
+          "1440x900"
+        ],
+        "result": "PASS",
+        "viewport_results": {
+          "PASS": 1
+        },
+        "evidence": "After scrolling down, entering focus saves scroll position, and exiting (Exit map focus) restores the prior scrollY (\u00b12px) and refills the restored grid container; candidate/brief sections still visible."
+      }
+    ]
+  }
+}
