@@ -254,19 +254,25 @@ def build_visualization_payload(result):
             try:
                 with open(obs_path) as f:
                     obs_data = json.load(f)
+                obs = obs_data.get("observation", {})
                 historical_nws_obs = {
                     "provider": "NWS",
                     "mode": "replay",
                     "data_type": "station_observation",
-                    "station": obs_data.get("query", {}).get("station"),
-                    "observation_timestamp": obs_data.get("observation", {}).get("timestamp"),
+                    "station_identifier": obs_data.get("station_metadata", {}).get("station_identifier"),
+                    "station_name": obs_data.get("station_metadata", {}).get("station_name"),
+                    "observation_timestamp": obs.get("timestamp"),
                     "target_time_local": obs_data.get("query", {}).get("target_time_local"),
                     "offset_minutes": obs_data.get("query", {}).get("offset_minutes"),
-                    "temperature_celsius": obs_data.get("observation", {}).get("temperature_celsius"),
-                    "text_description": obs_data.get("observation", {}).get("text_description"),
-                    "wind_speed_ms": obs_data.get("observation", {}).get("wind_speed_ms"),
-                    "wind_direction_deg": obs_data.get("observation", {}).get("wind_direction_deg"),
-                    "relative_humidity_pct": obs_data.get("observation", {}).get("relative_humidity_pct"),
+                    "temperature": obs.get("temperature"),
+                    "dewpoint": obs.get("dewpoint"),
+                    "wind_speed": obs.get("wind_speed"),
+                    "wind_direction": obs.get("wind_direction"),
+                    "relative_humidity": obs.get("relative_humidity"),
+                    "barometric_pressure": obs.get("barometric_pressure"),
+                    "visibility": obs.get("visibility"),
+                    "heat_index": obs.get("heat_index"),
+                    "text_description": obs.get("text_description", ""),
                     "used_in_decision": False,
                     "evidence_status": "historical_context",
                     "provenance": obs_data.get("provenance", {})
@@ -280,7 +286,7 @@ def build_visualization_payload(result):
                         "offset_minutes": obs_data.get("query", {}).get("offset_minutes"),
                         "used_in_decision": False
                     },
-                    "timestamp": obs_data.get("observation", {}).get("timestamp")
+                    "timestamp": obs.get("timestamp")
                 })
             except Exception:
                 historical_nws_obs = None
@@ -298,6 +304,7 @@ def build_visualization_payload(result):
                     "mode": "replay",
                     "data_type": "historical_alerts",
                     "alerts": alerts_data.get("aug25_alerts", []),
+                    "consumer_projection": alerts_data.get("consumer_projection"),
                     "query_time": alerts_data.get("query", {}).get("target_time_local"),
                     "used_in_decision": False,
                     "evidence_status": "historical_context",

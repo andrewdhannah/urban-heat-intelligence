@@ -1,280 +1,573 @@
 {
-  "query": {
-    "endpoint": "/stations/KPHX/observations",
-    "params": {
-      "start": "2026-08-25T20:50:00Z",
-      "end": "2026-08-25T21:10:00Z",
-      "limit": "10"
-    },
-    "target_time_utc": "2026-08-25T21:00:00+00:00",
-    "target_time_local": "2026-08-25T14:00:00-07:00",
-    "retrieved_at": "2026-08-29T02:05:33.354558+00:00"
-  },
-  "observations": [
+  "@context": [
+    "https://geojson.org/geojson-ld/geojson-context.jsonld",
     {
-      "timestamp": "2026-08-25T21:05:00+00:00",
-      "offset_minutes": 5,
-      "temperature": {
-        "unitCode": "wmoUnit:degC",
-        "value": 44,
-        "qualityControl": "V"
+      "@version": "1.1",
+      "wx": "https://api.weather.gov/ontology#",
+      "s": "https://schema.org/",
+      "geo": "http://www.opengis.net/ont/geosparql#",
+      "unit": "http://codes.wmo.int/common/unit/",
+      "@vocab": "https://api.weather.gov/ontology#",
+      "geometry": {
+        "@id": "s:GeoCoordinates",
+        "@type": "geo:wktLiteral"
       },
-      "dewpoint": {
-        "unitCode": "wmoUnit:degC",
-        "value": 11,
-        "qualityControl": "V"
+      "city": "s:addressLocality",
+      "state": "s:addressRegion",
+      "distance": {
+        "@id": "s:Distance",
+        "@type": "s:QuantitativeValue"
       },
-      "wind_speed": {
-        "unitCode": "wmoUnit:km_h-1",
-        "value": 7.416,
-        "qualityControl": "V"
+      "bearing": {
+        "@type": "s:QuantitativeValue"
       },
-      "wind_direction": {
-        "unitCode": "wmoUnit:degree_(angle)",
-        "value": 290,
-        "qualityControl": "V"
+      "value": {
+        "@id": "s:value"
       },
-      "relative_humidity": {
-        "unitCode": "wmoUnit:percent",
-        "value": 14.391292798498,
-        "qualityControl": "V"
+      "unitCode": {
+        "@id": "s:unitCode",
+        "@type": "@id"
       },
-      "barometric_pressure": {
-        "unitCode": "wmoUnit:Pa",
-        "value": 100948.24,
-        "qualityControl": "V"
+      "forecastOffice": {
+        "@type": "@id"
       },
-      "visibility": {
-        "unitCode": "wmoUnit:m",
-        "value": 16093.44,
-        "qualityControl": "C"
+      "forecastGridData": {
+        "@type": "@id"
       },
-      "heat_index": {
-        "unitCode": "wmoUnit:degC",
-        "value": 42.81502573398889,
-        "qualityControl": "V"
+      "publicZone": {
+        "@type": "@id"
       },
-      "wind_chill": {
-        "unitCode": "wmoUnit:degC",
-        "value": null,
-        "qualityControl": "V"
-      },
-      "text_description": "Mostly Clear",
-      "raw_message": "",
-      "station": "https://api.weather.gov/stations/KPHX",
-      "station_name": ""
-    },
-    {
-      "timestamp": "2026-08-25T21:00:00+00:00",
-      "offset_minutes": 0,
-      "temperature": {
-        "unitCode": "wmoUnit:degC",
-        "value": 45,
-        "qualityControl": "V"
-      },
-      "dewpoint": {
-        "unitCode": "wmoUnit:degC",
-        "value": 11,
-        "qualityControl": "V"
-      },
-      "wind_speed": {
-        "unitCode": "wmoUnit:km_h-1",
-        "value": 14.832,
-        "qualityControl": "V"
-      },
-      "wind_direction": {
-        "unitCode": "wmoUnit:degree_(angle)",
-        "value": 280,
-        "qualityControl": "V"
-      },
-      "relative_humidity": {
-        "unitCode": "wmoUnit:percent",
-        "value": 13.664668876908,
-        "qualityControl": "V"
-      },
-      "barometric_pressure": {
-        "unitCode": "wmoUnit:Pa",
-        "value": 100948.24,
-        "qualityControl": "V"
-      },
-      "visibility": {
-        "unitCode": "wmoUnit:m",
-        "value": 16093.44,
-        "qualityControl": "C"
-      },
-      "heat_index": {
-        "unitCode": "wmoUnit:degC",
-        "value": 43.78655290775,
-        "qualityControl": "V"
-      },
-      "wind_chill": {
-        "unitCode": "wmoUnit:degC",
-        "value": null,
-        "qualityControl": "V"
-      },
-      "text_description": "Mostly Clear",
-      "raw_message": "",
-      "station": "https://api.weather.gov/stations/KPHX",
-      "station_name": ""
-    },
-    {
-      "timestamp": "2026-08-25T20:55:00+00:00",
-      "offset_minutes": 5,
-      "temperature": {
-        "unitCode": "wmoUnit:degC",
-        "value": 44,
-        "qualityControl": "V"
-      },
-      "dewpoint": {
-        "unitCode": "wmoUnit:degC",
-        "value": 11,
-        "qualityControl": "V"
-      },
-      "wind_speed": {
-        "unitCode": "wmoUnit:km_h-1",
-        "value": 9.252,
-        "qualityControl": "V"
-      },
-      "wind_direction": {
-        "unitCode": "wmoUnit:degree_(angle)",
-        "value": 230,
-        "qualityControl": "V"
-      },
-      "relative_humidity": {
-        "unitCode": "wmoUnit:percent",
-        "value": 14.391292798498,
-        "qualityControl": "V"
-      },
-      "barometric_pressure": {
-        "unitCode": "wmoUnit:Pa",
-        "value": 100982.11,
-        "qualityControl": "V"
-      },
-      "visibility": {
-        "unitCode": "wmoUnit:m",
-        "value": 16093.44,
-        "qualityControl": "C"
-      },
-      "heat_index": {
-        "unitCode": "wmoUnit:degC",
-        "value": 42.81502573398889,
-        "qualityControl": "V"
-      },
-      "wind_chill": {
-        "unitCode": "wmoUnit:degC",
-        "value": null,
-        "qualityControl": "V"
-      },
-      "text_description": "Mostly Clear",
-      "raw_message": "",
-      "station": "https://api.weather.gov/stations/KPHX",
-      "station_name": ""
-    },
-    {
-      "timestamp": "2026-08-25T20:51:00+00:00",
-      "offset_minutes": 9,
-      "temperature": {
-        "unitCode": "wmoUnit:degC",
-        "value": 44.4,
-        "qualityControl": "V"
-      },
-      "dewpoint": {
-        "unitCode": "wmoUnit:degC",
-        "value": 11.1,
-        "qualityControl": "V"
-      },
-      "wind_speed": {
-        "unitCode": "wmoUnit:km_h-1",
-        "value": 12.96,
-        "qualityControl": "V"
-      },
-      "wind_direction": {
-        "unitCode": "wmoUnit:degree_(angle)",
-        "value": 220,
-        "qualityControl": "V"
-      },
-      "relative_humidity": {
-        "unitCode": "wmoUnit:percent",
-        "value": 14.189341016668,
-        "qualityControl": "V"
-      },
-      "barometric_pressure": {
-        "unitCode": "wmoUnit:Pa",
-        "value": 100980,
-        "qualityControl": "V"
-      },
-      "visibility": {
-        "unitCode": "wmoUnit:m",
-        "value": 16090,
-        "qualityControl": "C"
-      },
-      "heat_index": {
-        "unitCode": "wmoUnit:degC",
-        "value": 43.249624152866666,
-        "qualityControl": "V"
-      },
-      "wind_chill": {
-        "unitCode": "wmoUnit:degC",
-        "value": null,
-        "qualityControl": "V"
-      },
-      "text_description": "",
-      "raw_message": "",
-      "station": "https://api.weather.gov/stations/KPHX",
-      "station_name": ""
-    },
-    {
-      "timestamp": "2026-08-25T20:50:00+00:00",
-      "offset_minutes": 10,
-      "temperature": {
-        "unitCode": "wmoUnit:degC",
-        "value": 44,
-        "qualityControl": "V"
-      },
-      "dewpoint": {
-        "unitCode": "wmoUnit:degC",
-        "value": 11,
-        "qualityControl": "V"
-      },
-      "wind_speed": {
-        "unitCode": "wmoUnit:km_h-1",
-        "value": 9.252,
-        "qualityControl": "V"
-      },
-      "wind_direction": {
-        "unitCode": "wmoUnit:degree_(angle)",
-        "value": 220,
-        "qualityControl": "V"
-      },
-      "relative_humidity": {
-        "unitCode": "wmoUnit:percent",
-        "value": 14.391292798498,
-        "qualityControl": "V"
-      },
-      "barometric_pressure": {
-        "unitCode": "wmoUnit:Pa",
-        "value": 100982.11,
-        "qualityControl": "V"
-      },
-      "visibility": {
-        "unitCode": "wmoUnit:m",
-        "value": 16093.44,
-        "qualityControl": "C"
-      },
-      "heat_index": {
-        "unitCode": "wmoUnit:degC",
-        "value": 42.81502573398889,
-        "qualityControl": "V"
-      },
-      "wind_chill": {
-        "unitCode": "wmoUnit:degC",
-        "value": null,
-        "qualityControl": "V"
-      },
-      "text_description": "Mostly Clear",
-      "raw_message": "",
-      "station": "https://api.weather.gov/stations/KPHX",
-      "station_name": ""
+      "county": {
+        "@type": "@id"
+      }
     }
-  ]
+  ],
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T21:05:00+00:00",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -112.02,
+          33.43
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T21:05:00+00:00",
+        "@type": "wx:ObservationStation",
+        "elevation": {
+          "unitCode": "wmoUnit:m",
+          "value": 337
+        },
+        "station": "https://api.weather.gov/stations/KPHX",
+        "stationId": "KPHX",
+        "stationName": "Phoenix, Phoenix Sky Harbor International Airport",
+        "timestamp": "2026-08-25T21:05:00+00:00",
+        "rawMessage": "",
+        "textDescription": "Mostly Clear",
+        "icon": "https://api.weather.gov/icons/land/day/few?size=medium",
+        "presentWeather": [],
+        "temperature": {
+          "unitCode": "wmoUnit:degC",
+          "value": 44,
+          "qualityControl": "V"
+        },
+        "dewpoint": {
+          "unitCode": "wmoUnit:degC",
+          "value": 11,
+          "qualityControl": "V"
+        },
+        "windDirection": {
+          "unitCode": "wmoUnit:degree_(angle)",
+          "value": 290,
+          "qualityControl": "V"
+        },
+        "windSpeed": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": 7.416,
+          "qualityControl": "V"
+        },
+        "windGust": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "barometricPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": 100948.24,
+          "qualityControl": "V"
+        },
+        "seaLevelPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "visibility": {
+          "unitCode": "wmoUnit:m",
+          "value": 16093.44,
+          "qualityControl": "C"
+        },
+        "maxTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "minTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "precipitationLast3Hours": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "relativeHumidity": {
+          "unitCode": "wmoUnit:percent",
+          "value": 14.391292798498,
+          "qualityControl": "V"
+        },
+        "windChill": {
+          "unitCode": "wmoUnit:degC",
+          "value": null,
+          "qualityControl": "V"
+        },
+        "heatIndex": {
+          "unitCode": "wmoUnit:degC",
+          "value": 42.81502573398889,
+          "qualityControl": "V"
+        },
+        "cloudLayers": [
+          {
+            "base": {
+              "unitCode": "wmoUnit:m",
+              "value": 2438.4
+            },
+            "amount": "FEW"
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T21:00:00+00:00",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -112.02,
+          33.43
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T21:00:00+00:00",
+        "@type": "wx:ObservationStation",
+        "elevation": {
+          "unitCode": "wmoUnit:m",
+          "value": 337
+        },
+        "station": "https://api.weather.gov/stations/KPHX",
+        "stationId": "KPHX",
+        "stationName": "Phoenix, Phoenix Sky Harbor International Airport",
+        "timestamp": "2026-08-25T21:00:00+00:00",
+        "rawMessage": "",
+        "textDescription": "Mostly Clear",
+        "icon": "https://api.weather.gov/icons/land/day/few?size=medium",
+        "presentWeather": [],
+        "temperature": {
+          "unitCode": "wmoUnit:degC",
+          "value": 45,
+          "qualityControl": "V"
+        },
+        "dewpoint": {
+          "unitCode": "wmoUnit:degC",
+          "value": 11,
+          "qualityControl": "V"
+        },
+        "windDirection": {
+          "unitCode": "wmoUnit:degree_(angle)",
+          "value": 280,
+          "qualityControl": "V"
+        },
+        "windSpeed": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": 14.832,
+          "qualityControl": "V"
+        },
+        "windGust": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "barometricPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": 100948.24,
+          "qualityControl": "V"
+        },
+        "seaLevelPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "visibility": {
+          "unitCode": "wmoUnit:m",
+          "value": 16093.44,
+          "qualityControl": "C"
+        },
+        "maxTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "minTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "precipitationLast3Hours": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "relativeHumidity": {
+          "unitCode": "wmoUnit:percent",
+          "value": 13.664668876908,
+          "qualityControl": "V"
+        },
+        "windChill": {
+          "unitCode": "wmoUnit:degC",
+          "value": null,
+          "qualityControl": "V"
+        },
+        "heatIndex": {
+          "unitCode": "wmoUnit:degC",
+          "value": 43.78655290775,
+          "qualityControl": "V"
+        },
+        "cloudLayers": [
+          {
+            "base": {
+              "unitCode": "wmoUnit:m",
+              "value": 2438.4
+            },
+            "amount": "FEW"
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T20:55:00+00:00",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -112.02,
+          33.43
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T20:55:00+00:00",
+        "@type": "wx:ObservationStation",
+        "elevation": {
+          "unitCode": "wmoUnit:m",
+          "value": 337
+        },
+        "station": "https://api.weather.gov/stations/KPHX",
+        "stationId": "KPHX",
+        "stationName": "Phoenix, Phoenix Sky Harbor International Airport",
+        "timestamp": "2026-08-25T20:55:00+00:00",
+        "rawMessage": "",
+        "textDescription": "Mostly Clear",
+        "icon": "https://api.weather.gov/icons/land/day/few?size=medium",
+        "presentWeather": [],
+        "temperature": {
+          "unitCode": "wmoUnit:degC",
+          "value": 44,
+          "qualityControl": "V"
+        },
+        "dewpoint": {
+          "unitCode": "wmoUnit:degC",
+          "value": 11,
+          "qualityControl": "V"
+        },
+        "windDirection": {
+          "unitCode": "wmoUnit:degree_(angle)",
+          "value": 230,
+          "qualityControl": "V"
+        },
+        "windSpeed": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": 9.252,
+          "qualityControl": "V"
+        },
+        "windGust": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "barometricPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": 100982.11,
+          "qualityControl": "V"
+        },
+        "seaLevelPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "visibility": {
+          "unitCode": "wmoUnit:m",
+          "value": 16093.44,
+          "qualityControl": "C"
+        },
+        "maxTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "minTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "precipitationLast3Hours": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "relativeHumidity": {
+          "unitCode": "wmoUnit:percent",
+          "value": 14.391292798498,
+          "qualityControl": "V"
+        },
+        "windChill": {
+          "unitCode": "wmoUnit:degC",
+          "value": null,
+          "qualityControl": "V"
+        },
+        "heatIndex": {
+          "unitCode": "wmoUnit:degC",
+          "value": 42.81502573398889,
+          "qualityControl": "V"
+        },
+        "cloudLayers": [
+          {
+            "base": {
+              "unitCode": "wmoUnit:m",
+              "value": 2438.4
+            },
+            "amount": "FEW"
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T20:51:00+00:00",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -112.02,
+          33.43
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T20:51:00+00:00",
+        "@type": "wx:ObservationStation",
+        "elevation": {
+          "unitCode": "wmoUnit:m",
+          "value": 337
+        },
+        "station": "https://api.weather.gov/stations/KPHX",
+        "stationId": "KPHX",
+        "stationName": "Phoenix, Phoenix Sky Harbor International Airport",
+        "timestamp": "2026-08-25T20:51:00+00:00",
+        "rawMessage": "",
+        "textDescription": "",
+        "icon": null,
+        "presentWeather": [],
+        "temperature": {
+          "unitCode": "wmoUnit:degC",
+          "value": 44.4,
+          "qualityControl": "V"
+        },
+        "dewpoint": {
+          "unitCode": "wmoUnit:degC",
+          "value": 11.1,
+          "qualityControl": "V"
+        },
+        "windDirection": {
+          "unitCode": "wmoUnit:degree_(angle)",
+          "value": 220,
+          "qualityControl": "V"
+        },
+        "windSpeed": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": 12.96,
+          "qualityControl": "V"
+        },
+        "windGust": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "barometricPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": 100980,
+          "qualityControl": "V"
+        },
+        "seaLevelPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": 100730,
+          "qualityControl": "V"
+        },
+        "visibility": {
+          "unitCode": "wmoUnit:m",
+          "value": 16090,
+          "qualityControl": "C"
+        },
+        "maxTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "minTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "precipitationLastHour": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "precipitationLast3Hours": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "precipitationLast6Hours": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "relativeHumidity": {
+          "unitCode": "wmoUnit:percent",
+          "value": 14.189341016668,
+          "qualityControl": "V"
+        },
+        "windChill": {
+          "unitCode": "wmoUnit:degC",
+          "value": null,
+          "qualityControl": "V"
+        },
+        "heatIndex": {
+          "unitCode": "wmoUnit:degC",
+          "value": 43.249624152866666,
+          "qualityControl": "V"
+        },
+        "cloudLayers": []
+      }
+    },
+    {
+      "id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T20:50:00+00:00",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -112.02,
+          33.43
+        ]
+      },
+      "properties": {
+        "@id": "https://api.weather.gov/stations/KPHX/observations/2026-08-25T20:50:00+00:00",
+        "@type": "wx:ObservationStation",
+        "elevation": {
+          "unitCode": "wmoUnit:m",
+          "value": 337
+        },
+        "station": "https://api.weather.gov/stations/KPHX",
+        "stationId": "KPHX",
+        "stationName": "Phoenix, Phoenix Sky Harbor International Airport",
+        "timestamp": "2026-08-25T20:50:00+00:00",
+        "rawMessage": "",
+        "textDescription": "Mostly Clear",
+        "icon": "https://api.weather.gov/icons/land/day/few?size=medium",
+        "presentWeather": [],
+        "temperature": {
+          "unitCode": "wmoUnit:degC",
+          "value": 44,
+          "qualityControl": "V"
+        },
+        "dewpoint": {
+          "unitCode": "wmoUnit:degC",
+          "value": 11,
+          "qualityControl": "V"
+        },
+        "windDirection": {
+          "unitCode": "wmoUnit:degree_(angle)",
+          "value": 220,
+          "qualityControl": "V"
+        },
+        "windSpeed": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": 9.252,
+          "qualityControl": "V"
+        },
+        "windGust": {
+          "unitCode": "wmoUnit:km_h-1",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "barometricPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": 100982.11,
+          "qualityControl": "V"
+        },
+        "seaLevelPressure": {
+          "unitCode": "wmoUnit:Pa",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "visibility": {
+          "unitCode": "wmoUnit:m",
+          "value": 16093.44,
+          "qualityControl": "C"
+        },
+        "maxTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "minTemperatureLast24Hours": {
+          "unitCode": "wmoUnit:degC",
+          "value": null
+        },
+        "precipitationLast3Hours": {
+          "unitCode": "wmoUnit:mm",
+          "value": null,
+          "qualityControl": "Z"
+        },
+        "relativeHumidity": {
+          "unitCode": "wmoUnit:percent",
+          "value": 14.391292798498,
+          "qualityControl": "V"
+        },
+        "windChill": {
+          "unitCode": "wmoUnit:degC",
+          "value": null,
+          "qualityControl": "V"
+        },
+        "heatIndex": {
+          "unitCode": "wmoUnit:degC",
+          "value": 42.81502573398889,
+          "qualityControl": "V"
+        },
+        "cloudLayers": [
+          {
+            "base": {
+              "unitCode": "wmoUnit:m",
+              "value": 2438.4
+            },
+            "amount": "FEW"
+          }
+        ]
+      }
+    }
+  ],
+  "pagination": {
+    "next": "https://api.weather.gov/stations/KPHX/observations?cursor=eyJzIjoiMjAyNi0wOC0yNVQyMDo1MDowMCswMDowMCJ9"
+  }
 }

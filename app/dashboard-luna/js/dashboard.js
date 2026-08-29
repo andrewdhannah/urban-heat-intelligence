@@ -205,8 +205,10 @@ function renderHistoricalNwsContext(payload) {
   if (!banner || payload?.mode !== 'replay') { banner.hidden = true; return; }
   const obs = payload?.historical_nws_obs;
   const ha = payload?.historical_alerts;
-  const hasObs = obs && obs.temperature_celsius != null;
-  const hasAlerts = ha && ha.alerts && ha.alerts.length > 0;
+  const tempVal = obs?.temperature?.value;
+  const hasObs = tempVal != null;
+  const cp = ha?.consumer_projection;
+  const hasAlerts = cp && cp.active_hazards && cp.active_hazards.length > 0;
   if (!hasObs && !hasAlerts) { banner.hidden = true; return; }
 
   banner.hidden = false;
@@ -219,27 +221,27 @@ function renderHistoricalNwsContext(payload) {
   // Station observation (primary for "what was the weather" question)
   if (hasObs) {
     const temp = document.createElement('div'); temp.className = 'nws-temp';
-    temp.textContent = `${tempD(obs.temperature_celsius)} · ${obs.text_description || '—'}`;
+    temp.textContent = `${tempD(tempVal)} · ${obs.text_description || '—'}`;
     const detail = document.createElement('div'); detail.className = 'nws-detail';
-    detail.textContent = `Station: ${obs.station || 'KPHX'} · ${obs.observation_timestamp || '—'} (≈${obs.offset_minutes || 0} min from Replay time)`;
+    detail.textContent = `Station: ${obs.station_identifier || 'KPHX'} · ${obs.observation_timestamp || '—'} (≈${obs.offset_minutes || 0} min from Replay time)`;
     banner.append(temp, detail);
-    if (obs.wind_speed_ms != null) {
+    const windVal = obs.wind_speed?.value;
+    const windDir = obs.wind_direction?.value;
+    const humVal = obs.relative_humidity?.value;
+    if (windVal != null || humVal != null) {
       const wind = document.createElement('div'); wind.className = 'nws-detail';
-      wind.textContent = `Wind: ${obs.wind_speed_ms} km/h from ${obs.wind_direction_deg || '—'}° · Humidity: ${obs.relative_humidity_pct != null ? num(obs.relative_humidity_pct, 0, '%') : '—'}`;
+      wind.textContent = `Wind: ${windVal != null ? `${windVal} ${obs.wind_speed.unitCode?.replace('wmoUnit:', '') || ''}` : '—'} from ${windDir || '—'}° · Humidity: ${humVal != null ? num(humVal, 0, '%') : '—'}`;
       banner.append(wind);
     }
   }
 
   // Deduplicated hazard context
   if (hasAlerts) {
-    const cp = ha.consumer_projection || {};
-    const hazards = cp.active_hazards || [];
-    if (hazards.length > 0) {
-      const hazLabel = document.createElement('div'); hazLabel.className = 'nws-detail';
-      hazLabel.style.marginTop = '6px';
-      hazLabel.textContent = `Active conditions: ${hazards.map(h => h.event).join(' and ')} (${hazards.length} concurrent hazard${hazards.length > 1 ? 's' : ''}, from ${cp.raw_message_count || ha.alerts.length} NWS messages)`;
-      banner.append(hazLabel);
-    }
+    const hazards = cp.active_hazards;
+    const hazLabel = document.createElement('div'); hazLabel.className = 'nws-detail';
+    hazLabel.style.marginTop = '6px';
+    hazLabel.textContent = `Active conditions: ${hazards.map(h => h.event).join(' and ')} (${hazards.length} concurrent hazard${hazards.length > 1 ? 's' : ''}, from ${cp.raw_message_count || 0} NWS messages)`;
+    banner.append(hazLabel);
   }
 
   const disc = document.createElement('div'); disc.className = 'nws-disclosure';

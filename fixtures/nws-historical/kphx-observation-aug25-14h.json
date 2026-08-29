@@ -11,46 +11,59 @@
     "target_time_local": "2026-08-25T14:00:00-07:00",
     "selected_observation": "2026-08-25T21:00:00+00:00",
     "offset_minutes": 0,
-    "selection_rule": "minimum absolute distance from target; exact match wins",
-    "retrieved_at": "2026-08-29T02:06:01.257113+00:00"
+    "selection_rule": "minimum absolute distance from target; exact match wins; at-or-before tie",
+    "retrieved_at": "2026-08-29T02:39:00.411116+00:00"
   },
   "observation": {
     "timestamp": "2026-08-25T21:00:00+00:00",
     "temperature": {
+      "unitCode": "wmoUnit:degC",
       "value": 45,
-      "unitCode": "wmoUnit:degC"
+      "qualityControl": "V"
     },
     "dewpoint": {
-      "value": 14.4,
-      "unitCode": "wmoUnit:degC"
+      "unitCode": "wmoUnit:degC",
+      "value": 11,
+      "qualityControl": "V"
     },
     "wind_speed": {
+      "unitCode": "wmoUnit:km_h-1",
       "value": 14.832,
-      "unitCode": "wmoUnit:km_h-1"
+      "qualityControl": "V"
     },
     "wind_direction": {
+      "unitCode": "wmoUnit:degree_(angle)",
       "value": 280,
-      "unitCode": "wmoUnit:degree_(angle)"
+      "qualityControl": "V"
     },
     "relative_humidity": {
+      "unitCode": "wmoUnit:percent",
       "value": 13.664668876908,
-      "unitCode": "wmoUnit:percent"
+      "qualityControl": "V"
     },
     "barometric_pressure": {
-      "value": 100560,
-      "unitCode": "wmoUnit:Pa"
+      "unitCode": "wmoUnit:Pa",
+      "value": 100948.24,
+      "qualityControl": "V"
     },
     "visibility": {
-      "value": 16090,
-      "unitCode": "wmoUnit:m"
+      "unitCode": "wmoUnit:m",
+      "value": 16093.44,
+      "qualityControl": "C"
     },
     "heat_index": {
-      "value": 43.11,
-      "unitCode": "wmoUnit:degC"
+      "unitCode": "wmoUnit:degC",
+      "value": 43.78655290775,
+      "qualityControl": "V"
+    },
+    "wind_chill": {
+      "unitCode": "wmoUnit:degC",
+      "value": null,
+      "qualityControl": "V"
     },
     "text_description": "Mostly Clear",
-    "raw_message": "KPHX 252100Z 28014KT 10SM SKC 45/14 A2969",
-    "station": "KPHX"
+    "raw_message": "",
+    "station": "https://api.weather.gov/stations/KPHX"
   },
   "station_metadata": {
     "station_identifier": "KPHX",
@@ -61,12 +74,19 @@
   "provenance": {
     "provider": "NWS",
     "endpoint": "/stations/KPHX/observations",
+    "query_params": {
+      "start": "2026-08-25T20:50:00Z",
+      "end": "2026-08-25T21:10:00Z",
+      "limit": "10"
+    },
     "station_identifier": "KPHX",
     "data_type": "station_observation",
     "measurement_type": "air_temperature_at_station",
-    "note": "NWS station air temperature is a point measurement of air temperature. FortyGuard thermal-cell value is a measured surface/thermal value for a spatial cell. They are different physical measurements.",
+    "note": "NWS station air temperature is a point measurement. FortyGuard thermal-cell value is a measured surface/thermal value for a spatial cell. Different physical measurements.",
     "used_in_decision": false,
-    "temporal_relationship": "contemporaneous_with_replay"
-  },
-  "raw_window_fixture": "fixtures/nws-historical/kphx-raw-window-aug25.json"
+    "raw_source_fixture": "fixtures/nws-historical/kphx-raw-window-aug25.json",
+    "raw_source_hash": "a1c8ac9f36f5aa90d6734f67a7d9e91f2a0cc95ca45e7da2bbcd60c12ea65289",
+    "normalization": "values derived directly from NWS API response properties; no manual transformation",
+    "retrieved_at": "2026-08-29T02:39:00.411412+00:00"
+  }
 }

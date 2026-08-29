@@ -257,163 +257,122 @@ def test_replay_fixture_integrity():
     print("  PASS: test_replay_fixture_integrity")
 
 
-# === R3: Historical NWS selection ===
+# === R4: Executable payload tests ===
 
-def test_exact_21h_observation_wins():
-    """Exact 21:00 UTC observation is selected over 21:15."""
-    import json
-    from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
-    assert data["query"]["selected_observation"] == "2026-08-25T21:00:00+00:00", \
-        f"Expected exact 21:00 UTC, got {data['query']['selected_observation']}"
-    assert data["query"]["offset_minutes"] == 0, \
-        f"Expected 0 offset, got {data['query']['offset_minutes']}"
-    print("  PASS: test_exact_21h_observation_wins")
-
-
-def test_selection_rule_documented():
-    """Selection rule is explicitly documented in fixture."""
-    import json
-    from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
-    rule = data["query"].get("selection_rule", "")
-    assert "minimum" in rule.lower() or "distance" in rule.lower(), \
-        f"Selection rule not documented: {rule}"
-    assert "exact" in rule.lower(), f"Exact-match rule not documented: {rule}"
-    print("  PASS: test_selection_rule_documented")
+def _get_replay_payload():
+    """Helper: execute the full Replay pipeline and return the payload."""
+    import sys
+    sys.path.insert(0, '.')
+    from src.agent.adapter import FortyGuardAdapter
+    from src.agent.controller import HeatAgent
+    from app.server import build_visualization_payload
+    adapter = FortyGuardAdapter(mode='replay')
+    agent = HeatAgent(adapter, mode='replay')
+    result = agent.answer('Where should Phoenix prioritize a cooling intervention this afternoon?')
+    return build_visualization_payload(result)
 
 
-def test_provider_unit_codes_preserved():
-    """Provider unitCode metadata is preserved in raw fixture."""
-    import json
-    from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
-    obs = data["observation"]
-    assert "unitCode" in obs["temperature"], "temperature unitCode missing"
-    assert "unitCode" in obs["wind_speed"], "wind_speed unitCode missing"
-    assert "unitCode" in obs["relative_humidity"], "humidity unitCode missing"
-    assert "wmoUnit" in obs["temperature"]["unitCode"], \
-        f"Unexpected temperature unit: {obs['temperature']['unitCode']}"
-    print("  PASS: test_provider_unit_codes_preserved")
+def test_payload_historical_nws_obs_present():
+    """Replay payload includes historical_nws_obs with correct structure."""
+    payload = _get_replay_payload()
+    obs = payload.get("historical_nws_obs")
+    assert obs is not None, "historical_nws_obs missing from payload"
+    assert obs["station_identifier"] == "KPHX"
+    assert obs["observation_timestamp"] == "2026-08-25T21:00:00+00:00"
+    print("  PASS: test_payload_historical_nws_obs_present")
 
 
-def test_raw_window_fixture_exists():
-    """Raw window fixture preserves all candidate observations."""
-    import json
-    from pathlib import Path
-    raw_path = Path("fixtures/nws-historical/kphx-raw-window-aug25.json")
-    assert raw_path.exists(), "Raw window fixture missing"
-    data = json.loads(raw_path.read_text())
-    assert "observations" in data
-    assert len(data["observations"]) >= 3, \
-        f"Expected multiple observations, got {len(data['observations'])}"
-    print("  PASS: test_raw_window_fixture_exists")
+def test_payload_observation_has_provider_units():
+    """Observation values have correct provider unitCode metadata."""
+    payload = _get_replay_payload()
+    obs = payload["historical_nws_obs"]
+    assert obs["temperature"]["value"] == 45
+    assert "wmoUnit" in obs["temperature"]["unitCode"]
+    assert obs["wind_speed"]["value"] == 14.832
+    assert "wmoUnit" in obs["wind_speed"]["unitCode"]
+    assert obs["relative_humidity"]["value"] is not None
+    assert "wmoUnit" in obs["relative_humidity"]["unitCode"]
+    print("  PASS: test_payload_observation_has_provider_units")
 
 
-# === R3: Station metadata ===
-
-def test_station_identity_vs_text_description():
-    """Station identifier and weather text are stored separately."""
-    import json
-    from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
-    assert data["station_metadata"]["station_identifier"] == "KPHX"
-    assert data["station_metadata"]["text_description"] == "Mostly Clear"
-    # station_name should NOT be the weather description
-    assert data["station_metadata"]["station_name"] is None or \
-           data["station_metadata"]["station_name"] != "Mostly Clear", \
-        "station_name is incorrectly set to weather description"
-    print("  PASS: test_station_identity_vs_text_description")
+def test_payload_observation_used_in_decision_false():
+    """Historical NWS observation carries used_in_decision=false."""
+    payload = _get_replay_payload()
+    obs = payload["historical_nws_obs"]
+    assert obs["used_in_decision"] is False
+    print("  PASS: test_payload_observation_used_in_decision_false")
 
 
-# === R3: Alert deduplication ===
-
-def test_alert_raw_messages_preserved():
-    """All 4 raw NWS messages remain preserved."""
-    import json
-    from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/phoenix-aug25-alerts.json").read_text())
-    assert len(data["aug25_alerts"]) == 4, \
-        f"Expected 4 raw messages, got {len(data['aug25_alerts'])}"
-    print("  PASS: test_alert_raw_messages_preserved")
-
-
-def test_alert_consumer_projection_deduplicates():
-    """Consumer projection shows 2 distinct concurrent hazards from 4 raw messages."""
-    import json
-    from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/phoenix-aug25-alerts.json").read_text())
-    cp = data.get("consumer_projection", {})
-    assert cp.get("raw_message_count") == 4
-    assert cp.get("distinct_hazard_count") == 2
+def test_payload_historical_alerts_structure():
+    """Replay payload includes historical_alerts with consumer projection."""
+    payload = _get_replay_payload()
+    ha = payload.get("historical_alerts")
+    assert ha is not None, "historical_alerts missing from payload"
+    assert ha["used_in_decision"] is False
+    cp = ha.get("consumer_projection", {})
+    assert cp["raw_message_count"] == 4
+    assert cp["distinct_hazard_count"] == 2
     hazards = cp.get("active_hazards", [])
     assert len(hazards) == 2
-    hazard_types = sorted([h["event"] for h in hazards])
-    assert "Air Quality Alert" in hazard_types
-    assert "Extreme Heat Warning" in hazard_types
-    print("  PASS: test_alert_consumer_projection_deduplicates")
+    types = sorted([h["event"] for h in hazards])
+    assert "Air Quality Alert" in types
+    assert "Extreme Heat Warning" in types
+    for h in hazards:
+        assert h["used_in_decision"] is False
+    print("  PASS: test_payload_historical_alerts_structure")
 
 
-def test_hazard_used_in_decision_false():
-    """All consumer-projected hazards carry used_in_decision=false."""
+def test_payload_wind_matches_raw_provider():
+    """Payload wind matches the authoritative NWS API response."""
+    payload = _get_replay_payload()
+    obs = payload["historical_nws_obs"]
+    # API returned wind_speed 14.832 km/h, direction 280°
+    assert obs["wind_speed"]["value"] == 14.832
+    assert obs["wind_speed"]["unitCode"] == "wmoUnit:km_h-1"
+    assert obs["wind_direction"]["value"] == 280
+    print("  PASS: test_payload_wind_matches_raw_provider")
+
+
+def test_payload_raw_window_matches_normalized():
+    """Raw window fixture and normalized fixture agree on the selected observation."""
     import json
     from pathlib import Path
-    data = json.loads(Path("fixtures/nws-historical/phoenix-aug25-alerts.json").read_text())
-    for h in data.get("consumer_projection", {}).get("active_hazards", []):
-        assert h["used_in_decision"] is False, \
-            f"Hazard {h['event']} has used_in_decision != False"
-    print("  PASS: test_hazard_used_in_decision_false")
+    raw = json.loads(Path("fixtures/nws-historical/kphx-raw-window-aug25.json").read_text())
+    norm = json.loads(Path("fixtures/nws-historical/kphx-observation-aug25-14h.json").read_text())
+    # Find 21:00 in raw
+    raw_21h = None
+    for f in raw.get("features", []):
+        props = f.get("properties", {})
+        if props.get("timestamp") == "2026-08-25T21:00:00+00:00":
+            raw_21h = props
+            break
+    assert raw_21h is not None, "21:00 UTC not found in raw fixture"
+    norm_obs = norm["observation"]
+    assert raw_21h["temperature"]["value"] == norm_obs["temperature"]["value"]
+    assert raw_21h["windSpeed"]["value"] == norm_obs["wind_speed"]["value"]
+    assert raw_21h["dewpoint"]["value"] == norm_obs["dewpoint"]["value"]
+    assert raw_21h["barometricPressure"]["value"] == norm_obs["barometric_pressure"]["value"]
+    print("  PASS: test_payload_raw_window_matches_normalized")
 
 
-# === R3: Combined rendering ===
+# === R4: Wind semantic check ===
 
-def test_combined_historical_context_in_server():
-    """Server.py loads both historical_nws_obs and historical_alerts for Replay."""
-    server_code = open("app/server.py").read()
-    assert "historical_nws_obs" in server_code
-    assert "historical_alerts" in server_code
-    # Verify the combined rendering function exists in JS
-    js_code = open("app/dashboard-luna/js/dashboard.js").read()
-    assert "renderHistoricalNwsContext" in js_code
-    # Old separate functions should not be called
-    assert "renderHistoricalNwsObs(" not in js_code or "function renderHistoricalNwsObs" not in js_code
-    assert "renderHistoricalAlerts(" not in js_code or "function renderHistoricalAlerts" not in js_code
-    print("  PASS: test_combined_historical_context_in_server")
-
-
-# === R3: Provenance ===
-
-def test_replay_provenance_includes_historical():
-    """Replay provenance reflects that historical NWS is included."""
-    server_code = open("app/server.py").read()
-    assert "frozen contemporaneous historical" in server_code.lower() or \
-           "historical station observation" in server_code.lower(), \
-        "Replay provenance does not reflect included historical NWS"
-    print("  PASS: test_replay_provenance_includes_historical")
-
-
-# === R3: Weather answer ===
-
-def test_weather_answer_includes_station_obs():
-    """'What was the weather' answer includes station observation, not just alerts."""
-    js_code = open("app/dashboard-luna/js/dashboard.js").read()
-    # The weather intent for Replay should reference station observation
-    assert "tempD(obs.temperature_celsius)" in js_code or "station KPHX observed" in js_code, \
-        "Weather answer does not reference station observation"
-    print("  PASS: test_weather_answer_includes_station_obs")
+def test_wind_speed_provider_unit_preserved():
+    """Wind speed unitCode is km/h from provider, not knots."""
+    payload = _get_replay_payload()
+    obs = payload["historical_nws_obs"]
+    ws = obs["wind_speed"]
+    assert ws["unitCode"] == "wmoUnit:km_h-1", f"Unexpected wind unit: {ws['unitCode']}"
+    assert ws["value"] == 14.832
+    print("  PASS: test_wind_speed_provider_unit_preserved")
 
 
 if __name__ == "__main__":
-    # ... existing tests ...
-    test_exact_21h_observation_wins()
-    test_selection_rule_documented()
-    test_provider_unit_codes_preserved()
-    test_raw_window_fixture_exists()
-    test_station_identity_vs_text_description()
-    test_alert_raw_messages_preserved()
-    test_alert_consumer_projection_deduplicates()
-    test_hazard_used_in_decision_false()
-    test_combined_historical_context_in_server()
-    test_replay_provenance_includes_historical()
-    test_weather_answer_includes_station_obs()
-    print("\nAll R3 tests passed.")
+    test_payload_historical_nws_obs_present()
+    test_payload_observation_has_provider_units()
+    test_payload_observation_used_in_decision_false()
+    test_payload_historical_alerts_structure()
+    test_payload_wind_matches_raw_provider()
+    test_payload_raw_window_matches_normalized()
+    test_wind_speed_provider_unit_preserved()
+    print("\nAll R4 payload tests passed.")
