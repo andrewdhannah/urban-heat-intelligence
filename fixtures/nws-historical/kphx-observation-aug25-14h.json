@@ -1,0 +1,40 @@
+{
+  "query": {
+    "endpoint": "/stations/KPHX/observations",
+    "params": {
+      "start": "2026-08-25T20:00:00Z",
+      "end": "2026-08-25T22:00:00Z",
+      "limit": "10"
+    },
+    "station": "KPHX",
+    "station_name": "Mostly Clear",
+    "target_time_utc": "2026-08-25T21:00:00+00:00",
+    "target_time_local": "2026-08-25T14:00:00-07:00",
+    "selected_observation": "2026-08-25T21:15:00+00:00",
+    "offset_minutes": 15,
+    "retrieved_at": "2026-08-29T01:17:54.509276+00:00"
+  },
+  "observation": {
+    "timestamp": "2026-08-25T21:15:00+00:00",
+    "temperature_celsius": 45,
+    "dewpoint_celsius": 11,
+    "wind_speed_ms": 18.504,
+    "wind_direction_deg": 260,
+    "relative_humidity_pct": 13.664668876908,
+    "barometric_pressure_pa": 100948.24,
+    "visibility_m": 16093.44,
+    "heat_index_celsius": 43.78655290775,
+    "text_description": "Mostly Clear",
+    "raw_message": ""
+  },
+  "provenance": {
+    "provider": "NWS",
+    "endpoint": "/stations/KPHX/observations",
+    "station_identifier": "KPHX",
+    "data_type": "station_observation",
+    "measurement_type": "air_temperature_at_station",
+    "note": "NWS station air temperature is a point measurement of air temperature. FortyGuard thermal-cell value is a measured surface/thermal value for a spatial cell. They are different physical measurements.",
+    "used_in_decision": false,
+    "temporal_relationship": "contemporaneous_with_replay"
+  }
+}

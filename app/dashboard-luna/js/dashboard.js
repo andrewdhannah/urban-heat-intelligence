@@ -45,7 +45,7 @@ function colorFor(value, min, max) { const t = max === min ? .5 : Math.max(0, Ma
 function renderMap(payload) {
   initMap(); clearMap(); state.map.getContainer().classList.toggle('basemap-monochrome', state.basemap === 'monochrome'); const features = Array.isArray(payload?.heatmap?.features) ? payload.heatmap.features : []; window.__lunaHeatmapFeatureCount = features.length;
   const values = features.map(featureTemp).filter(Number.isFinite); const min = values.length ? Math.min(...values) : null; const max = values.length ? Math.max(...values) : null;
-  text($('legend-min'), num(state.unit === 'F' ? toF(min) : min, 1)); text($('legend-max'), num(state.unit === 'F' ? toF(max) : max, 1)); if (!features.length) { text($('map-loading'), 'No usable measured field for this mode.'); return; }
+  text($('legend-min'), num(state.unit === 'F' ? toF(min) : min, 1)); text($('legend-max'), num(state.unit === 'F' ? toF(max) : max, 1)); text($('legend-unit'), unitSymbol()); if (!features.length) { text($('map-loading'), 'No usable measured field for this mode.'); return; }
   const cellWeight = 0.5;
   const cellColor = 'rgba(255,255,255,.50)';
   const cellFillOpacity = state.heatOpacity;
@@ -138,6 +138,7 @@ function clearResultSurfaces(message = 'Waiting for usable evidence.') {
   closeSourcePopovers();
   text($('legend-min'), '—');
   text($('legend-max'), '—');
+  text($('legend-unit'), unitSymbol());
   text($('stat-mean'), '—');
   text($('stat-range'), '—');
   text($('stat-cells'), '—');
@@ -185,8 +186,9 @@ function renderNwsForecast(payload) {
   const label = document.createElement('span'); label.className = 'nws-label'; label.textContent = 'NWS FORECAST · SUPPLEMENTAL · NOT USED TO RANK';
   banner.append(label);
   if (cond) {
+    const nwsTempC = cond.temperature_f != null ? (cond.temperature_f - 32) * 5 / 9 : null;
     const temp = document.createElement('div'); temp.className = 'nws-temp';
-    temp.textContent = `${cond.temperature_f || '—'}°${cond.temperature_unit || 'F'} · ${cond.short_forecast || '—'}`;
+    temp.textContent = `${tempD(nwsTempC)} · ${cond.short_forecast || '—'}`;
     const detail = document.createElement('div'); detail.className = 'nws-detail';
     detail.textContent = `Wind: ${cond.wind_speed || '—'} ${cond.wind_direction || ''} · Period: ${cond.period_name || '—'}`;
     banner.append(temp, detail);
@@ -197,6 +199,47 @@ function renderNwsForecast(payload) {
   const disc = document.createElement('div'); disc.className = 'nws-disclosure'; disc.textContent = 'Forecast-period data from NWS — not a station observation. FortyGuard measured thermal field determines candidate ranking.';
   banner.append(disc);
 }
+// P1-R1: Historical NWS station observation for Replay — fixture only, no network
+function renderHistoricalNwsObs(payload) {
+  const banner = $('nws-forecast-banner');
+  if (!banner || payload?.mode !== 'replay') return;
+  const obs = payload?.historical_nws_obs;
+  if (!obs) return;
+  // Don't override if already rendered by historical alerts
+  if (!banner.hidden) return;
+  banner.hidden = false;
+  banner.replaceChildren();
+  const label = document.createElement('span'); label.className = 'nws-label'; label.textContent = 'NWS STATION OBSERVATION · REPLAY · NOT USED TO RANK';
+  banner.append(label);
+  const temp = document.createElement('div'); temp.className = 'nws-temp';
+  temp.textContent = `${obs.temperature_celsius != null ? tempD(obs.temperature_celsius) : '—'} · ${obs.text_description || '—'}`;
+  const detail = document.createElement('div'); detail.className = 'nws-detail';
+  detail.textContent = `Station: ${obs.station || 'KPHX'} · Obs: ${obs.observation_timestamp || '—'} (≈${obs.offset_minutes || '—'} min from Replay time) · Wind: ${obs.wind_speed_ms || '—'} m/s`;
+  const disc = document.createElement('div'); disc.className = 'nws-disclosure';
+  disc.textContent = 'NWS station air temperature ≠ FortyGuard thermal-cell temperature. Station observation is a point measurement; FortyGuard measures spatial thermal burden. Not used to rank.';
+  banner.append(temp, detail, disc);
+}
+// P1-R1: Historical alerts for Replay — fixture only, no network
+function renderHistoricalAlerts(payload) {
+  const banner = $('nws-forecast-banner');
+  if (!banner || !banner.hidden) return; // Don't override existing NWS banner (Live)
+  const ha = payload?.historical_alerts;
+  if (!ha || !ha.alerts || ha.alerts.length === 0 || payload?.mode !== 'replay') return;
+  banner.hidden = false;
+  banner.replaceChildren();
+  const label = document.createElement('span'); label.className = 'nws-label'; label.textContent = 'HISTORICAL ALERTS · REPLAY · NOT USED TO RANK';
+  banner.append(label);
+  ha.alerts.forEach((a) => {
+    const alert = document.createElement('div'); alert.className = 'nws-alert';
+    alert.textContent = `${a.event}: ${a.headline || ''}`;
+    const detail = document.createElement('div'); detail.className = 'nws-detail';
+    detail.textContent = `Active: ${a.onset || '—'} to ${a.expires || '—'}`;
+    banner.append(alert, detail);
+  });
+  const disc = document.createElement('div'); disc.className = 'nws-disclosure';
+  disc.textContent = `Historical NWS alerts at ${ha.query_time || 'Aug 25, 2026 14:00 MST'}. Source: NWS · not used to rank. FortyGuard measured the thermal field.`;
+  banner.append(disc);
+}
 function render(payload, mode) {
   state.mode = mode;
   state.payload = payload;
@@ -205,6 +248,8 @@ function render(payload, mode) {
   if (error) { renderError(payload, mode); return; }
   document.body.classList.add('has-result');
   renderNwsForecast(payload);
+  renderHistoricalNwsObs(payload);
+  renderHistoricalAlerts(payload);
   const conditions = payload.conditions || {};
   updateNwsSource(payload);
   const ranked = payload.ranked_candidates || conditions.ranked_candidates || [];
@@ -247,7 +292,14 @@ const INTENTS = [
   { id: 'parks', keys: ['park', 'parks'], answer: () => { const parkInfo = state.candidates.map((c) => `Candidate ${c.rank}: ${parkLabel(c.candidate_context?.parks)}`).join(' · ') || 'Park context is unavailable.'; return `Phoenix GIS parks: ${parkInfo}. FortyGuard determines thermal candidate ranking; park context explains the surroundings and does not alter the ranking.`; }, source: 'Phoenix GIS · context only · not used to rank', why: 'This describes local conditions around thermal candidates but does not change their ranking.', action: () => document.querySelector('.context-panel')?.scrollIntoView({ behavior: scrollBehavior() }), suggestions: ['Compare canopy', 'Show the measured field'] },
   { id: 'weather', keys: ['nws', 'weather', 'happening now', 'forecast'],
     answer: () => {
-      if (state.mode === 'replay') return 'Current NWS context is not included in historical Replay. FortyGuard measured the thermal field for the captured afternoon.';
+      if (state.mode === 'replay') {
+        const ha = state.payload?.historical_alerts;
+        if (ha && ha.alerts && ha.alerts.length > 0) {
+          const summary = ha.alerts.map((a) => `${a.event} (active at ${a.onset?.split('T')[1]?.split('-')[0] || '—'})`).join('; ');
+          return `Historical NWS alerts active at the Replay time (${ha.query_time || 'Aug 25, 2026 14:00 MST'}): ${summary}. FortyGuard measured the thermal field for the captured afternoon; alerts provide broader atmospheric context and do not change the ranking.`;
+        }
+        return 'No historical NWS alerts are available for the Replay time. FortyGuard measured the thermal field for the captured afternoon.';
+      }
       const status = state.payload?.nws_context?.evidence_status;
       return status === 'supplemental_context'
         ? 'NWS provides supplemental forecast context — it describes broader atmospheric conditions and does not determine the thermal ranking. FortyGuard localizes where measured thermal burden concentrates within the analyzed area.'
@@ -257,7 +309,7 @@ const INTENTS = [
   { id: 'evidence', keys: ['trust', 'evidence', 'data came', 'provenance'], answer: () => 'The answer is grounded in the loaded evidence chain: FortyGuard measured the thermal field and determines ordering; Phoenix GIS and NWS are contextual and do not re-rank candidates.', source: 'Evidence chain · source roles preserved', why: 'It shows how the answer was assembled and which sources support each part of the decision.', action: () => openEvidence(), suggestions: ['Compare the candidates', 'Focus the map'] },
   { id: 'map', keys: ['show candidate', 'focus the map', 'measured cell', 'map'], answer: () => 'The measured FortyGuard field is now the primary surface. Candidate markers remain synchronized with the comparison cards.', source: 'FortyGuard · measured evidence', action: () => { const match = $('question-input').value.match(/candidate\s+(\d+)/i); if (match) focusCandidate(Number(match[1]), true); else setFocusMode(true); }, suggestions: ['Show me the evidence', 'Compare the candidates'] },
   { id: 'unsupported', keys: ['plant', 'planting', 'trees would', 'cool most', 'effect', 'reduce', 'benefit most', 'work best', 'efficacy'], answer: () => 'The current evidence can compare measured heat and available local context, but it does not estimate the cooling effect or efficacy of a specific intervention.', source: 'Governed analytical scope', why: 'The available evidence does not estimate intervention effectiveness.', suggestions: ['Compare the candidates', 'Show me the evidence'] },
-  { id: 'not_understood', keys: [], answer: (_q) => `I don't have a governed answer for that question. Try one of the supported questions below.`, source: 'Governed analytical scope', why: 'The input did not match any recognized intent.', suggestions: ['Where should Phoenix prioritize cooling?', 'Compare the candidates', 'Why are these locations nearly tied?', 'What was the weather that afternoon?', 'Compare tree canopy', 'Where did this evidence come from?', 'What can this analysis not tell me?'] }
+  { id: 'not_understood', keys: [], answer: (_q) => `I don't have a governed answer for that question. Try one of the supported questions below.`, source: 'Governed analytical scope', why: 'The input did not match any recognized intent.', suggestions: ['Where should Phoenix prioritize cooling?', 'Compare the candidates', 'Why are these locations nearly tied?', 'Compare tree canopy', 'Where did this evidence come from?', 'What can this analysis not tell me?'] }
 ];
 function parseIntent(question) { const q = question.toLowerCase(); const unsupported = INTENTS.find((intent) => intent.id === 'unsupported' && intent.keys.some((key) => q.includes(key))); if (unsupported && /(plant|planting|trees would|cool most|cooling effect|reduce|benefit most|how many degrees|work best|efficacy|intervention)/.test(q)) return unsupported; return INTENTS.find((intent) => intent.id !== 'unsupported' && intent.id !== 'not_understood' && intent.keys.some((key) => q.includes(key))) || INTENTS.find((intent) => intent.id === 'not_understood'); }
 function requestedMode(question) { return /\blive\b/i.test(question) ? 'live' : 'replay'; }
@@ -307,7 +359,7 @@ async function request(mode = state.mode) {
       region.replaceChildren();
       const p = document.createElement('p');
       p.textContent = mode === 'live'
-        ? 'LIVE UNAVAILABLE — The request could not be completed within the execution window. The server may still be processing; try again in a few minutes.'
+        ? 'LIVE UNAVAILABLE — The request did not return a usable result. The provider may still be processing; you can try again or switch to Replay.'
         : 'Unable to load Replay evidence.';
       region.append(p);
       if (mode === 'live') {
@@ -419,44 +471,34 @@ function initBasemapControl() {
   mono.addEventListener('click', () => apply('monochrome'));
   apply('standard');
 }
-// P1-R1: Question catalogue — discoverable supported questions
+// P1-R1: Question catalogue — ONLY questions with implemented intents, mode-aware
+const CATALOGUE_QUESTIONS = [
+  { q: 'Where should Phoenix prioritize cooling?', intents: ['priority'] },
+  { q: 'Compare the three candidates.', intents: ['compare'] },
+  { q: 'Why are these locations nearly tied?', intents: ['tie'] },
+  { q: 'What was the weather that afternoon?', intents: ['weather'] },
+  { q: 'Compare tree canopy.', intents: ['canopy'] },
+  { q: 'Which candidates are near parks?', intents: ['parks'] },
+  { q: 'Where did this evidence come from?', intents: ['evidence'] },
+  { q: 'What can this analysis not tell me?', intents: ['unsupported'] },
+  { q: 'Focus Candidate N.', intents: ['map'] }
+];
 function initQuestionCatalogue() {
   const list = $('catalogue-list');
   if (!list) return;
-  const questions = [
-    'Where should Phoenix prioritize cooling?',
-    'Compare the three candidates.',
-    'Why are these locations nearly tied?',
-    'What was the weather that afternoon?',
-    'Were there heat alerts?',
-    'What was happening in Phoenix that day?',
-    'Show relevant reporting from that day.',
-    'Compare tree canopy.',
-    'Which candidates are near parks?',
-    'Where can someone near Candidate N find heat relief?',
-    'Where did this evidence come from?',
-    'What can this analysis not tell me?',
-    'Focus Candidate N.'
-  ];
-  questions.forEach((q) => {
+  list.replaceChildren();
+  CATALOGUE_QUESTIONS.forEach((item) => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = q;
-    b.addEventListener('click', () => { $('question-input').value = q; runAnalyst(q); });
+    b.textContent = item.q;
+    b.addEventListener('click', () => { $('question-input').value = item.q; runAnalyst(item.q); });
     list.append(b);
   });
 }
 // P1-R1 Live latency UX: elapsed timer + truthful status
-// TIMEOUT CONTRACT: Derived from backend execution model.
-// Server: resolve_latest_available_observation polls up to 12 lookback hours,
-// each with submit_heatmap (30s HTTP timeout) + poll_status (15 polls × 3s).
-// After discovery: env_params for up to 3 candidates, each submit + poll (30 polls × 3s).
-// Server blocks the HTTP connection for the entire workflow.
-// Client timeout MUST exceed worst-case server execution.
-// Worst case ~9000s; practical case ~120-300s. We use 600s (10 min) as a
-// generous client-side bound that covers typical Live while acknowledging
-// the server may still be working beyond it.
-const LIVE_CLIENT_TIMEOUT_MS = 600000; // 10 minutes — exceeds typical server execution
+// No artificial client timeout — let genuine server/network/proxy failure terminate.
+// Server may take several minutes for bounded Live lookback + env_params calls.
+// User may explicitly cancel by switching mode or navigating away.
 function startLiveTimer() { clearLiveTimer(); state.liveStart = Date.now(); state.liveTimer = setInterval(() => updateLiveProgress(), 1000); updateLiveProgress(); }
 function clearLiveTimer() { if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; } state.liveStart = 0; }
 function updateLiveProgress() {
@@ -464,11 +506,9 @@ function updateLiveProgress() {
   const region = $('status-region');
   if (!region || !state.liveStart) return;
   // Truthful wording: describe what MAY be occurring, not synthetic stage transitions.
-  // The browser has no signal about server-internal phase transitions during a blocking fetch.
-  const hint = elapsed < 5 ? 'Connecting to provider…'
-    : elapsed < 30 ? 'Requesting FortyGuard evidence…'
-    : elapsed < 120 ? 'Provider processing — this may take a few minutes…'
-    : 'Provider processing — still within governed execution window…';
+  const hint = elapsed < 5 ? 'Requesting FortyGuard evidence…'
+    : elapsed < 60 ? 'Provider processing can take several minutes…'
+    : 'Still waiting for the provider response…';
   region.replaceChildren();
   const s = document.createElement('span'); s.textContent = `${hint} `;
   const timer = document.createElement('strong'); timer.textContent = `${elapsed}s`;

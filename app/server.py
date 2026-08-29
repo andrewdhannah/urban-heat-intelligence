@@ -246,6 +246,76 @@ def build_visualization_payload(result):
     if context_evidence_chain:
         payload_chain.extend(context_evidence_chain)
 
+    # B1: Historical NWS station observation for Replay (fixture only, no network)
+    historical_nws_obs = None
+    if mode == "replay":
+        obs_path = Path("fixtures/nws-historical/kphx-observation-aug25-14h.json")
+        if obs_path.exists():
+            try:
+                with open(obs_path) as f:
+                    obs_data = json.load(f)
+                historical_nws_obs = {
+                    "provider": "NWS",
+                    "mode": "replay",
+                    "data_type": "station_observation",
+                    "station": obs_data.get("query", {}).get("station"),
+                    "observation_timestamp": obs_data.get("observation", {}).get("timestamp"),
+                    "target_time_local": obs_data.get("query", {}).get("target_time_local"),
+                    "offset_minutes": obs_data.get("query", {}).get("offset_minutes"),
+                    "temperature_celsius": obs_data.get("observation", {}).get("temperature_celsius"),
+                    "text_description": obs_data.get("observation", {}).get("text_description"),
+                    "wind_speed_ms": obs_data.get("observation", {}).get("wind_speed_ms"),
+                    "wind_direction_deg": obs_data.get("observation", {}).get("wind_direction_deg"),
+                    "relative_humidity_pct": obs_data.get("observation", {}).get("relative_humidity_pct"),
+                    "used_in_decision": False,
+                    "evidence_status": "historical_context",
+                    "provenance": obs_data.get("provenance", {})
+                }
+                payload_chain.append({
+                    "step": "historical_nws_observation",
+                    "data": {
+                        "provider": "NWS",
+                        "mode": "replay",
+                        "station": obs_data.get("query", {}).get("station"),
+                        "offset_minutes": obs_data.get("query", {}).get("offset_minutes"),
+                        "used_in_decision": False
+                    },
+                    "timestamp": obs_data.get("observation", {}).get("timestamp")
+                })
+            except Exception:
+                historical_nws_obs = None
+
+    # B3: Add historical alerts for Replay mode (fixture only, no network)
+    historical_alerts = None
+    if mode == "replay":
+        alerts_path = Path("fixtures/nws-historical/phoenix-aug25-alerts.json")
+        if alerts_path.exists():
+            try:
+                with open(alerts_path) as f:
+                    alerts_data = json.load(f)
+                historical_alerts = {
+                    "provider": "NWS",
+                    "mode": "replay",
+                    "data_type": "historical_alerts",
+                    "alerts": alerts_data.get("aug25_alerts", []),
+                    "query_time": alerts_data.get("query", {}).get("target_time_local"),
+                    "used_in_decision": False,
+                    "evidence_status": "historical_context",
+                    "provenance": alerts_data.get("provenance", {})
+                }
+                payload_chain.append({
+                    "step": "historical_alerts",
+                    "data": {
+                        "provider": "NWS",
+                        "mode": "replay",
+                        "alert_count": len(alerts_data.get("aug25_alerts", [])),
+                        "used_in_decision": False
+                    },
+                    "timestamp": alerts_data.get("query", {}).get("retrieved_at")
+                })
+            except Exception:
+                historical_alerts = None
+
     return {
         "mode": mode,
         "visualization_source": visualization_source,
@@ -274,6 +344,8 @@ def build_visualization_payload(result):
         "ranked_candidates": ranked_candidates,
         "nws_context": nws_context,
         "gis_context": gis_context,
+        "historical_nws_obs": historical_nws_obs,
+        "historical_alerts": historical_alerts,
         "urban_heat_brief": urban_heat_brief,
         "evidence_chain": payload_chain,
         "error": answer.get("error", False)
