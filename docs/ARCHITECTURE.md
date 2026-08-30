@@ -2,14 +2,35 @@
 
 ## Overview
 
-Single monorepo. Three layers. One clone, one demo.
+Single Python monolith serving a Luna dashboard. One process handles static files, API endpoints, and agent orchestration. No build step, no transpilation, no external database.
 
 ```
-hackathon26/
-├── mcp/            # TypeScript MCP server
-├── db/             # SQLite + sqlite-vec, schemas, migrations
-├── interface/      # Chat shell + dashboard (HTML/TS)
-├── docs/           # This folder
+urban-heat-intelligence/
+├── app/
+│   ├── server.py              # UHIHandler — stdlib HTTP server + API endpoints
+│   ├── dashboard-luna/        # Luna dashboard (HTML + CSS + JS + Leaflet.js)
+│   │   ├── index.html
+│   │   ├── css/
+│   │   └── js/
+│   └── static/                # Incumbent dashboard (preserved, superseded)
+├── src/
+│   ├── agent/
+│   │   ├── adapter.py         # FortyGuardAdapter — heatmap + env_params
+│   │   ├── controller.py      # HeatAgent — orchestration, ranking, evidence chain
+│   │   ├── brief.py           # Urban Heat Brief composition
+│   │   ├── time_resolver.py   # Observation-time lookback (Live mode)
+│   │   └── run.py
+│   └── tools/
+│       ├── heatmap.py         # FortyGuard heatmap normalization
+│       ├── env_params.py      # FortyGuard env_params normalization
+│       ├── nws.py             # NWS weather context (supplemental, Live only)
+│       └── gis_context.py     # Phoenix GIS (canopy, parks, intersections)
+├── fixtures/
+│   └── fortyguard/            # Genuine FortyGuard fixtures (Aug 25, 2026)
+│       ├── heatmap/
+│       ├── env_params/
+│       └── integrity-manifest.json
+├── docs/
 └── README.md
 ```
 
@@ -17,100 +38,190 @@ hackathon26/
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
-| MCP Server | TypeScript + MCP SDK | Structured tool definitions, fast to iterate |
-| Database | SQLite + sqlite-vec | One file, one DB, no separate vector service |
-| Embeddings | Local model or cheap API | Hackathon scale — a few dozen docs, not millions |
-| Chat Interface | HTML + TypeScript | Clean rebuild of LINK pattern, no framework overhead |
-| Dashboard | HTML + Leaflet or Mapbox | Interactive map, simple to demo |
+| Runtime/Server | Python stdlib `http.server` + `ThreadingHTTPServer` | Zero dependencies, instant deploy |
+| Frontend | HTML + CSS + JavaScript + Leaflet.js | No build step, responsive, fast |
+| API Integration | `urllib.request` with verified TLS | stdlib only, no `requests` |
+| Data Source | FortyGuard Temperature API | Central, required — the ranking source |
+| Weather Context | NWS API | Supplemental, Live only |
+| GIS Context | Phoenix open data | Context only, never ranks |
+| Deployment | Render (Python web service) | Build-specific asset URLs |
 
-## MCP Server (`/mcp`)
+## Runtime/Server (`app/server.py`)
 
-### Tools to Expose
+`UHIHandler` extends `SimpleHTTPRequestHandler` and serves the active dashboard variant plus API endpoints.
 
-1. **`get_temperature`** — Current temperature at a lat/lng coordinate
-2. **`get_forecast`** — Hourly forecast for a location (next 24-48h)
-3. **`get_heat_index`** — Feels-like temperature with humidity/wind factors
-4. **`search_locations`** — Find areas exceeding a heat threshold
-5. **`get_heat_events`** — Historical extreme heat events for a region
-6. **`query_evidence`** — RAG search over heat-safety documents (sqlite-vec)
+### Request Routing
 
-### MCP Schema Notes
+| Method | Path | Handler | Description |
+|--------|------|---------|-------------|
+| GET | `/` | `serve_index` | Luna dashboard with build version injection |
+| GET | `/api/answer?question=...&mode=replay` | `serve_answer` | Synchronous Replay query |
+| POST | `/api/live/start` | `do_POST` | Async Live query (returns job_id) |
+| GET | `/api/live/status?job_id=...` | `serve_live_status` | Poll Live job status |
+| GET | `/api/nws` | `serve_nws` | Raw NWS context |
+| GET | `/api/config` | `serve_config` | Non-sensitive config (Carto basemap key) |
+| GET | `/api/variant` | `serve_variant` | Active dashboard variant |
+| GET | `/api/version` | `serve_version` | Build identity |
+| GET | `/*?v=<build>` | `serve_versioned_asset` | Immutable-cache static assets |
 
-- Each tool returns structured JSON with a `receipt` field containing: query parameters, timestamp, data source, confidence
-- Evidence receipts are the core differentiator — every answer shows its work
-- Tool descriptions should be written for an LLM to call them naturally
+### Key Behaviors
 
-## Database (`/db`)
+- Live mode uses `POST /api/live/start` + poll pattern (bounded concurrency: 1 active job)
+- Replay mode uses synchronous `GET /api/answer?mode=replay`
+- Live failure does not silently fall back to Replay — explicit error states
+- `FORTYGUARD_API_KEY` is server-side only, never in HTML/JS/network responses
 
-### Tables
+## Frontend — Luna Dashboard (`app/dashboard-luna/`)
 
-```sql
--- Cached API responses (avoid re-fetching during demo)
-temperature_cache (
-  id, lat, lng, timestamp, data_json, fetched_at
-)
+Responsive HTML + CSS + JS single-page application with Leaflet.js map.
 
--- Heat-safety reference documents for RAG
-heat_documents (
-  id, title, content, source, category, created_at
-)
+### Features
 
--- Vector embeddings for semantic search (sqlite-vec)
-heat_embeddings (
-  id, document_id, embedding, model_name
-)
+- **Map focus mode** — interactive heatmap overlay with source-cell highlighting
+- **Marker overlap fan** — visual spread when multiple markers cluster
+- **Top-3 ranked candidates** — displayed with observed temperatures
+- **Evidence drawer** — expandable provenance chain
+- **Urban Heat Brief** — claim-level brief with source attribution
+- **Temperature units** — °C/°F toggle
+- **Opacity slider** — heatmap layer opacity control
+- **Basemap toggle** — Carto light/dark
+- **Mobile responsive** — layout adapts to viewport
 
--- Evidence trail — every agent interaction logged
-evidence_log (
-  id, session_id, tool_name, parameters, result, reasoning, timestamp
-)
+### Question Intent Routes (parsed in `controller.py`)
+
+| Intent Pattern | Intent | Tools Selected |
+|----------------|--------|----------------|
+| "prioritize", "priority", "cooling intervention", "where should" | `cooling_prioritization` | heatmap + env_params |
+| "risk", "danger", "heat risk", "how hot", "feel like" | `area_risk_assessment` | heatmap + env_params |
+| "distribution", "spread", "across" | `temperature_distribution` | heatmap only |
+| Default | `area_risk_assessment` | heatmap + env_params |
+
+## API Adapters
+
+### FortyGuardAdapter (`src/agent/adapter.py`) — Central, Required
+
+Wraps the FortyGuard Temperature API with verified TLS. Two endpoints:
+
+1. **`/v1/heatmap`** — Returns a temperature heatmap across a polygon AOI. Each cell is a measurement at 2m resolution. The adapter submits, polls for completion, and normalizes the result.
+2. **`/v1/env_params`** — Returns environmental parameters (heat index, apparent temperature, humidity) at a specific coordinate given a measured temperature.
+
+Request flow: `submit → poll /status/{id} → normalize`. Request counts tracked for provider traffic accounting.
+
+### NWS Context (`src/tools/nws.py`) — Supplemental, Live Only
+
+Fetches current forecast and active alerts from the National Weather Service API.
+
+- **Always** `used_in_decision: false`
+- **Never** changes the thermal ranking
+- In Replay mode: excluded entirely (historical station observation from fixtures instead)
+- In Live mode: if NWS is unavailable, the `evidence_status` is set to `"unavailable"` — not a failure
+
+### Phoenix GIS (`src/tools/gis_context.py`) — Context Only, Never Ranks
+
+Enriches ranked candidates with local context from Phoenix open data:
+
+- **Tree canopy** — percentage from Maricopa Association of Governments
+- **Parks** — whether the coordinate falls inside a designated park
+- **Intersections** — nearest named intersection and distance
+
+GIS context is additive and compositional — it MUST NOT alter the thermal ranking. GIS failure MUST NOT invalidate the thermal result.
+
+## Orchestration — HeatAgent (`src/agent/controller.py`)
+
+### Evidence Chain (8 nodes, thermal)
+
+```
+user_request → plan → heatmap_request → heatmap_result
+→ coordinate_selection → env_params_request → env_params_result → answer
 ```
 
-See `DB-SCHEMA.md` for full DDL.
+Plus optional GIS context evidence chain:
+```
+canopy_request → canopy_result → parks_request → parks_result
+→ context_enrichment_result
+```
 
-## Chat Interface (`/interface`)
+### Candidate Derivation
 
-### Rebuilt LINK Pattern
+1. FortyGuard heatmap returns `N` cells (typically 367 for the demo AOI)
+2. Cells are sorted by measured temperature (descending)
+3. Top-3 candidates extracted as intervention-priority locations
+4. Each candidate gets `env_params` for heat index / apparent temperature
 
-The interface follows the chat-as-presentation-layer pattern:
+### Ranking Rules
 
-1. **User types a question** — "What's the heat risk in Phoenix right now?"
-2. **Agent reasons visibly** — Shows which tools it's calling, what data it found
-3. **Card output** — Structured response with:
-   - Answer text
-   - Data sources (API calls made)
-   - Evidence chain (why it concluded what it concluded)
-   - Confidence indicator
-   - Related documents (from RAG)
+- **Source of truth:** FortyGuard measured thermal field only
+- **Ranking basis:** Observed temperature at 2m resolution
+- **Near-tie threshold:** Within 0.1°C (`TIE_THRESHOLD_CELSIUS`)
+- **When near-tie:** Candidates are reported as "effectively equivalent thermal burden" — additional context needed to distinguish
+- **GIS never ranks:** Context enrichment is informational only
 
-### What's Different from LINK
+## Evidence Model
 
-- No Owner-authority gating (simpler — single user)
-- No custody chain schema (just evidence receipts)
-- Stripped down to: message input, agent response cards, simple header
-- Dashboard toggle to switch between chat view and map view
+### Evidence Chain Nodes
 
-## Dashboard
+Every query produces a structured evidence chain. Each node records:
+- `step` — what operation was performed
+- `data` — operation-specific data (endpoints, coordinates, results, modes)
+- `timestamp` — UTC ISO-8601
 
-- Leaflet.js for interactive map
-- Heat overlay showing FortyGuard temperature data
-- Click a location to query the agent
-- Timeline slider for forecast data
-- Simple HTML, no build step needed
+### Urban Heat Brief (`src/agent/brief.py`)
 
-## API Integration
+A derived interpretation composed from the evidence chain. Contains:
 
-### FortyGuard Temperature API
+- **Sections:** Thermal Finding, Candidate Interpretation, Weather Context, Local Context, Decision Note
+- **Claims:** Each claim has `claim_id`, `text`, `source_provider`, `evidence_nodes`, `mode`, `observation_time`, `used_in_decision`
+- **Sources:** Provider-level provenance (FortyGuard, NWS, Phoenix GIS)
+- **Ranking status:** `ranked` or `near_tie`
 
-- Free access during hackathon period
-- Need to check: auth method (API key?), rate limits, response format
-- Cache aggressively — demo shouldn't depend on live API calls
-- Fallback: pre-seeded data from the API for offline demo
+The Brief does not call providers — it composes from already-normalized evidence.
 
-### Pre-seed Strategy
+## Modes
 
-Before demo day:
-1. Pull temperature data for 3-5 cities (Phoenix, Dubai, San Jose, Miami, Delhi)
-2. Store in `temperature_cache`
-3. Pull heat-safety reference documents (WHO heat guidelines, EPA heat index docs, city-specific heat action plans)
-4. Embed and store for RAG
+### Replay Path
+
+- Uses genuine FortyGuard fixtures from August 25, 2026 (2:00 PM MST)
+- **Zero network calls** — all data from `fixtures/fortyguard/`
+- Fixture integrity validated against SHA-256 manifest
+- Historical KPHX station observation included from `fixtures/nws-historical/`
+- NWS current context excluded (historical snapshot only)
+
+### Live Path
+
+- Genuine FortyGuard API calls with `FORTYGUARD_API_KEY`
+- Bounded lookback to find latest available observation
+- NWS forecast and alerts fetched in parallel
+- Phoenix GIS queries for each ranked candidate
+- If FortyGuard fails → explicit error (no fallback to Replay)
+
+### Mode Isolation
+
+Each mode's data is self-contained. No cross-mode fallback is permitted:
+- Replay geometry is never substituted for Live data
+- Live data is never substituted for Replay data
+- Visualization fields are explicitly null when a mode's data is unavailable
+
+## Secret Boundary
+
+| Secret | Location | In HTML/JS? | In Network Responses? |
+|--------|----------|-------------|----------------------|
+| `FORTYGUARD_API_KEY` | Server-side env / `.secrets/` | Never | Never |
+| `CARTO_BASEMAP_KEY` | Server-side env (non-sensitive) | Via `/api/config` | Yes (public basemap key) |
+
+## Deployment
+
+- **Platform:** Render (Python web service)
+- **Build identity:** `RENDER_GIT_COMMIT` or `GIT_COMMIT` env var
+- **Asset versioning:** `?v=<build>` query parameter with immutable cache headers
+- **Dashboard variant:** `UHI_DASHBOARD_VARIANT` env (default: `luna`)
+- **Port:** `PORT` env (default: 8080)
+
+## Failure Semantics
+
+| Failure | Behavior |
+|---------|----------|
+| Live FortyGuard API failure | Explicit error state — does NOT fall back to Replay |
+| Live NWS unavailable | `evidence_status: "unavailable"` — not a failure |
+| GIS context failure | Graceful degradation — thermal result unaffected |
+| Replay fixture missing | Error answer — "Heatmap call failed" |
+| Live capacity exhausted | HTTP 429 with error message |

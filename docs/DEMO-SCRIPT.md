@@ -1,3 +1,5 @@
+> **⚠ HISTORICAL DOCUMENT** — This demo script reflects pre-build hypothetical scenarios with fabricated temperatures and unshipped functionality (RAG, chat interface, multi-city). Preserved for provenance. For the actual demo, see the [live demo](https://urban-heat-intelligence.onrender.com/) and [demo video](https://youtu.be/xYDIttapi_o).
+
 # Demo Script — Two-Minute Walkthrough
 
 ## Setup

@@ -1,3 +1,5 @@
+> **⚠ HISTORICAL STATE** — This handoff reflects the project state on August 26, 2026 (Phase A). For the current post-submission state, see below.
+
 # SESSION-HANDOFF — Urban Heat Intelligence
 
 **Project:** urban-heat-intelligence
@@ -113,3 +115,33 @@ DASH-V2-H — production / Live integration of promoted Dashboard
 ---
 
 *Session handoff established through governed Phase A instantiation. DASH-V2-G promotion materialized 2026-08-28.*
+
+---
+
+## Current State (Post-Submission)
+
+**Submission completed:** August 30, 2026
+
+| Field | Value |
+|-------|-------|
+| Qualified implementation | `226767c19927f1a26416cbc7a2e2b9d6d224b9db` |
+| Public repo | https://github.com/andrewdhannah/urban-heat-intelligence |
+| Live demo | https://urban-heat-intelligence.onrender.com/ |
+| Demo video | https://youtu.be/xYDIttapi_o |
+| Primary track | Track 7 — Data Analysis & Correlation |
+| Secondary track | Track 1 — Resilient Cities & Infrastructure |
+| Secondary track | Track 6 — Agentic AI |
+| QA disposition | PASS_WITH_KNOWN_LIMITATIONS |
+
+### Known Limitation
+
+Genuine Live mode requires `FORTYGUARD_API_KEY` set as an environment variable on Render. Without the credential, Live queries return an explicit error (no silent fallback to Replay).
+
+### Implementation Summary
+
+- **Runtime:** Python stdlib `http.server`, `UHIHandler`, threaded
+- **Frontend:** Luna dashboard (HTML + CSS + JS + Leaflet.js)
+- **API adapters:** FortyGuard (heatmap + env_params), NWS context, Phoenix GIS
+- **Orchestration:** HeatAgent with question intent routing, deterministic top-3 ranking
+- **Evidence model:** 8-node evidence chain, Urban Heat Brief with claim-level provenance
+- **Modes:** Replay (genuine fixtures, zero network) and Live (genuine FortyGuard API calls)

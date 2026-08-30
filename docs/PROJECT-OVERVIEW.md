@@ -1,3 +1,5 @@
+> **⚠ HISTORICAL DOCUMENT** — This file reflects pre-build planning assumptions (August 18–21, 2026) that do not match the shipped implementation. Preserved for provenance. For current architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 # FortyGuard Hackathon 26 — Project Overview
 
 ## The Event

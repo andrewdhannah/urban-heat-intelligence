@@ -1,80 +1,67 @@
-# Pitch Structure
+# Pitch — Urban Heat Intelligence
 
-## One-Liner (for submission form)
+## One-Liner
 
-> An evidence-backed heat decision support agent — ask a question about urban heat in natural language, get an answer built from live FortyGuard temperature data, retrieved safety knowledge, and visible reasoning, all wrapped in a receipt showing exactly where every number came from.
+> Turns FortyGuard heat data into ranked, explainable intervention priorities so cities know where to act first — and why.
 
 ## The Problem
 
-Heat kills more people than any other natural disaster globally (UN). But most heat tools just show you a number — a dashboard, a heatmap, a forecast. They don't tell you what it means, what to do about it, or where the data came from. You have to already know the answer to use the tool.
+Phoenix experiences some of the most extreme urban heat in the United States. FortyGuard measures it at 2m resolution — the height where people actually feel it. But raw temperature data doesn't answer the question cities need answered: **"Where do we intervene first, and why?"**
+
+Dashboards show numbers. Heatmaps show color gradients. Neither tells a city planner which block to prioritize, how the top candidates compare, or what evidence supports the decision.
 
 ## The Solution
 
-An AI agent that doesn't just show heat data — it explains it. Ask a question in natural language. The agent calls FortyGuard's Temperature API, retrieves relevant knowledge from heat-safety literature, and returns an answer with a full evidence chain: the data source, the retrieved references, and a receipt showing exactly how the answer was constructed.
+Urban Heat Intelligence takes FortyGuard's measured thermal field and turns it into **ranked, explainable intervention priorities** with full provenance.
 
-Every answer carries a receipt.
+Every answer shows its work:
+- Which FortyGuard cells were evaluated
+- How the top-3 candidates were selected
+- What the environmental conditions are at each location
+- Whether the candidates are genuinely different or effectively tied
+- What corroborating weather context exists
 
-## How It Works (Five Components)
+This is decision support with visible receipts — not a black box.
+
+## How It Works
 
 ```
-Question → Temperature MCP → Knowledge MCP → Evidence Composer → Receipt → Answer
+FortyGuard Heatmap (367 cells) → Candidate Extraction → Top-3 Ranking
+    → Environmental Parameters → NWS Corroboration → Urban Heat Brief
+    → Evidence Chain (provenance for every claim)
 ```
 
-1. **Temperature MCP**: Calls FortyGuard's API for live observations (2m resolution)
-2. **Knowledge MCP**: Retrieves relevant passages from heat-safety literature (WHO, OSHA, city guidelines)
-3. **Evidence Composer**: Combines live data + retrieved knowledge into a grounded answer
-4. **Receipt**: Structured record of every source, tool call, and reasoning step
-5. **Answer**: Presented to the user with full provenance
-
-**Example**:
-- **You ask**: "What's the heat risk for construction workers in Phoenix right now?"
-- **Agent retrieves**: FortyGuard live observation (38.7°C) + OSHA Heat Illness Prevention Guide (Section 4.2) + WHO Heat Health Guidance (2025)
-- **Agent answers**: "Current temperature is 38.7°C. OSHA guidance discusses additional precautions under these conditions, including water access every 15 minutes and buddy-system monitoring."
-- **Receipt shows**: Each source listed with document name, section, and retrieval timestamp
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Temperature MCP | TypeScript server wrapping FortyGuard Temperature API |
-| Knowledge MCP | SQLite + sqlite-vec with embedded heat-safety literature |
-| Evidence Composer | Combines live data + retrieved passages into grounded answers |
-| Receipt | Structured JSON with source attribution and reasoning chain |
-| Interface | Chat shell with evidence-card output |
+1. **FortyGuard Heatmap** — 2m-resolution temperature measurement across the area of interest
+2. **Candidate Extraction** — Hotspot identification from the measured thermal field
+3. **Deterministic Top-3 Ranking** — Ranked by observed temperature; near-tie within 0.1°C flagged
+4. **Environmental Parameters** — Heat index, apparent temperature, humidity at each candidate
+5. **NWS Corroboration** — Current forecast and alerts (supplemental, never ranks)
+6. **Urban Heat Brief** — Derived interpretation with claim-level provenance
+7. **Evidence Chain** — Every step recorded with source, mode, and timestamp
 
 ## What Makes This Different
 
-- **Every other entry shows data. This one shows how the answer was built.**
-- Evidence receipts are visible, not hidden — judges see the provenance chain
-- Positions as "evidence-backed decision support" not "safety advice" — grounded in retrieved material, not generating novel policy
-- Conversational interface — judges interact, not just observe
-- Five clean components, not a monolith
+**Every other entry shows data. This one explains the decision.**
 
-## Impact
+- **Evidence receipts** — Every answer carries a structured record of which tools were called, what data was returned, and why the system concluded what it concluded
+- **Near-tie honesty** — When candidates are within 0.1°C, the system says so instead of fabricating a ranking
+- **FortyGuard as central platform** — The thermal measurement is the single source of truth; everything else is context
+- **Two modes** — Replay (genuine fixtures, zero network) proves the pipeline works; Live (genuine API calls) proves it works with real data
 
-This pattern — live data + retrieved knowledge + evidence receipts — extends across domains:
+## Live Demo
 
-- **Worker safety**: "Can my crew work outdoors today?" with OSHA guidance attached
-- **Utility planning**: "How will heat affect peak demand this week?" with historical patterns
-- **Emergency response**: "Which neighborhoods are at highest heat risk?" with WHO thresholds
-- **Infrastructure monitoring**: "Will road surfaces sustain this temperature?" with engineering standards
-- **Transit operations**: "Should we adjust service for heat conditions?" with agency guidelines
+- **URL:** https://urban-heat-intelligence.onrender.com/
+- **Video:** https://youtu.be/xYDIttapi_o
+- **Repo:** https://github.com/andrewdhannah/urban-heat-intelligence
 
-The temperature API becomes one evidence source among many. The architecture scales to any domain where live data meets domain knowledge.
+## Submission Tracks
 
-## Submission Track
-
-**Track 01: Resilient Cities & Infrastructure**
-"Design cooler, smarter cities using hyperlocal temperature intelligence. Build AI systems that help urban planners, residents, and emergency services navigate heat at a city scale."
-
-Our build aligns directly: an AI agent that helps urban planners and emergency services navigate heat conditions with evidence-backed decision support.
+| Track | Designation |
+|-------|-------------|
+| **Primary** | Track 7 — Data Analysis & Correlation |
+| **Secondary** | Track 1 — Resilient Cities & Infrastructure |
+| **Secondary** | Track 6 — Agentic AI |
 
 ## Team
 
 Solo entry. Built in two weeks on FortyGuard's Temperature API.
-
-## Links
-
-- GitHub: [repo URL]
-- Demo: [deployed URL or localhost instructions]
-- FortyGuard API: https://www.fortyguard.com/api-pricing
