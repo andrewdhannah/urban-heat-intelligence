@@ -535,12 +535,20 @@ def query_nearest_intersection(
         }
     }
 
+    if mode == "replay":
+        fixture_path = Path("fixtures/phoenix-gis/intersections-replay.json")
+        try:
+            fixture = json.loads(fixture_path.read_text())
+            key = f"{latitude:.4f},{longitude:.4f}"
+            result = fixture.get("candidates", {}).get(key)
+            if result:
+                return {"result": {**result, "mode": "replay", "used_in_decision": False}, "evidence_node": evidence_node,
+                        "result_evidence_node": {"step": "intersection_result", "data": {**result, "mode": "replay", "used_in_decision": False}}}
+        except (OSError, ValueError):
+            pass
+        return {"available": False, "error": "intersection_fixture_unavailable", "evidence_node": evidence_node}
     if mode != "live":
-        return {
-            "available": False,
-            "error": "intersection_not_queried_in_replay",
-            "evidence_node": evidence_node
-        }
+        return {"available": False, "error": "invalid_intersection_mode", "evidence_node": evidence_node}
 
     # Query within bounded 200m radius, request WGS84 geometry
     params = (

@@ -436,6 +436,9 @@ class UHIHandler(SimpleHTTPRequestHandler):
             if mode not in ("replay", "live"):
                 self.send_error(400, "Invalid mode. Allowed: replay, live")
                 return
+            if mode == "live":
+                self.write_json({"error": True, "mode": "live", "message": "Live queries must use POST /api/live/start and poll /api/live/status."}, status=400)
+                return
             self.serve_answer(question, mode)
         elif parsed.path == "/api/nws":
             self.serve_nws()

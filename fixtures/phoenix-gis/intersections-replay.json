@@ -1,0 +1,12 @@
+{
+  "provider": "City of Phoenix",
+  "dataset": "STR_StreetIntersections",
+  "endpoint": "https://maps.phoenix.gov/pub/rest/services/Public/STR_StreetIntersections/MapServer/0/query",
+  "capture_method": "authoritative_provider_query_then_local_haversine",
+  "synthetic": false,
+  "candidates": {
+    "33.4581,-112.0774": {"available": true, "name": "W MCKINLEY ST & N 3RD AVE", "distance_m": 157, "coordinate": [-112.0776865823289, 33.45669086152296], "source_provider": "City of Phoenix", "dataset": "STR_StreetIntersections", "distance_method": "haversine_from_authoritative_returned_geometry"},
+    "33.4590,-112.0774": {"available": true, "name": "W PORTLAND ST & N 3RD AVE", "distance_m": 72, "coordinate": [-112.07777981436898, 33.45966829025464], "source_provider": "City of Phoenix", "dataset": "STR_StreetIntersections", "distance_method": "haversine_from_authoritative_returned_geometry"},
+    "33.4598,-112.0774": {"available": true, "name": "W PORTLAND ST & N 3RD AVE", "distance_m": 17, "coordinate": [-112.07777981436898, 33.45966829025464], "source_provider": "City of Phoenix", "dataset": "STR_StreetIntersections", "distance_method": "haversine_from_authoritative_returned_geometry"}
+  }
+}

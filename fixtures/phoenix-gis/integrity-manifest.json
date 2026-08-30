@@ -62,6 +62,16 @@
         ],
         "synthetic": false
       }
+    },
+    {
+      "path": "fixtures/phoenix-gis/intersections-replay.json",
+      "type": "intersections",
+      "sha256": "7b885667184cef84bbefb011d1828bfbd9b731fb43684ec5b46ea46ae8c2e9ba",
+      "provider": "City of Phoenix",
+      "dataset": "STR_StreetIntersections",
+      "source_query_proof": {
+        "synthetic": false
+      }
     }
   ]
 }

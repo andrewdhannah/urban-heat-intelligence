@@ -61,7 +61,7 @@ function renderMap(payload) {
     onEachFeature: (f, layer) => layer.on('click', () => { const d = $('cell-detail'); d.hidden = false; d.replaceChildren(); const label = document.createElement('span'); label.textContent = 'Measured cell'; const strong = document.createElement('strong'); strong.textContent = tempD2(featureTemp(f)); d.append(label, strong); })
   }).addTo(state.map);
    state.candidates = Array.isArray(payload.ranked_candidates) ? payload.ranked_candidates : [];
-   state.candidates.forEach(addMarker);
+   state.candidates.forEach((candidate) => { addMarker(candidate); addIntersectionMarker(candidate); });
   const bounds = state.heatLayer.getBounds();
   if (!bounds.isValid()) return;
   renderMeasuredArea(bounds, features.length);
@@ -99,6 +99,7 @@ function fitMeasuredArea() {
   if (!state.map || !state.measuredAreaBounds || !state.measuredAreaBounds.isValid()) return;
   state.map.flyToBounds(state.measuredAreaBounds.pad(.10), { animate: !reducedMotion(), duration: 0.7, maxZoom: 15 });
 }
+function addIntersectionMarker(candidate) { const intersection = candidate.candidate_context?.intersection; if (!state.map || !intersection?.available || !Array.isArray(intersection.coordinate)) return; const [lon, lat] = intersection.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: 'intersection-marker', html: '<div aria-hidden="true">○</div>', iconSize: [22, 22], iconAnchor: [11, 11] }), title: `${candidate.rank}: ${intersection.name || 'Road context'}`, zIndexOffset: -100 }).addTo(state.map); marker.bindTooltip(`Candidate ${candidate.rank} · ${intersection.name || 'Nearest intersection'} · ${intersection.distance_m ?? '—'} m`, { direction: 'top' }); marker.on('click', () => focusCandidate(candidate.rank, true)); candidate.intersectionMarker = marker; }
 function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const peers = state.candidates.filter((c) => c !== candidate && Math.abs(c.coordinate?.[0] - lon) < 0.0005 && Math.abs(c.coordinate?.[1] - lat) < 0.0005); const fan = peers.length ? (Number(candidate.rank) - 2) * 15 : 0; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: `<div style="display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:${candidate.rank === 1 ? 'var(--blue-dark)' : 'var(--blue)'};color:#fff;font:700 17px 'DM Mono',monospace;line-height:1;transform:translateX(${fan}px)">${candidate.rank}</div>`, iconSize: [42, 42], iconAnchor: [21, 21] }), title: `Candidate ${candidate.rank}`, riseOnHover: true, zIndexOffset: baseMarkerOffset(candidate.rank) }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
 // Deterministic base stacking: Candidate 1 remains default foreground (highest base offset).
 // Higher z-index offset renders on top. Focused candidate is elevated well above all others.
@@ -230,6 +231,10 @@ function renderReadout() {
 }
 function clearResultSurfaces(message = 'Waiting for usable evidence.') {
   document.body.classList.remove('has-result');
+  const railContent = $('hero-context-content');
+  if (railContent) { railContent.replaceChildren(); const pending = document.createElement('span'); pending.textContent = state.mode === 'live' ? 'Live context pending — no Replay context retained.' : 'Replay context pending — no Live context retained.'; railContent.append(pending); }
+  const identity = $('hero-identity');
+  if (identity) identity.textContent = state.mode === 'live' ? 'Live workflow pending' : 'Replay capture pending';
   clearLiveTimer();
   state.payload = null;
   state.candidates = [];
@@ -518,9 +523,11 @@ function runAnalyst(question) {
   const result = $('analyst-result'); result.replaceChildren();
   const answer = document.createElement('p'); answer.textContent = intent.answer(question, targetMode);
   const source = document.createElement('small'); source.textContent = `Source: ${intent.source} · Why it matters: ${intent.why || 'This source directly supports the answer.'}`;
-  result.append(answer, source);
+  const readout = $('status-region');
+  readout.replaceChildren();
+  const label = document.createElement('strong'); label.textContent = `DESK READOUT · ${intent.id.toUpperCase()}`;
+  readout.append(label, answer, source);
   deskState.readout = 'decision_summary';
-  renderReadout();
   const suggestions = $('analyst-suggestions'); suggestions.replaceChildren();
   intent.suggestions.filter((s) => !(state.mode === 'replay' && /NWS|weather|current/i.test(s))).slice(0, 3).forEach((suggestion) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = suggestion; b.addEventListener('click', () => { $('question-input').value = suggestion; runAnalyst(suggestion); }); suggestions.append(b); });
   intent.action?.();
@@ -528,7 +535,7 @@ function runAnalyst(question) {
   // For not_understood: show the answer but do NOT trigger a request or mode switch
 }
 function openEvidence() { const drawer = $('evidence-drawer'); drawer.hidden = false; $('evidence-toggle').setAttribute('aria-expanded', 'true'); drawer.scrollIntoView({ behavior: scrollBehavior(), block: 'start' }); }
-function setFocusMode(enabled) { if (enabled && !state.focusMode) state.focusScrollY = window.scrollY; state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); const exitBtn = $('focus-exit-button'); if (exitBtn) { exitBtn.hidden = !enabled; exitBtn.setAttribute('aria-pressed', String(enabled)); } if (enabled && exitBtn) exitBtn.focus(); requestAnimationFrame(() => state.map?.invalidateSize({ pan: false })); if (!enabled) requestAnimationFrame(() => window.scrollTo({ top: state.focusScrollY, behavior: scrollBehavior() })); }
+function setFocusMode(enabled) { if (enabled && !state.focusMode) state.focusScrollY = window.scrollY; state.focusMode = enabled; document.body.classList.toggle('map-focus', enabled); $('map-focus-button').textContent = enabled ? 'Exit map focus' : 'Focus map'; $('map-focus-button').setAttribute('aria-pressed', String(enabled)); const exitBtn = $('focus-exit-button'); if (exitBtn) { exitBtn.hidden = true; exitBtn.setAttribute('aria-pressed', 'false'); } if (enabled) $('map-focus-button').focus(); requestAnimationFrame(() => state.map?.invalidateSize({ pan: false })); if (!enabled) requestAnimationFrame(() => window.scrollTo({ top: state.focusScrollY, behavior: scrollBehavior() })); }
 function toggleUnit() { state.unit = state.unit === 'C' ? 'F' : 'C'; $('btn-unit').textContent = state.unit === 'F' ? '°F ' : '°C '; const small = document.createElement('small'); small.textContent = state.unit === 'F' ? '/ °C' : '/ °F'; $('btn-unit').append(small); $('btn-unit').classList.toggle('active', state.unit === 'F'); $('btn-unit').setAttribute('aria-pressed', String(state.unit === 'F')); if (state.payload) render(state.payload, state.mode); }
 async function request(mode = state.mode) {
   const id = ++state.requestId;
@@ -566,6 +573,7 @@ async function request(mode = state.mode) {
     if (id !== state.requestGeneration) return;
     clearLiveTimer();
     if (error.name !== 'AbortError') {
+      clearResultSurfaces(mode === 'live' ? 'Live evidence unavailable.' : 'Replay evidence unavailable.');
       deskState.phase = 'error'; deskState.readout = 'status';
       const region = $('status-region');
       region.replaceChildren();
