@@ -46,7 +46,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if parsed.path == "/":
             index = (ROOT / "index.html").read_text()
-            build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+            build_version = os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_COMMIT") or "local-dev"
             body = index.replace("{{BUILD_VERSION}}", build_version).encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html")

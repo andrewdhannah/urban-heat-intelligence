@@ -1,6 +1,6 @@
 const DEFAULT_QUESTION = 'Where should Phoenix prioritize a cooling intervention this afternoon?';
 const TIE_THRESHOLD = 0.1;
-const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, liveJobId: null, livePollTimer: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, highlightLayer: null, highlightRenderer: null, highlightCanvas: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
+const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, liveJobId: null, livePollTimer: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, highlightLayer: null, highlightRenderer: null, highlightCanvas: null, measuredAreaBounds: null, markers: new Map(), intersectionMarkers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
 const deskState = { mode: 'replay', phase: 'idle', readout: 'status' };
 const $ = (id) => document.getElementById(id);
 const text = (el, value) => { if (el) el.textContent = value ?? '—'; };
@@ -19,6 +19,7 @@ const coordLabel = (c) => Array.isArray(c) && c.length >= 2 &&
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scrollBehavior = () => reducedMotion() ? 'auto' : 'smooth';
 const titleCase = (s) => String(s || '').replaceAll('_', ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+const modeLabel = (mode) => mode === 'live' ? 'LIVE CONTEXT' : 'HISTORICAL OBSERVATION';
 
 function initMap() {
   if (!window.L || state.map) return;
@@ -43,6 +44,8 @@ function clearMap() {
   if (areaLabel) areaLabel.hidden = true;
   state.markers.forEach((m) => state.map.removeLayer(m));
   state.markers.clear();
+  state.intersectionMarkers.forEach((m) => state.map.removeLayer(m));
+  state.intersectionMarkers.clear();
   const d = $('cell-detail');
   if (d) d.hidden = true;
   window.__lunaHeatmapFeatureCount = 0;
@@ -99,7 +102,7 @@ function fitMeasuredArea() {
   if (!state.map || !state.measuredAreaBounds || !state.measuredAreaBounds.isValid()) return;
   state.map.flyToBounds(state.measuredAreaBounds.pad(.10), { animate: !reducedMotion(), duration: 0.7, maxZoom: 15 });
 }
-function addIntersectionMarker(candidate) { const intersection = candidate.candidate_context?.intersection; if (!state.map || !intersection?.available || !Array.isArray(intersection.coordinate)) return; const [lon, lat] = intersection.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: 'intersection-marker', html: '<div aria-hidden="true">○</div>', iconSize: [22, 22], iconAnchor: [11, 11] }), title: `${candidate.rank}: ${intersection.name || 'Road context'}`, zIndexOffset: -100 }).addTo(state.map); marker.bindTooltip(`Candidate ${candidate.rank} · ${intersection.name || 'Nearest intersection'} · ${intersection.distance_m ?? '—'} m`, { direction: 'top' }); marker.on('click', () => focusCandidate(candidate.rank, true)); candidate.intersectionMarker = marker; }
+function addIntersectionMarker(candidate) { const intersection = candidate.candidate_context?.intersection; if (!state.map || !intersection?.available || !Array.isArray(intersection.coordinate)) return; const [lon, lat] = intersection.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: 'intersection-marker', html: '<div aria-hidden="true">○</div>', iconSize: [22, 22], iconAnchor: [11, 11] }), title: `${candidate.rank}: ${intersection.name || 'Road context'}`, zIndexOffset: -100 }).addTo(state.map); marker.bindTooltip(`Candidate ${candidate.rank} · ${intersection.name || 'Nearest intersection'} · ${intersection.distance_m ?? '—'} m`, { direction: 'top' }); marker.on('click', () => focusCandidate(candidate.rank, true)); state.intersectionMarkers.set(candidate.rank, marker); }
 function addMarker(candidate) { if (!state.map || !Array.isArray(candidate.coordinate)) return; const [lon, lat] = candidate.coordinate; if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const peers = state.candidates.filter((c) => c !== candidate && Math.abs(c.coordinate?.[0] - lon) < 0.0005 && Math.abs(c.coordinate?.[1] - lat) < 0.0005); const fan = peers.length ? (Number(candidate.rank) - 2) * 15 : 0; const marker = L.marker([lat, lon], { icon: L.divIcon({ className: `candidate-marker marker-${candidate.rank}`, html: `<div style="display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:${candidate.rank === 1 ? 'var(--blue-dark)' : 'var(--blue)'};color:#fff;font:700 17px 'DM Mono',monospace;line-height:1;transform:translateX(${fan}px)">${candidate.rank}</div>`, iconSize: [42, 42], iconAnchor: [21, 21] }), title: `Candidate ${candidate.rank}`, riseOnHover: true, zIndexOffset: baseMarkerOffset(candidate.rank) }).addTo(state.map); marker.on('click', () => focusCandidate(candidate.rank, true)); state.markers.set(candidate.rank, marker); }
 // Deterministic base stacking: Candidate 1 remains default foreground (highest base offset).
 // Higher z-index offset renders on top. Focused candidate is elevated well above all others.
@@ -231,6 +234,8 @@ function renderReadout() {
 }
 function clearResultSurfaces(message = 'Waiting for usable evidence.') {
   document.body.classList.remove('has-result');
+  const railLabel = $('hero-context-label');
+  if (railLabel) railLabel.textContent = modeLabel(state.mode);
   const railContent = $('hero-context-content');
   if (railContent) { railContent.replaceChildren(); const pending = document.createElement('span'); pending.textContent = state.mode === 'live' ? 'Live context pending — no Replay context retained.' : 'Replay context pending — no Live context retained.'; railContent.append(pending); }
   const identity = $('hero-identity');
@@ -287,6 +292,7 @@ function renderHeroContextRail(payload) {
   const ctxContent = $('hero-context-content');
   const identity = $('hero-identity');
   if (!ctxContent || !identity) return;
+  if (ctxLabel) ctxLabel.textContent = modeLabel(payload?.mode || state.mode);
   ctxContent.replaceChildren();
   const mode = payload?.mode || state.mode;
   if (mode === 'live') {

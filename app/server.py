@@ -467,7 +467,7 @@ class UHIHandler(SimpleHTTPRequestHandler):
             return
         content = asset_path.read_bytes()
         content_type = self.guess_type(str(asset_path))
-        build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+        build_version = build_identity()
         requested_version = parse_qs(parsed.query).get("v", [""])[0]
         if requested_version != build_version:
             self.send_response(200)
@@ -486,7 +486,7 @@ class UHIHandler(SimpleHTTPRequestHandler):
 
     def serve_index(self):
         index_path = get_dashboard_dir() / "index.html"
-        build_version = os.environ.get("RENDER_GIT_COMMIT", "r6-dev")
+        build_version = build_identity()
         content = index_path.read_text().replace("{{BUILD_VERSION}}", build_version).encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
