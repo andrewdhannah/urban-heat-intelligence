@@ -4,9 +4,48 @@
   "endpoint": "https://maps.phoenix.gov/pub/rest/services/Public/STR_StreetIntersections/MapServer/0/query",
   "capture_method": "authoritative_provider_query_then_local_haversine",
   "synthetic": false,
-  "candidates": {
-    "33.4581,-112.0774": {"available": true, "name": "W MCKINLEY ST & N 3RD AVE", "distance_m": 157, "coordinate": [-112.0776865823289, 33.45669086152296], "source_provider": "City of Phoenix", "dataset": "STR_StreetIntersections", "distance_method": "haversine_from_authoritative_returned_geometry"},
-    "33.4590,-112.0774": {"available": true, "name": "W PORTLAND ST & N 3RD AVE", "distance_m": 72, "coordinate": [-112.07777981436898, 33.45966829025464], "source_provider": "City of Phoenix", "dataset": "STR_StreetIntersections", "distance_method": "haversine_from_authoritative_returned_geometry"},
-    "33.4598,-112.0774": {"available": true, "name": "W PORTLAND ST & N 3RD AVE", "distance_m": 17, "coordinate": [-112.07777981436898, 33.45966829025464], "source_provider": "City of Phoenix", "dataset": "STR_StreetIntersections", "distance_method": "haversine_from_authoritative_returned_geometry"}
-  }
+  "candidate_results": [
+    {
+      "rank": 1,
+      "candidate_coordinate": {"latitude": 33.458146, "longitude": -112.077246},
+      "available": true,
+      "name": "W ROOSEVELT ST & N 3RD AVE",
+      "distance_m": 75,
+      "coordinate": [-112.07776359480492, 33.45866367423348],
+      "source_provider": "City of Phoenix",
+      "dataset": "STR_StreetIntersections",
+      "distance_method": "haversine_from_authoritative_returned_geometry",
+      "retrieved_at": "2026-08-29T00:00:00Z",
+      "used_in_decision": false,
+      "synthetic": false
+    },
+    {
+      "rank": 2,
+      "candidate_coordinate": {"latitude": 33.459044, "longitude": -112.077264},
+      "available": true,
+      "name": "W ROOSEVELT ST & N 3RD AVE",
+      "distance_m": 63,
+      "coordinate": [-112.07776359480492, 33.45866367423348],
+      "source_provider": "City of Phoenix",
+      "dataset": "STR_StreetIntersections",
+      "distance_method": "haversine_from_authoritative_returned_geometry",
+      "retrieved_at": "2026-08-29T00:00:00Z",
+      "used_in_decision": false,
+      "synthetic": false
+    },
+    {
+      "rank": 3,
+      "candidate_coordinate": {"latitude": 33.459941, "longitude": -112.077282},
+      "available": true,
+      "name": "N 3RD AVE & W PORTLAND ST",
+      "distance_m": 46,
+      "coordinate": [-112.07778029856968, 33.45991785106363],
+      "source_provider": "City of Phoenix",
+      "dataset": "STR_StreetIntersections",
+      "distance_method": "haversine_from_authoritative_returned_geometry",
+      "retrieved_at": "2026-08-29T00:00:00Z",
+      "used_in_decision": false,
+      "synthetic": false
+    }
+  ]
 }

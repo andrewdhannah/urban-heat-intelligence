@@ -89,10 +89,10 @@ def focus_escape_needed(question):
 
 async def assert_answer(page, question, phrase, source_sub):
     await page.wait_for_function(
-        "document.querySelector('#analyst-result p') && document.querySelector('#analyst-result p').textContent.trim().length > 10",
+        "document.querySelector('#status-region p') && document.querySelector('#status-region p').textContent.trim().length > 10",
         timeout=15000)
-    answer = await page.locator("#analyst-result p").inner_text()
-    source = await page.locator("#analyst-result small").inner_text()
+    answer = await page.locator("#status-region p").inner_text()
+    source = await page.locator("#status-region small").inner_text()
     assert phrase in answer, f"{question}: answer {answer!r}"
     assert source_sub in source, f"{question}: source {source!r}"
     assert "DECK STATUS" not in await page.locator("#status-region").inner_text()
@@ -206,13 +206,13 @@ async def verify_hidden_contract(browser, seed, live):
     assert await drawer.is_visible()
     await page.locator("#evidence-close").click()
     assert await page.evaluate("getComputedStyle(document.getElementById('evidence-drawer')).display") == "none"
-    assert await page.evaluate("getComputedStyle(document.getElementById('focus-exit-button')).display") == "none"
+    assert await page.locator("#focus-exit-button").count() == 0
     await page.locator("#map-focus-button").click()
     await page.wait_for_timeout(200)
-    assert await page.locator("#focus-exit-button").is_visible()
+    assert await page.locator("#map-focus-button").filter(has_text="Exit map focus").is_visible()
     await page.keyboard.press("Escape")
     await page.wait_for_timeout(200)
-    assert await page.evaluate("getComputedStyle(document.getElementById('focus-exit-button')).display") == "none"
+    assert await page.locator("#focus-exit-button").count() == 0
     await page.locator("#btn-live").click()
     await page.wait_for_function("document.querySelector('#mode-badge').textContent.trim() === 'LIVE'", timeout=20000)
     await page.wait_for_selector(".candidate-card[data-rank='1']", timeout=20000)

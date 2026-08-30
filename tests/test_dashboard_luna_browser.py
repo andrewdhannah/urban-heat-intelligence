@@ -85,7 +85,7 @@ async def main():
         assert await page.locator("#cell-detail").count() == 1
         await page.locator("#map-focus-button").click()
         assert await page.locator("body.map-focus").count() == 1
-        exit_button = page.locator("#focus-exit-button")
+        exit_button = page.locator("#map-focus-button")
         assert await exit_button.is_visible()
         assert await exit_button.is_enabled()
         assert await exit_button.bounding_box()
@@ -104,12 +104,12 @@ async def main():
         assert await page.locator("body.map-focus").count() == 0
         await page.locator("#question-input").fill("Which trees would cool this area most?")
         await page.locator("#question-form button[type='submit']").click()
-        assert "does not estimate the cooling effect" in await page.locator("#analyst-result").inner_text()
-        assert "Why it matters:" in await page.locator("#analyst-result").inner_text()
-        assert "does not estimate intervention effectiveness" in await page.locator("#analyst-result").inner_text()
+        assert "does not estimate the cooling effect" in await page.locator("#status-region").inner_text()
+        assert "Why it matters:" in await page.locator("#status-region").inner_text()
+        assert "does not estimate intervention effectiveness" in await page.locator("#status-region").inner_text()
         await page.locator("#question-input").fill("show live data")
         await page.locator("#question-form button[type='submit']").click()
-        assert "Switching to Live mode." in await page.locator("#analyst-result").inner_text()
+        assert "Switching to Live mode." in await page.locator("#status-region").inner_text()
         await page.wait_for_timeout(300)
         assert await page.locator("#btn-live").get_attribute("aria-pressed") == "true"
         assert await page.locator("#replay-env-context").count() == 0

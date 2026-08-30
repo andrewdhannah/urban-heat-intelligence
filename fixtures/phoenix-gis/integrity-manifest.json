@@ -66,11 +66,28 @@
     {
       "path": "fixtures/phoenix-gis/intersections-replay.json",
       "type": "intersections",
-      "sha256": "7b885667184cef84bbefb011d1828bfbd9b731fb43684ec5b46ea46ae8c2e9ba",
+      "sha256": "d9cb4cbd73d2a9e6e377320814d73f1cd7b34f7767907503897f35207ad4131b",
       "provider": "City of Phoenix",
       "dataset": "STR_StreetIntersections",
       "source_query_proof": {
-        "synthetic": false
+        "synthetic": false,
+        "candidate_coordinates": [
+          {
+            "rank": 1,
+            "lat": 33.458146,
+            "lon": -112.077246
+          },
+          {
+            "rank": 2,
+            "lat": 33.459044,
+            "lon": -112.077264
+          },
+          {
+            "rank": 3,
+            "lat": 33.459941,
+            "lon": -112.077282
+          }
+        ]
       }
     }
   ]

@@ -270,11 +270,12 @@ def test_brief_dynamic_content_safe():
             page.locator("#question-form button[type='submit']").click()
             page.wait_for_timeout(1000)
             # In Luna, non-default questions go to the analyst (client-side)
-            analyst_text = page.locator("#analyst-result").text_content()
-            assert 'hostile question' in analyst_text or 'cooling effect' in analyst_text
+            readout_text = page.locator("#status-region").text_content()
+            assert 'cooling effect' in readout_text
+            assert 'DESK READOUT' in readout_text
             # No HTML elements created — text only
-            assert page.locator("#analyst-result img").count() == 0
-            assert page.locator("#analyst-result script").count() == 0
+            assert page.locator("#status-region img").count() == 0
+            assert page.locator("#status-region script").count() == 0
             # Also verify backend evidence chain has no HTML elements
             page.locator("#question-input").fill("Where should Phoenix prioritize a cooling intervention this afternoon?")
             page.locator("#question-form button[type='submit']").click()

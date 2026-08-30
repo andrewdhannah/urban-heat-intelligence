@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[1]
 sys.path.insert(0, str(REPO))
-from app.server import build_visualization_payload, get_agent_result  # noqa: E402
+from app.server import build_visualization_payload, get_agent_result, build_identity  # noqa: E402
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -46,7 +46,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if parsed.path == "/":
             index = (ROOT / "index.html").read_text()
-            build_version = os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_COMMIT") or "local-dev"
+            build_version = build_identity()
             body = index.replace("{{BUILD_VERSION}}", build_version).encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html")

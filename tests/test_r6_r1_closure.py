@@ -533,12 +533,14 @@ def test_intersection_unavailable_state_survives_context_enrichment():
     assert context["intersection"]["used_in_decision"] is False
 
 
-def test_intersection_replay_returns_unavailable():
-    """Replay mode returns unavailable for intersection."""
+def test_intersection_replay_returns_fixture_or_bounded_unavailable():
+    """Replay uses captured context and rejects unrelated coordinates."""
     from src.tools.gis_context import query_nearest_intersection
-    result = query_nearest_intersection(33.457, -112.074, mode="replay")
-    assert result["available"] is False
-    assert result["error"] == "intersection_not_queried_in_replay"
+    result = query_nearest_intersection(33.459941, -112.077282, mode="replay")
+    assert result["result"]["available"] is True
+    assert result["result"]["used_in_decision"] is False
+    unrelated = query_nearest_intersection(40.0, -74.0, mode="replay")
+    assert unrelated["available"] is False
 
 
 # ---------------------------------------------------------------------------

@@ -94,13 +94,15 @@ def test_ranking_order_preserved_after_centroid():
 # Step 9: Live intersection enrichment
 # ---------------------------------------------------------------------------
 
-def test_intersection_not_queried_in_replay():
-    """Intersection query returns unavailable in replay mode."""
+def test_intersection_replay_fixture_backed_and_zero_network():
+    """Canonical Replay intersections come only from the captured fixture."""
     from src.tools.gis_context import query_nearest_intersection
-    result = query_nearest_intersection(33.45, -112.07, mode="replay")
-    assert result["available"] is False
-    assert result["error"] == "intersection_not_queried_in_replay"
-    assert result["evidence_node"]["data"]["mode"] == "replay"
+    with patch("src.tools.gis_context.urllib.request.urlopen") as mock_urlopen:
+        result = query_nearest_intersection(33.458146, -112.077246, mode="replay")
+    assert result["result"]["available"] is True
+    assert result["result"]["source_provider"] == "City of Phoenix"
+    assert result["result"]["used_in_decision"] is False
+    mock_urlopen.assert_not_called()
 
 
 def test_intersection_used_in_decision_false():

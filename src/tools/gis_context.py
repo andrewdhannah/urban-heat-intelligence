@@ -539,9 +539,14 @@ def query_nearest_intersection(
         fixture_path = Path("fixtures/phoenix-gis/intersections-replay.json")
         try:
             fixture = json.loads(fixture_path.read_text())
-            key = f"{latitude:.4f},{longitude:.4f}"
-            result = fixture.get("candidates", {}).get(key)
+            results = fixture.get("candidate_results", [])
+            if not results:
+                results = [{"candidate_coordinate": {"latitude": float(k.split(",")[0]), "longitude": float(k.split(",")[1])}, **v} for k, v in fixture.get("candidates", {}).items()]
+            result = next((item for item in results
+                           if abs(float(item.get("candidate_coordinate", {}).get("latitude", 999)) - latitude) < 0.00001
+                           and abs(float(item.get("candidate_coordinate", {}).get("longitude", 999)) - longitude) < 0.00001), None)
             if result:
+                result = {k: v for k, v in result.items() if k != "candidate_coordinate"}
                 return {"result": {**result, "mode": "replay", "used_in_decision": False}, "evidence_node": evidence_node,
                         "result_evidence_node": {"step": "intersection_result", "data": {**result, "mode": "replay", "used_in_decision": False}}}
         except (OSError, ValueError):
