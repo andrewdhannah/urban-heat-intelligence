@@ -1,6 +1,6 @@
 const DEFAULT_QUESTION = 'Where should Phoenix prioritize a cooling intervention this afternoon?';
 const TIE_THRESHOLD = 0.1;
-const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, highlightLayer: null, highlightRenderer: null, highlightCanvas: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
+const state = { mode: 'replay', requestId: 0, requestGeneration: 0, controller: null, liveJobId: null, livePollTimer: null, map: null, resizeObserver: null, heatLayer: null, aoiLayer: null, highlightLayer: null, highlightRenderer: null, highlightCanvas: null, measuredAreaBounds: null, markers: new Map(), candidates: [], payload: null, replayEnv: null, focused: null, focusMode: false, focusScrollY: 0, evidenceAnimating: null, heatOpacity: 0.65, basemap: 'standard', liveStart: 0, liveTimer: null, unit: 'C' };
 const deskState = { mode: 'replay', phase: 'idle', readout: 'status' };
 const $ = (id) => document.getElementById(id);
 const text = (el, value) => { if (el) el.textContent = value ?? '—'; };
@@ -209,7 +209,7 @@ function renderReadout() {
   region.replaceChildren();
   if (deskState.readout === 'analyst') return;
   const label = document.createElement('strong');
-  label.textContent = deskState.phase === 'error' ? `${deskState.mode.toUpperCase()} UNAVAILABLE` : deskState.phase === 'ready' ? `DESK READOUT · ${deskState.mode.toUpperCase()}` : `DECK STATUS · ${deskState.mode.toUpperCase()}`;
+  label.textContent = deskState.phase === 'error' ? `${deskState.mode.toUpperCase()} UNAVAILABLE` : deskState.phase === 'ready' ? `DESK READOUT · ${deskState.mode.toUpperCase()}` : `DESK STATUS · ${deskState.mode.toUpperCase()}`;
   const detail = document.createElement('span');
   detail.textContent = deskState.phase === 'error' ? ' The current evidence request could not be completed.' : deskState.phase === 'ready' ? ` ${state.payload?.summary || 'Thermal evidence is ready for investigation.'}` : ` ${deskState.mode === 'replay' ? 'Loading deterministic local capture' : 'Requesting latest available provider observation'}…`;
   region.append(label, detail);
@@ -516,11 +516,10 @@ function runAnalyst(question) {
   const intent = parseIntent(question);
   const targetMode = intent.id === 'mode' ? requestedMode(question) : state.mode;
   const result = $('analyst-result'); result.replaceChildren();
-  const label = document.createElement('span'); label.className = 'eyebrow accent'; label.textContent = 'GROUNDED ANALYST';
   const answer = document.createElement('p'); answer.textContent = intent.answer(question, targetMode);
   const source = document.createElement('small'); source.textContent = `Source: ${intent.source} · Why it matters: ${intent.why || 'This source directly supports the answer.'}`;
-  result.append(label, answer, source);
-  deskState.readout = 'analyst';
+  result.append(answer, source);
+  deskState.readout = 'decision_summary';
   renderReadout();
   const suggestions = $('analyst-suggestions'); suggestions.replaceChildren();
   intent.suggestions.filter((s) => !(state.mode === 'replay' && /NWS|weather|current/i.test(s))).slice(0, 3).forEach((suggestion) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = suggestion; b.addEventListener('click', () => { $('question-input').value = suggestion; runAnalyst(suggestion); }); suggestions.append(b); });
@@ -538,6 +537,7 @@ async function request(mode = state.mode) {
   if (state.controller) state.controller.abort();
   state.controller = new AbortController();
   deskState.mode = mode; deskState.phase = 'loading'; deskState.readout = 'status';
+  state.liveJobId = null;
   clearLiveTimer();
   setLoading(mode === 'replay' ? 'Loading reproducible capture…' : 'Requesting latest available provider observation…', mode);
   $('btn-replay').classList.toggle('active', mode === 'replay');
@@ -546,14 +546,21 @@ async function request(mode = state.mode) {
   $('btn-live').setAttribute('aria-pressed', String(mode === 'live'));
   startLiveTimer();
   try {
-    const q = encodeURIComponent($('question-input').value || DEFAULT_QUESTION);
-    const response = await fetch(`/api/answer?question=${q}&mode=${mode}`, { signal: state.controller.signal });
-    let payload = null;
-    try { payload = await response.json(); }
-    catch { payload = { error: true, message: 'Invalid server response', mode }; }
+    const q = $('question-input').value || DEFAULT_QUESTION;
+    let payload;
+    if (mode === 'live') {
+      const start = await fetch('/api/live/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q }), signal: state.controller.signal });
+      const started = await start.json();
+      if (!start.ok) throw new Error(started.message || `Server returned ${start.status}`);
+      state.liveJobId = started.job_id;
+      payload = await pollLiveJob(id, state.liveJobId, state.controller.signal);
+    } else {
+      const response = await fetch(`/api/answer?question=${encodeURIComponent(q)}&mode=replay`, { signal: state.controller.signal });
+      try { payload = await response.json(); } catch { payload = { error: true, message: 'Invalid server response', mode }; }
+      if (!response.ok) payload = { ...(payload || {}), error: true, mode };
+    }
     if (id !== state.requestGeneration) return;
     clearLiveTimer();
-    if (!response.ok) payload = { ...(payload || {}), error: true, mode };
     render(payload || { error: true, mode }, mode);
   } catch (error) {
     if (id !== state.requestGeneration) return;
@@ -733,11 +740,24 @@ function initQuestionCatalogue() {
 // Server may take several minutes for bounded Live lookback + env_params calls.
 // User may explicitly cancel by switching mode or navigating away.
 function startLiveTimer() { clearLiveTimer(); state.liveStart = Date.now(); state.liveTimer = setInterval(() => updateLiveProgress(), 1000); updateLiveProgress(); }
-function clearLiveTimer() { if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; } state.liveStart = 0; }
+function clearLiveTimer() { if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; } if (state.livePollTimer) { clearTimeout(state.livePollTimer); state.livePollTimer = null; } state.liveStart = 0; }
 function updateLiveProgress() {
   const elapsed = state.liveStart ? Math.round((Date.now() - state.liveStart) / 1000) : 0;
   if (!state.liveStart || deskState.phase !== 'loading') return;
   renderReadout();
 }
+async function pollLiveJob(id, jobId, signal) {
+  while (id === state.requestGeneration && state.liveJobId === jobId) {
+    const response = await fetch(`/api/live/status?job_id=${encodeURIComponent(jobId)}`, { signal });
+    const status = await response.json();
+    if (!response.ok) throw new Error(status.message || `Server returned ${response.status}`);
+    text($('observation-note'), status.stage ? `${titleCase(status.stage)} · ${status.elapsed_seconds ?? 0}s` : 'Live provider workflow in progress…');
+    if (status.state === 'completed') return status.payload;
+    if (status.state === 'failed') return status.payload || { error: true, mode: 'live', message: 'Live job failed.' };
+    await new Promise((resolve) => { state.livePollTimer = setTimeout(resolve, 800); });
+  }
+  throw new DOMException('Stale Live request', 'AbortError');
+}
+
 function init() { $('question-input').value = DEFAULT_QUESTION; initSourceControls(); initMap(); initHeatOpacityControl(); initBasemapControl(); initQuestionCatalogue(); $('question-form').addEventListener('submit', (e) => { e.preventDefault(); const q = $('question-input').value.trim(); if (q && q !== DEFAULT_QUESTION) runAnalyst(q); else request(state.mode); });   $('btn-replay').addEventListener('click', () => request('replay')); $('btn-live').addEventListener('click', () => request('live')); $('btn-unit').addEventListener('click', toggleUnit); $('map-focus-button').addEventListener('click', () => setFocusMode(!state.focusMode)); $('fit-area-button').addEventListener('click', fitMeasuredArea); $('focus-exit-button').addEventListener('click', () => setFocusMode(false)); document.addEventListener('keydown', handleEscape); $('evidence-close').addEventListener('click', () => { $('evidence-drawer').hidden = true; $('evidence-toggle').setAttribute('aria-expanded', 'false'); }); $('evidence-toggle').addEventListener('click', openEvidence); request('replay'); }
 window.addEventListener('DOMContentLoaded', init);

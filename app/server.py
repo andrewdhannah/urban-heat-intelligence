@@ -8,13 +8,61 @@ for the HeatAgent in both LIVE and REPLAY modes.
 import json
 import os
 import sys
+import threading
+import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
 ALLOWED_VARIANTS = ("incumbent", "luna")
 DEFAULT_VARIANT = "luna"
+LIVE_MAX_ACTIVE = 1
+LIVE_JOB_TTL_SECONDS = 30 * 60
+LIVE_JOBS = {}
+LIVE_JOBS_LOCK = threading.RLock()
+LIVE_SLOT = threading.BoundedSemaphore(LIVE_MAX_ACTIVE)
+
+
+def build_identity():
+    return os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_COMMIT") or "local-dev"
+
+
+def _cleanup_live_jobs(now=None):
+    now = now or time.time()
+    with LIVE_JOBS_LOCK:
+        expired = [job_id for job_id, job in LIVE_JOBS.items()
+                   if job["state"] in ("completed", "failed") and now - job["finished_at"] > LIVE_JOB_TTL_SECONDS]
+        for job_id in expired:
+            LIVE_JOBS.pop(job_id, None)
+
+
+def _set_live_job(job_id, **updates):
+    with LIVE_JOBS_LOCK:
+        job = LIVE_JOBS.get(job_id)
+        if job:
+            job.update(updates)
+            job["updated_at"] = time.time()
+
+
+def _run_live_job(job_id, question):
+    if not LIVE_SLOT.acquire(blocking=False):
+        _set_live_job(job_id, state="failed", stage="capacity", safe_error_class="capacity_exhausted", finished_at=time.time())
+        return
+    try:
+        _set_live_job(job_id, state="running", stage="fortyguard_workflow", provider_operation="heatmap_and_environmental_parameters")
+        result = get_agent_result(question, "live")
+        payload = build_visualization_payload(result)
+        if payload.get("error"):
+            _set_live_job(job_id, state="failed", stage="provider_result", safe_error_class="provider_unavailable", payload=payload, finished_at=time.time())
+        else:
+            _set_live_job(job_id, state="completed", stage="complete", payload=payload, finished_at=time.time())
+    except Exception as exc:
+        print(f"[ERROR] live job failed: {type(exc).__name__}", file=sys.stderr)
+        _set_live_job(job_id, state="failed", stage="worker", safe_error_class=type(exc).__name__, finished_at=time.time())
+    finally:
+        LIVE_SLOT.release()
 
 
 def get_dashboard_variant():
@@ -378,6 +426,8 @@ class UHIHandler(SimpleHTTPRequestHandler):
 
         if parsed.path == "/":
             self.serve_index()
+        elif parsed.path == "/api/live/status":
+            self.serve_live_status(parse_qs(parsed.query).get("job_id", [""])[0])
         elif parsed.path == "/api/answer":
             params = parse_qs(parsed.query)
             question = params.get("question", ["Where should Phoenix prioritize a cooling intervention this afternoon?"])[0]
@@ -441,6 +491,51 @@ class UHIHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
 
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        if parsed.path != "/api/live/start":
+            self.send_error(404, "Not found")
+            return
+        length = int(self.headers.get("Content-Length", "0"))
+        try:
+            body = json.loads(self.rfile.read(min(length, 10000)) or b"{}")
+        except (ValueError, UnicodeDecodeError):
+            self.send_error(400, "Invalid JSON")
+            return
+        question = str(body.get("question") or "Where should Phoenix prioritize a cooling intervention this afternoon?")[:1000]
+        _cleanup_live_jobs()
+        with LIVE_JOBS_LOCK:
+            active = sum(job["state"] in ("queued", "running") for job in LIVE_JOBS.values())
+            if active >= LIVE_MAX_ACTIVE:
+                self.write_json({"error": True, "message": "A Live request is already in progress."}, 429)
+                return
+            job_id = uuid.uuid4().hex
+            LIVE_JOBS[job_id] = {"job_id": job_id, "state": "queued", "stage": "queued", "provider_operation": None,
+                                 "safe_error_class": None, "created_at": time.time(), "updated_at": time.time(), "finished_at": None, "payload": None}
+        threading.Thread(target=_run_live_job, args=(job_id, question), daemon=True, name=f"uhi-live-{job_id[:8]}").start()
+        self.write_json({"job_id": job_id, "state": "queued"}, status=202)
+
+    def write_json(self, value, status=200):
+        response = json.dumps(value)
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(response.encode())
+
+    def serve_live_status(self, job_id):
+        _cleanup_live_jobs()
+        with LIVE_JOBS_LOCK:
+            job = LIVE_JOBS.get(job_id)
+            if not job:
+                self.write_json({"error": True, "message": "Live job not found."}, status=404)
+                return
+            response = {key: value for key, value in job.items() if key not in ("payload", "created_at", "updated_at", "finished_at")}
+            response["elapsed_seconds"] = round((job["finished_at"] or time.time()) - job["created_at"], 1)
+            if job["state"] in ("completed", "failed") and job.get("payload") is not None:
+                response["payload"] = job["payload"]
+        self.write_json(response)
+
     def serve_answer(self, question, mode):
         try:
             result = get_agent_result(question, mode)
@@ -498,19 +593,15 @@ class UHIHandler(SimpleHTTPRequestHandler):
         self.wfile.write(response.encode())
 
     def serve_version(self):
-        """Return the application version for client verification."""
-        response = json.dumps({"version": "r6", "build": "remediation/dash-v2-r6-public-ux"})
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        self.wfile.write(response.encode())
+        """Return actual non-secret deployment identity."""
+        self.write_json({"version": build_identity(), "build": build_identity(), "commit": build_identity()})
 
 
 def main():
     import os
     port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
-    server = HTTPServer((host, port), UHIHandler)
+    server = ThreadingHTTPServer((host, port), UHIHandler)
     print(f"Urban Heat Intelligence — Decision Experience")
     print(f"Running at http://localhost:{port}")
     print(f"Open in browser to use the application")
